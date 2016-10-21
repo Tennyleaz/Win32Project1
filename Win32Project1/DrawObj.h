@@ -15,7 +15,7 @@ public:
 	DrawObj()
 	{
 		color = 0;
-		nObjType = 0;
+		//nObjType = 0;
 		startFinished = false;
 		endFinished = false;
 	}
@@ -31,18 +31,9 @@ public:
 	}
 	virtual ~DrawObj() {};
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
-};
-
-class LineObj : public DrawObj
-{
-public:
-	//POINT start, end;
-	LineObj()	{	}
-	virtual ~LineObj() {}
-	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
+protected:
+	HPEN switchColor()
 	{
-		if (!startFinished)
-			return;
 		HPEN hPen;
 		switch (color)
 		{
@@ -73,15 +64,35 @@ public:
 		default:
 			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 		}
+		return hPen;
+	}
+	void releaseColor(HDC hdc)
+	{
+		/*HPEN hPen = GetStockObject(BLACK_PEN);//CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+		SelectObject(hdc, hPen);
+		DeleteObject(hPen);*/
+		GetStockObject(DC_PEN);
+	}
+};
 
+class LineObj : public DrawObj
+{
+public:
+	LineObj()	{	}
+	virtual ~LineObj() {}
+	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
+	{
+		if (!startFinished)
+			return;
+		HPEN hPen = switchColor();
 		SelectObject(hdc, hPen);
 
 		MoveToEx(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, NULL);
 		LineTo(hdc, ptEnd.x - Xoffset, ptEnd.y - Yoffset);
 
+		
 		DeleteObject(hPen);
-		hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-		SelectObject(hdc, hPen);
+		releaseColor(hdc);
 	}
 };
 
@@ -113,11 +124,7 @@ public:
 			return;
 		string s = "";
 		RECT rc;
-		SetRect(&rc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptBeg.x - Xoffset+ 300, ptBeg.y - Yoffset + 300);
-
-		// Retrieve a handle to the variable stock font. 
-		HFONT hFont, hOldFont;		 
-		hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //目前寬8，高13
+		SetRect(&rc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptBeg.x - Xoffset+ 300, ptBeg.y - Yoffset + 300);		
 
 		switch (color)
 		{
@@ -149,6 +156,10 @@ public:
 			SetTextColor(hdc, RGB(0, 0, 0));
 		}
 
+		// Retrieve a handle to the variable stock font. 
+		HFONT hFont, hOldFont;
+		hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //目前寬8，高13
+
 		// Select the variable stock font into the specified device context. 
 		if (hOldFont = (HFONT)SelectObject(hdc, hFont))
 		{
@@ -163,13 +174,14 @@ public:
 			/*SIZE size;
 			GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 			s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-			s = "line number " + to_string(text.size()) + ",char number " + to_string(text.back().size());
-			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());			
+			/*s = "line number " + to_string(text.size()) + ",char number " + to_string(text.back().size());
+			/TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());*/
 			
 			// Restore the original font.        
 			SelectObject(hdc, hOldFont);
 		}
 		SetTextColor(hdc, RGB(0, 0, 0));
+		DeleteObject(hFont);
 	}
 };
 
@@ -182,36 +194,7 @@ public:
 	{
 		if (!startFinished)
 			return;
-		HPEN hPen;
-		switch (color)
-		{
-		case 0:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-			break;
-		case 1:
-			hPen = CreatePen(PS_SOLID, 1, RGB(180, 180, 180));
-			break;
-		case 2:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
-			break;
-		case 3:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
-			break;
-		case 4:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
-			break;
-		case 5:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
-			break;
-		case 6:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 255, 0));
-			break;
-		case 7:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 255));
-			break;
-		default:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-		}
+		HPEN hPen = switchColor();
 		SelectObject(hdc, hPen);
 
 		int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
@@ -221,8 +204,7 @@ public:
 		Rectangle(hdc, left - Xoffset, top - Yoffset, right - Xoffset, buttom - Yoffset);
 
 		DeleteObject(hPen);
-		hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-		SelectObject(hdc, hPen);
+		releaseColor(hdc);
 	}
 };
 
@@ -236,36 +218,7 @@ public:
 	{
 		if (!startFinished)
 			return;
-		HPEN hPen;
-		switch (color)
-		{
-		case 0:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-			break;
-		case 1:
-			hPen = CreatePen(PS_SOLID, 1, RGB(180, 180, 180));
-			break;
-		case 2:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
-			break;
-		case 3:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
-			break;
-		case 4:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
-			break;
-		case 5:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
-			break;
-		case 6:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 255, 0));
-			break;
-		case 7:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 255));
-			break;
-		default:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-		}
+		HPEN hPen = switchColor();
 		SelectObject(hdc, hPen);
 
 		int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
@@ -275,8 +228,7 @@ public:
 		Ellipse(hdc, left-Xoffset, top-Yoffset, right-Xoffset, buttom-Yoffset);
 
 		DeleteObject(hPen);
-		hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-		SelectObject(hdc, hPen);
+		releaseColor(hdc);
 	}
 };
 

@@ -23,6 +23,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
 WCHAR szChildClass[]=L"123";
 HWND hWndFather;
 HWND myButton[4];
+int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
 
 // 這個程式碼模組中所包含之函式的向前宣告: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -85,7 +86,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	childClass.hIconSm = LoadIcon(childClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&childClass);
 
-	HWND myChildWindow = CreateWindow(szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 1320, 10, 77, 265, hWndFather, (HMENU)103, hInst, NULL);
+	HWND myChildWindow = CreateWindow(szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 30, 10, 77, 265, hWndFather, (HMENU)103, hInst, NULL);
 
 	myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, myChildWindow, (HMENU)120, hInst, NULL);
 	myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, myChildWindow, (HMENU)121, hInst, NULL);
@@ -202,10 +203,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	SCROLLINFO si;
 	// These variables are required by BitBlt. 
-	static HDC hdcWin;           // window DC 
+	//static HDC hdcWin;           // window DC 
 	static HDC hdcScreen;        // DC for entire screen 
-	static HDC hdcScreenCompat;  // memory DC for screen 
-	static HBITMAP hbmpCompat;   // bitmap handle to old DC 
+	///static HDC hdcScreenCompat;  // memory DC for screen 
+	///static HBITMAP hbmpCompat;   // bitmap handle to old DC 
 	static BITMAP bmp;           // bitmap data structure 
 	static BOOL fBlt;            // TRUE if BitBlt occurred 
 	static BOOL fScroll;         // TRUE if scrolling occurred 
@@ -220,12 +221,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static int yMinScroll;       // minimum vertical scroll value 
 	static int yCurrentScroll;   // current vertical scroll value 
 	static int yMaxScroll;       // maximum vertical scroll value 
-	HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
+	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
 	static HMENU hMenu=NULL;        //try to get the system menu
-
-	static int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
+	
 	static int currentColor = 0;        //0=black, 0~7 kinds of color
-	static HWND myWindow;
+	//static HWND myWindow;
 
 	switch (message)
 	{
@@ -255,7 +255,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bmpIcon6 = (HBITMAP)LoadImage(NULL, L"cyan.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon7 = (HBITMAP)LoadImage(NULL, L"yellow.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"magenta.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		if (bmpIcon1)
+		/*if (bmpIcon1)
 		{
 			SendMessage(hwndButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
 			SendMessage(hwndButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
@@ -263,7 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SendMessage(hwndButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
 		}
 		else
-			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
+			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);*/
 
 		//add image to menu
 		hMenu = GetMenu(hWnd); //LoadMenu(NULL, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
@@ -272,7 +272,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			//ModifyMenu(hMenu, ID_COMMAND_1, MF_BYCOMMAND | MF_STRING, ID_COMMAND_1, (PCTSTR)(LONG)bmpIcon1);
 			HMENU hMenu2 = GetSubMenu(hMenu, 1);
 			HMENU hMenu3 = GetSubMenu(hMenu2, 5);
+			//CheckMenuItem(hMenu, ID_BLACK, MF_CHECKED);
+			/*ModifyMenu(hMenu3, 0, MF_BYPOSITION | MF_BITMAP, ID_BLACK, (LPCTSTR)bmpIcon1);
+			ModifyMenu(hMenu3, 1, MF_BYPOSITION | MF_BITMAP, ID_GRAY, (LPCTSTR)bmpIcon2);
+			ModifyMenu(hMenu3, 2, MF_BYPOSITION | MF_BITMAP, ID_RED, (LPCTSTR)bmpIcon3);
+			ModifyMenu(hMenu3, 3, MF_BYPOSITION | MF_BITMAP, ID_GREEN, (LPCTSTR)bmpIcon4);
+			ModifyMenu(hMenu3, 4, MF_BYPOSITION | MF_BITMAP, ID_BLU, (LPCTSTR)bmpIcon5);
+			ModifyMenu(hMenu3, 5, MF_BYPOSITION | MF_BITMAP, ID_CYAN, (LPCTSTR)bmpIcon6);
+			ModifyMenu(hMenu3, 6, MF_BYPOSITION | MF_BITMAP, ID_YELLOW, (LPCTSTR)bmpIcon7);
+			ModifyMenu(hMenu3, 7, MF_BYPOSITION | MF_BITMAP, ID_Magenta, (LPCTSTR)bmpIcon8);*/
 			SetMenuItemBitmaps(hMenu3, 0, MF_BYPOSITION, bmpIcon1, bmpIcon1);
+			//bmpIcon1 = (HBITMAP)LoadImage(NULL, L"grey.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			//bmpIcon2 = (HBITMAP)LoadImage(NULL, L"greychecked.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 			SetMenuItemBitmaps(hMenu3, 1, MF_BYPOSITION, bmpIcon2, bmpIcon2);
 			SetMenuItemBitmaps(hMenu3, 2, MF_BYPOSITION, bmpIcon3, bmpIcon3);
 			SetMenuItemBitmaps(hMenu3, 3, MF_BYPOSITION, bmpIcon4, bmpIcon4);
@@ -280,7 +291,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetMenuItemBitmaps(hMenu3, 5, MF_BYPOSITION, bmpIcon6, bmpIcon6);
 			SetMenuItemBitmaps(hMenu3, 6, MF_BYPOSITION, bmpIcon7, bmpIcon7);
 			SetMenuItemBitmaps(hMenu3, 7, MF_BYPOSITION, bmpIcon8, bmpIcon8);
-			//AppendMenu(hMenu2, MF_BITMAP, IDM_COMMAND_2, (PCTSTR)(LONG)bmpIcon1);
+			/*AppendMenu(hMenu3, MF_BITMAP, 111, (PCTSTR)(LONG)bmpIcon1);
+			CheckMenuItem(hMenu3, 111, MF_CHECKED);*/
 		}
 		else
 			MessageBox(hWnd, 0, TEXT("NO MENU"), MB_OK);
@@ -289,14 +301,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// screen. The normal DC provides a snapshot of the 
 		// screen contents. The memory DC keeps a copy of this 
 		// snapshot in the associated bitmap. 
-		hdcScreen = CreateDC(L"DISPLAY", (PCTSTR)NULL,
-			(PCTSTR)NULL, (CONST DEVMODE *) NULL);
-		hdcScreenCompat = CreateCompatibleDC(hdcScreen);
+		hdcScreen = CreateDC(L"DISPLAY", (PCTSTR)NULL,	(PCTSTR)NULL, (CONST DEVMODE *) NULL);
+		///hdcScreenCompat = CreateCompatibleDC(hdcScreen);
 
 		// Retrieve the metrics for the bitmap associated with the 
 		// regular device context.  bmp size=1920*1080
-		bmp.bmBitsPixel =
-			(BYTE)GetDeviceCaps(hdcScreen, BITSPIXEL);
+		bmp.bmBitsPixel = (BYTE)GetDeviceCaps(hdcScreen, BITSPIXEL);
 		bmp.bmPlanes = (BYTE)GetDeviceCaps(hdcScreen, PLANES);
 		bmp.bmWidth = 2000;//GetDeviceCaps(hdcScreen, HORZRES);
 		bmp.bmHeight = 2000;//GetDeviceCaps(hdcScreen, VERTRES);
@@ -305,11 +315,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bmp.bmWidthBytes = ((bmp.bmWidth + 15) &~15) / 8;
 
 		// Create a bitmap for the compatible DC. 
-		hbmpCompat = CreateBitmap(bmp.bmWidth, bmp.bmHeight,
-			bmp.bmPlanes, bmp.bmBitsPixel, (CONST VOID *) NULL);
+		///hbmpCompat = CreateBitmap(bmp.bmWidth, bmp.bmHeight,
+		///	bmp.bmPlanes, bmp.bmBitsPixel, (CONST VOID *) NULL);
 
 		// Select the bitmap for the compatible DC. 
-		SelectObject(hdcScreenCompat, hbmpCompat);
+		///SelectObject(hdcScreenCompat, hbmpCompat);
 
 		// Initialize the flags. 
 		fBlt = FALSE;
@@ -325,7 +335,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		yMinScroll = 0;
 		yCurrentScroll = 0;
 		yMaxScroll = 0;
-
+		DeleteDC(hdcScreen);
 		return 0;
 	case WM_COMMAND:
 	{
@@ -356,7 +366,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			newCircle.clean();
 			InvalidateRect(hWnd, NULL, TRUE);
 			//MessageBox(hWnd, szBuffer, TEXT("Pressed"), MB_OK);
-			//return DefWindowProc(hWnd, message, wParam, lParam);
 			break;
 		case 120:
 			SetFocus(hWnd);  //return the focus back to main window
@@ -366,6 +375,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);  //uncheck others
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
+			//bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
 			break;
 		case 121:
 			SetFocus(hWnd);
@@ -375,6 +389,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_CHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
 			break;
 		case 122:
 			SetFocus(hWnd);
@@ -384,6 +402,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_CHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
 			break;
 		case 123:
 			SetFocus(hWnd);
@@ -393,6 +415,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_CHECKED);
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
 			break;
 		case ID_BLACK:
 			currentColor = 0;
@@ -517,10 +543,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					newText.endFinished = false;
 					newText.color = currentColor;
 				}
-				else if (newText.startFinished && !newText.endFinished)
+				else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 				{
-					newText.endFinished = true;
-					DrawObjList.push_back(move(make_unique<TextObj>(newText)));
+					if (newText.text.size() > 0)
+					{
+						newText.endFinished = true;
+						DrawObjList.push_back(move(make_unique<TextObj>(newText)));
+					}
 					newText.clean();
 					newText.ptBeg.x = mouseX;
 					newText.ptBeg.y = mouseY;
@@ -545,7 +574,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				newline.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
 				newline.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				newline.endFinished = true;
-				//LineObjList.push_back(newline);
 				DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 			}
 			else if (currentDrawMode == 1)
@@ -553,7 +581,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				newRect.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
 				newRect.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				newRect.endFinished = true;
-				//RectObjList.push_back(newRect);
 				//DrawObjList.push_back(new RectangularObj(newRect));
 				DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 			}
@@ -562,13 +589,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				newCircle.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
 				newCircle.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				newCircle.endFinished = true;
-				//CircleObjList.push_back(newCircle);
-				//DrawObjList.push_back(new CircleObj(newCircle));
 				DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 			}
 			else
 			{
-				//newText.endFinished
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			mouseHasDown = false;
@@ -583,32 +607,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam >= 65 && wParam <= 90)  //A~Z
 				{
+					if (newText.text.size() == 0)
+						newText.text.push_back("");
 					newText.text.back().push_back(wParam+32);
-					//newText.charNumber++;
-					//newText.curserPos.back()++;
 				}
 				else if (wParam >= 48 && wParam <= 57) //0~9
 				{
+					if (newText.text.size() == 0)
+						newText.text.push_back("");
 					newText.text.back().push_back(wParam);
-					//newText.charNumber++;
-					//newText.curserPos.back()++;
 				}
 				else if (wParam == 0x20) //space
 				{
+					if (newText.text.size() == 0)
+						newText.text.push_back("");
 					newText.text.back().push_back(' ');
 				}
 				else if (wParam == 0x0D)  //enter
 				{
+					if (newText.text.size() == 0)
+						newText.text.push_back("");
 					newText.text.push_back("");  //insert a "" string to back
-					//newText.charNumber = 0;
-					//newText.lineNumber++;
-					//newText.curserPos.push_back(0);
 				}
 				else if (wParam == 0x08)  //backspace <-
 				{
 					if (newText.text.size() > 0)
 					{
-						if (newText.text.back().size() > 0)
+						if (newText.text.back().size() > 0)  //string is not empty
 						{
 							newText.text.back().pop_back();
 						}
@@ -619,8 +644,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				int x, y;  //x and y is current caret position on window
-				x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
-				y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
+				if (newText.text.size() > 0)
+				{
+					x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
+					y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
+				}
+				else
+				{
+					x = newText.ptBeg.x - xCurrentScroll;
+					y = newText.ptBeg.y - yCurrentScroll;
+				}
 				AutoScroll(hWnd, x, y, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
@@ -674,10 +707,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		newline.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 
-		/*for (auto it = LineObjList.begin(); it != LineObjList.end(); it++)
-		{
-			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-		}*/
+		//for (auto it = LineObjList.begin(); it != LineObjList.end(); it++)
+		//{
+		//	it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+		//}
 
 		SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
 		newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
@@ -689,13 +722,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// Create a solid black caret. 
 			CreateCaret(hWnd, (HBITMAP)NULL, 3, 14);
 			int x, y;
-			x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
-			y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
+			if (newText.text.size() > 0)
+			{
+				x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
+				y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
+			}
+			else
+			{
+				x = newText.ptBeg.x - xCurrentScroll;
+				y = newText.ptBeg.y - yCurrentScroll;
+			}
 			// Adjust the caret position, in client coordinates. 
-			SetCaretPos(x, y);			
+			SetCaretPos(x, y);
 		}
 		else
-			HideCaret(hWnd);
+			DestroyCaret();//HideCaret(hWnd);
 		
 
 		for (auto& it : DrawObjList)
@@ -707,23 +748,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
 		s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
 		TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
-		s2 = "newRect.ptrBeg.x=" + to_string(newRect.ptBeg.x) + " newRect.ptBeg.y" + to_string(newRect.ptBeg.y);
-		TextOutA(memoryDC, 700 - xCurrentScroll, 600 - yCurrentScroll, s2.c_str(), s2.length());
-		s2 = "color=" + to_string(newline.color);
-		TextOutA(memoryDC, 700 - xCurrentScroll, 580 - yCurrentScroll, s2.c_str(), s2.length());
+		//s2 = "newRect.ptrBeg.x=" + to_string(newRect.ptBeg.x) + " newRect.ptBeg.y" + to_string(newRect.ptBeg.y);
+		//TextOutA(memoryDC, 700 - xCurrentScroll, 600 - yCurrentScroll, s2.c_str(), s2.length());
+		//s2 = "color=" + to_string(newline.color);
+		//TextOutA(memoryDC, 700 - xCurrentScroll, 580 - yCurrentScroll, s2.c_str(), s2.length());
 
-		/*TextOut(memoryDC, 100 - xCurrentScroll, 300 - yCurrentScroll, TEXT("100,300"), 7);
-		TextOut(memoryDC, 200 - xCurrentScroll, 300 - yCurrentScroll, TEXT("200,300"), 7);
-		TextOut(memoryDC, 300 - xCurrentScroll, 300 - yCurrentScroll, TEXT("300,300"), 7);
-		TextOut(memoryDC, 400 - xCurrentScroll, 300 - yCurrentScroll, TEXT("400,300"), 7);
-		TextOut(memoryDC, 100 - xCurrentScroll, 400 - yCurrentScroll, TEXT("100,400"), 7);
-		TextOut(memoryDC, 200 - xCurrentScroll, 400 - yCurrentScroll, TEXT("200,400"), 7);
-		TextOut(memoryDC, 300 - xCurrentScroll, 400 - yCurrentScroll, TEXT("300,400"), 7);
-		TextOut(memoryDC, 400 - xCurrentScroll, 400 - yCurrentScroll, TEXT("400,400"), 7);
-		TextOut(memoryDC, 100 - xCurrentScroll, 500 - yCurrentScroll, TEXT("100,500"), 7);
-		TextOut(memoryDC, 200 - xCurrentScroll, 500 - yCurrentScroll, TEXT("200,500"), 7);
-		TextOut(memoryDC, 300 - xCurrentScroll, 500 - yCurrentScroll, TEXT("300,500"), 7);
-		TextOut(memoryDC, 400 - xCurrentScroll, 500 - yCurrentScroll, TEXT("400,500"), 7);*/
 		for (int i = 0; i < 2000; )
 		{			
 			s2 = " " + to_string(i);
@@ -751,25 +780,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// argument (prect->left) by xCurrentScroll and the 
 		// eighth argument (prect->top) by yCurrentScroll in 
 		// order to map the correct pixels from the source bitmap. 
-		/*if (fScroll)
-		{
-			prect = &ps.rcPaint;
-
-			BitBlt(hdc,
-				prect->left, prect->top,
-				(prect->right - prect->left),
-				(prect->bottom - prect->top),
-				memoryDC,
-				prect->left + xCurrentScroll,
-				prect->top + yCurrentScroll,
-				SRCCOPY);
-
-			fScroll = FALSE;
-		}*/
+		//if (fScroll)
+		//{
+		//	prect = &ps.rcPaint;
+		//
+		//	BitBlt(hdc,
+		//		prect->left, prect->top,
+		//		(prect->right - prect->left),
+		//		(prect->bottom - prect->top),
+		//		memoryDC,
+		//		prect->left + xCurrentScroll,
+		//		prect->top + yCurrentScroll,
+		//		SRCCOPY);
+		//
+		//	fScroll = FALSE;
+		//}
 
 		DeleteDC(memoryDC);  //release a memory DC
-		DeleteObject(hBmp);
+		DeleteObject(hBmp);		
 		EndPaint(hWnd, &ps);
+		//ReleaseDC(hWnd, hdc);
 	}
 	break;
 	case WM_SIZE:
@@ -817,7 +847,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		si.nPage = yNewSize;
 		si.nPos = yCurrentScroll;
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
-		InvalidateRect(hWnd, NULL, TRUE);
+		InvalidateRect(hWnd, NULL, false);
 		return 0;
 	}
 	break;
@@ -999,7 +1029,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	PAINTSTRUCT ps;
 	HDC hdc;
 	int wmId;
-	HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4;   //a bitmap icon for button
+	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4;   //a bitmap icon for button
 
 	switch (message)
 	{
@@ -1026,10 +1056,34 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		//image for child window buttons
-		bmpIcon1 = (HBITMAP)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		if (currentDrawMode == 0)
+		{
+			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		}
+		else if (currentDrawMode == 1)
+		{
+			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		}
+		else if (currentDrawMode == 2)
+		{
+			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		}
+		else
+		{
+			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		}
 		if (bmpIcon1)
 		{
 			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
@@ -1040,6 +1094,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		else
 			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
 		EndPaint(hWnd,&ps);
+		ReleaseDC(hWnd, hdc);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -1059,8 +1114,12 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 	else if (xCurrentScroll > 0 && Xfocus < 0)
-	{
-		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) < 0 ? 0 : xCurrentScroll + Xfocus);
+	{		
+		WPARAM wParam;
+		if (currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus-8) < 0 ? 0 : xCurrentScroll + Xfocus - 8);  //留個空位給新輸入文字
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) < 0 ? 0 : xCurrentScroll + Xfocus);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 
