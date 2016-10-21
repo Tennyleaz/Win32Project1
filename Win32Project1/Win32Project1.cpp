@@ -30,6 +30,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void				AutoScroll(HWND, int, int, int, int, RECT);
 
 struct
 {
@@ -197,7 +198,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		szFormat[] = TEXT("%-16s%04x-%04x    %04x-%04x"),
 		szBuffer[50];
 	static int cxChar, cyChar;
-	int i;
+	//int i;
 
 	SCROLLINFO si;
 	// These variables are required by BitBlt. 
@@ -431,27 +432,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			mouseX = GET_X_LPARAM(lParam);
 			mouseY = GET_Y_LPARAM(lParam);
-			if (mouseX > rect.right && xCurrentScroll < 2000)
-			{
-				WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (mouseX - rect.right));
-				SendMessage(hWnd, WM_HSCROLL, wParam, NULL);
-			} 
-			else if (xCurrentScroll > 0 && mouseX < 0)
-			{
-				WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + mouseX) < 0 ? 0 : xCurrentScroll + mouseX);
-				SendMessage(hWnd, WM_HSCROLL, wParam, NULL);
-			}
-
-			if (mouseY > rect.bottom && yCurrentScroll < 2000)
-			{
-				WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, yCurrentScroll + (mouseY - rect.bottom));
-				SendMessage(hWnd, WM_VSCROLL, wParam, NULL);
-			}
-			else if (yCurrentScroll > 0 && mouseY < 0)
-			{
-				WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + mouseY) < 0 ? 0 : yCurrentScroll + mouseY);
-				SendMessage(hWnd, WM_VSCROLL, wParam, NULL);
-			}
+			AutoScroll(hWnd, mouseX, mouseY, xCurrentScroll, yCurrentScroll, rect);
 		}
 
 		if (currentDrawMode == 0)
@@ -600,16 +581,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (currentDrawMode == 3 && newText.startFinished)
 			{
-				if ((wParam >= 65 && wParam <= 90) || (wParam >= 48 && wParam <= 57))  //A~Z, 0~9
+				if (wParam >= 65 && wParam <= 90)  //A~Z
 				{
-					char c = (char)wParam;
-					newText.text.push_back((char)wParam);
+					newText.text.back().push_back(wParam+32);
+					//newText.charNumber++;
+					//newText.curserPos.back()++;
+				}
+				else if (wParam >= 48 && wParam <= 57) //0~9
+				{
+					newText.text.back().push_back(wParam);
+					//newText.charNumber++;
+					//newText.curserPos.back()++;
+				}
+				else if (wParam == 0x20) //space
+				{
+					newText.text.back().push_back(' ');
 				}
 				else if (wParam == 0x0D)  //enter
-					newText.text.push_back('\n');
+				{
+					newText.text.push_back("");  //insert a "" string to back
+					//newText.charNumber = 0;
+					//newText.lineNumber++;
+					//newText.curserPos.push_back(0);
+				}
 				else if (wParam == 0x08)  //backspace <-
-					newText.text.pop_back();
-				
+				{
+					if (newText.text.size() > 0)
+					{
+						if (newText.text.back().size() > 0)
+						{
+							newText.text.back().pop_back();
+						}
+						else
+						{
+							newText.text.pop_back();
+						}
+					}
+				}
+				int x, y;  //x and y is current caret position on window
+				x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
+				y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
+				AutoScroll(hWnd, x, y, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
 		}
@@ -618,7 +630,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
-		RECT clientRec;
+		RECT clientRec = rect;
 		HDC hdc = BeginPaint(hWnd, &ps);  //this will return display device id
 		HBRUSH hbrBkGnd;
 
@@ -668,19 +680,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}*/
 
 		SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
-		/*for (auto it = RectObjList.begin(); it != RectObjList.end(); it++)
-		{
-			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-		}*/
 		newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-
-		/*for (auto it = CircleObjList.begin(); it != CircleObjList.end(); it++)
-		{
-			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-		}*/
 		newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-
 		newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+
+		if (currentDrawMode == 3 && newText.startFinished && !newText.endFinished)
+		{
+			// Create a solid black caret. 
+			CreateCaret(hWnd, (HBITMAP)NULL, 3, 14);
+			int x, y;
+			x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
+			y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
+			// Adjust the caret position, in client coordinates. 
+			SetCaretPos(x, y);			
+		}
+		else
+			HideCaret(hWnd);
+		
 
 		for (auto& it : DrawObjList)
 		{
@@ -761,10 +777,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		/*static int cx, cy;
 		cx = LOWORD(lParam);
 		cx = HIWORD(lParam);*/
-		rect.left = 24 * cxChar;
-		rect.top = 2 * cyChar;
-		rect.right = LOWORD(lParam);
-		rect.bottom = HIWORD(lParam);
+		//rect.left = 24 * cxChar;
+		//rect.top = 2 * cyChar;
+		rect.left = 0;
+		rect.top = 0;
+		rect.right = LOWORD(lParam) - 10;
+		rect.bottom = HIWORD(lParam) - 10;
 
 		int xNewSize;
 		int yNewSize;
@@ -1030,4 +1048,30 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return NULL;
+}
+
+//scroll the window if x and y focus are out of border
+void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
+{
+	if (Xfocus > (windowRect.right) && xCurrentScroll < 2000)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+	else if (xCurrentScroll > 0 && Xfocus < 0)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) < 0 ? 0 : xCurrentScroll + Xfocus);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+
+	if (Yfocus > windowRect.bottom && yCurrentScroll < 2000)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, yCurrentScroll + (Yfocus - windowRect.bottom));
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	else if (yCurrentScroll > 0 && Yfocus < 0)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus) < 0 ? 0 : yCurrentScroll + Yfocus);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
 }
