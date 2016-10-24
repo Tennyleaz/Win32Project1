@@ -32,6 +32,7 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void				AutoScroll(HWND, int, int, int, int, RECT);
+RECT				getLocalCoordinates(HWND hWnd);
 
 struct
 {
@@ -228,6 +229,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	
 	static int currentColor = 0;        //0=black, 0~7 kinds of color
 	//static HWND myWindow;
+	string debugmessage = "cursorX=";
 
 	switch (message)
 	{
@@ -387,7 +389,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_LineTool:
 			currentDrawMode = 0;
 			CheckMenuItem(hMenu, ID_LineTool, MF_CHECKED);  //check the line tool
-			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);  //uncheck others
+			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);  //un-check others
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
 			SendMessage(myButton[0], BM_SETSTATE, BN_PUSHED, 0);
@@ -445,6 +447,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_GRAY:
 			currentColor = 1;
@@ -457,6 +460,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_RED:
 			currentColor = 2;
@@ -469,6 +473,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_GREEN:
 			currentColor = 3;
@@ -481,6 +486,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_BLU:
 			currentColor = 4;
@@ -493,6 +499,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_CYAN:
 			currentColor = 5;
@@ -505,6 +512,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_YELLOW:
 			currentColor = 6;
@@ -517,6 +525,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_CHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_Magenta:
 			currentColor = 7;
@@ -529,6 +538,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_Magenta, MF_CHECKED);
 			newText.color = currentColor;
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		default:
 			wsprintf(szBuffer, TEXT("Button ID %d : %d"), wParam, lParam);
@@ -589,45 +599,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
 			if (currentDrawMode == 0)
 			{
-				newline.ptBeg.x = mouseX;
-				newline.ptBeg.y = mouseY;
-				newline.ptEnd.x = mouseX;
-				newline.ptEnd.y = mouseY;
-				newline.startFinished = true;
-				newline.endFinished = false;
-				newline.color = currentColor;
+				newline.makeStart(mouseX, mouseY, currentColor);
 			}
 			else if (currentDrawMode == 1)
 			{
-				newRect.ptBeg.x = mouseX;
-				newRect.ptBeg.y = mouseY;
-				newRect.ptEnd.x = mouseX;
-				newRect.ptEnd.y = mouseY;
-				newRect.startFinished = true;
-				newRect.endFinished = false;
-				newRect.color = currentColor;
+				newRect.makeStart(mouseX, mouseY, currentColor);
 			}
 			else if (currentDrawMode == 2)
 			{
-				newCircle.ptBeg.x = mouseX;
-				newCircle.ptBeg.y = mouseY;
-				newCircle.ptEnd.x = mouseX;
-				newCircle.ptEnd.y = mouseY;
-				newCircle.startFinished = true;
-				newCircle.endFinished = false;
-				newCircle.color = currentColor;
+				newCircle.makeStart(mouseX, mouseY, currentColor);
 			}
 			else
 			{
-				if (!newText.startFinished) //a new text position
+				if (!newText.startFinished) //click to a new text position without previous start
 				{
-					newText.ptBeg.x = mouseX;
-					newText.ptBeg.y = mouseY;
-					newText.ptEnd.x = mouseX;
-					newText.ptEnd.y = mouseY;
-					newText.startFinished = true;
-					newText.endFinished = false;
-					newText.color = currentColor;
+					newText.makeStart(mouseX, mouseY, currentColor);
 				}
 				else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 				{
@@ -638,12 +624,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						DrawObjList.push_back(new TextObj(newText));
 					}
 					newText.clean();
-					newText.ptBeg.x = mouseX;
-					newText.ptBeg.y = mouseY;
-					newText.ptEnd.x = mouseX;
-					newText.ptEnd.y = mouseY;
-					newText.startFinished = true;
-					newText.color = currentColor;
+					newText.makeStart(mouseX, mouseY, currentColor);
 				}
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
@@ -658,25 +639,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ReleaseCapture();  //stop capture mouse
 			if (currentDrawMode == 0)
 			{
-				newline.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
-				newline.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
-				newline.endFinished = true;
+				newline.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
 				DrawObjList.push_back(new LineObj(newline));
 				//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 			}
 			else if (currentDrawMode == 1)
 			{
-				newRect.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
-				newRect.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
-				newRect.endFinished = true;
+				newRect.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
 				DrawObjList.push_back(new RectangularObj(newRect));
 				//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 			}
 			else if (currentDrawMode == 2)
 			{
-				newCircle.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
-				newCircle.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
-				newCircle.endFinished = true;
+				newCircle.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
 				DrawObjList.push_back(new CircleObj(newCircle));
 				//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 			}
@@ -745,7 +720,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					x = newText.ptBeg.x - xCurrentScroll;
 					y = newText.ptBeg.y - yCurrentScroll;
 				}
-				
+				mouseX = x;
+				mouseY = y;
 				AutoScroll(hWnd, x, y+10, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
@@ -776,8 +752,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//---------------------------------------------------------------
 
 		// create string with the information about mouse position.
-		char info[100] = "";
-		sprintf(info, "Mouse position: %i  %i ", mouseX, mouseY);
+		//char info[100] = "";
+		//sprintf(info, "Mouse position: %i  %i ", mouseX, mouseY);
 
 		//print client size
 		/*char Hbuffer[10], Lbuffer[10];
@@ -989,7 +965,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Set the scroll flag to TRUE. 
 		fScroll = TRUE;
 
-		// Determine the amount scrolled (in pixels). 
+		// Determine the amount scrolled (in pixels).
 		xDelta = xNewPos - xCurrentScroll;
 
 		// Reset the current scroll position. 
@@ -1128,10 +1104,10 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon5 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		/*bmpIcon5 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon6 = (HBITMAP)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon7 = (HBITMAP)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);*/
 		break;
 	case WM_SIZE:
 		//InvalidateRect(hWnd, NULL, TRUE);
@@ -1139,17 +1115,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	case WM_COMMAND:
 		wmId = LOWORD(wParam);
 		// 剖析功能表選取項目: 
-		switch (wmId)
-		{
-		/*case 104:
-			SendMessage(hWndFather, WM_COMMAND, 110, 0);
-			break;
-		case 105:
-			SendMessage(hWndFather, WM_COMMAND, 111, 0);
-			break;*/
-		default:
-			SendMessage(hWndFather, WM_COMMAND, wmId, 0);
-		}		
+		SendMessage(hWndFather, WM_COMMAND, wmId, 0);	
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
@@ -1159,34 +1125,6 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
 		SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
 		SendMessage(myButton[0], BM_SETSTATE, BN_PUSHED, 0);
-		/*if (currentDrawMode == 0)
-		{
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon5);
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
-		}
-		else if (currentDrawMode == 1)
-		{
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon6);
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
-		}
-		else if (currentDrawMode == 2)
-		{
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon7);
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
-		}
-		else
-		{
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon8);
-		}*/
 
 		if (!bmpIcon1)
 			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
@@ -1205,6 +1143,20 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		DeleteObject(bmpIcon8);
 		PostQuitMessage(0);
 		break;
+	case WM_MOVE:
+		RECT rect = getLocalCoordinates(hWnd);
+		RECT rectFather;
+		GetWindowRect(hWndFather, &rectFather);
+
+		if (rect.left < 0)
+			SetWindowPos(hWnd, NULL, 0, rect.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+		if (rect.top < 0)
+			SetWindowPos(hWnd, NULL, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+
+		/*if (rect.bottom > 1000)
+			SetWindowPos(hWnd, NULL, rect.left, 1000, 0, 0, SWP_NOSIZE | SWP_NOZORDER);*/
+
+		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -1214,9 +1166,15 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 //scroll the window if x and y focus are out of border
 void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
 {
-	if (Xfocus > (windowRect.right) && xCurrentScroll < 2000)
+	RECT rect;
+	GetWindowRect(hwnd, &rect);
+	if (Xfocus > (rect.right-rect.left) && xCurrentScroll < 2000)
 	{
-		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
+		WPARAM wParam;
+		if (currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right)-3);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 	else if (xCurrentScroll > 0 && Xfocus <= 0)
@@ -1236,7 +1194,6 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	}
 	else if (yCurrentScroll > 0 && Yfocus < 0)
 	{
-
 		WPARAM wParam;
 		if (currentDrawMode == 3)
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus -10 ) < 0 ? 0 : yCurrentScroll + Yfocus -10);
@@ -1244,4 +1201,12 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus) < 0 ? 0 : yCurrentScroll + Yfocus);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
+}
+
+RECT getLocalCoordinates(HWND hWnd)
+{
+	RECT Rect;
+	GetWindowRect(hWnd, &Rect);
+	MapWindowPoints(HWND_DESKTOP, GetParent(hWnd), (LPPOINT)&Rect, 2);
+	return Rect;
 }

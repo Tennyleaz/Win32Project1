@@ -31,6 +31,22 @@ public:
 	}
 	virtual ~DrawObj() {};
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
+	void makeStart(int x, int y, int currentColor)
+	{
+		ptBeg.x = x;
+		ptBeg.y = y;
+		ptEnd.x = x;
+		ptEnd.y = y;
+		startFinished = true;
+		endFinished = false;
+		color = currentColor;
+	}
+	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)
+	{
+		ptEnd.x = x + xCurrentScroll;
+		ptEnd.y = y + yCurrentScroll;
+		endFinished = true;
+	}
 protected:
 	HPEN switchColor()
 	{
@@ -176,8 +192,8 @@ public:
 			/*SIZE size;
 			GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 			s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-			/*s = "line number " + to_string(text.size()) + ",char number " + to_string(text.back().size());
-			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());*/
+			s = "line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()):"NULL");
+			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
 			
 			// Restore the original font.        
 			SelectObject(hdc, hOldFont);
@@ -209,6 +225,11 @@ public:
 			{
 				text.pop_back();
 			}
+		}
+		
+		if(text.size() ==0)  //size is 0, put a empty one
+		{
+			text.push_back("");
 		}
 	}
 };
