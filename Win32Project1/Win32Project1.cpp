@@ -92,7 +92,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, myChildWindow, (HMENU)121, hInst, NULL);
 	myButton[2] = CreateWindow(L"BUTTON", L"B3", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 115, 50, 50, myChildWindow, (HMENU)122, hInst, NULL);
 	myButton[3] = CreateWindow(L"BUTTON", L"B4", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 170, 50, 50, myChildWindow, (HMENU)123, hInst, NULL);
-
+	
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
 
 	MSG msg;
@@ -223,6 +223,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static int yMaxScroll;       // maximum vertical scroll value 
 	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
 	static HMENU hMenu=NULL;        //try to get the system menu
+	static HBITMAP hBmp;          //bitmap for memory DC
 	
 	static int currentColor = 0;        //0=black, 0~7 kinds of color
 	//static HWND myWindow;
@@ -669,7 +670,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		GetClientRect(hWnd, &clientRec);
 		HDC memoryDC = CreateCompatibleDC(hdc);
-		HBITMAP hBmp = CreateCompatibleBitmap(hdc, clientRec.right, clientRec.bottom);  // Create a bitmap big enough for our client rectangle.
+		hBmp = CreateCompatibleBitmap(hdc, clientRec.right, clientRec.bottom);  // Create a bitmap big enough for our client rectangle.
 
 		// Select the bitmap into the off-screen DC.
 		//HBITMAP hbmOld;
@@ -1029,11 +1030,19 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	PAINTSTRUCT ps;
 	HDC hdc;
 	int wmId;
-	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4;   //a bitmap icon for button
+	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
 
 	switch (message)
 	{
 	case WM_CREATE:
+		bmpIcon1 = (HBITMAP)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon5 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon6 = (HBITMAP)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon7 = (HBITMAP)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		break;
 	case WM_SIZE:
 		//InvalidateRect(hWnd, NULL, TRUE);
@@ -1058,45 +1067,48 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		//image for child window buttons
 		if (currentDrawMode == 0)
 		{
-			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		}
-		else if (currentDrawMode == 1)
-		{
-			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		}
-		else if (currentDrawMode == 2)
-		{
-			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		}
-		else
-		{
-			bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			bmpIcon4 = (HBITMAP)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		}
-		if (bmpIcon1)
-		{
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon5);
 			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
 			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
 			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
 		}
+		else if (currentDrawMode == 1)
+		{
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon6);
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
+		}
+		else if (currentDrawMode == 2)
+		{
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon7);
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
+		}
 		else
+		{
+			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
+			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
+			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
+			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon8);
+		}
+
+		if (!bmpIcon1)
 			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
+
 		EndPaint(hWnd,&ps);
 		ReleaseDC(hWnd, hdc);
 		break;
 	case WM_DESTROY:
+		DeleteObject(bmpIcon1);
+		DeleteObject(bmpIcon2);
+		DeleteObject(bmpIcon3);
+		DeleteObject(bmpIcon4);
+		DeleteObject(bmpIcon5);
+		DeleteObject(bmpIcon6);
+		DeleteObject(bmpIcon7);
+		DeleteObject(bmpIcon8);
 		PostQuitMessage(0);
 		break;
 	default:
