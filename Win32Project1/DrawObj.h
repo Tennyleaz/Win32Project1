@@ -84,6 +84,8 @@ public:
 	{
 		if (!startFinished)
 			return;
+		if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
+			return;
 		HPEN hPen = switchColor();
 		SelectObject(hdc, hPen);
 
@@ -175,13 +177,39 @@ public:
 			GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 			s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
 			/*s = "line number " + to_string(text.size()) + ",char number " + to_string(text.back().size());
-			/TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());*/
+			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());*/
 			
 			// Restore the original font.        
 			SelectObject(hdc, hOldFont);
 		}
 		SetTextColor(hdc, RGB(0, 0, 0));
 		DeleteObject(hFont);
+	}
+	void addChar(char c)
+	{
+		if (text.size() == 0)
+			text.push_back("");
+		text.back().push_back(c);
+	}
+	void addNewLine()
+	{
+		if (text.size() == 0)
+			text.push_back("");
+		text.push_back("");
+	}
+	void backspace()
+	{
+		if (text.size() > 0)
+		{
+			if (text.back().size() > 0)  //string is not empty
+			{
+				text.back().pop_back();
+			}
+			else
+			{
+				text.pop_back();
+			}
+		}
 	}
 };
 
@@ -193,6 +221,8 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
 	{
 		if (!startFinished)
+			return;
+		if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 			return;
 		HPEN hPen = switchColor();
 		SelectObject(hdc, hPen);
@@ -217,6 +247,8 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
 	{
 		if (!startFinished)
+			return;
+		if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 			return;
 		HPEN hPen = switchColor();
 		SelectObject(hdc, hPen);

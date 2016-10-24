@@ -65,7 +65,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	MyRegisterClass(hInstance);
 
 	// 執行應用程式初始設定: 
-	if (!InitInstance(hInstance, nCmdShow))
+	if (!InitInstance(hInstance, SW_MAXIMIZE))
 	{
 		return FALSE;
 	}
@@ -166,8 +166,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	return TRUE;
 }
 
-//list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
-vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
+list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
+//vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
 /*list<LineObj> LineObjList;
 list<RectangularObj> RectObjList;
 list<CircleObj> CircleObjList;
@@ -222,6 +222,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static int yCurrentScroll;   // current vertical scroll value 
 	static int yMaxScroll;       // maximum vertical scroll value 
 	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
+	static HBITMAP checkedIcon;
 	static HMENU hMenu=NULL;        //try to get the system menu
 	static HBITMAP hBmp;          //bitmap for memory DC
 	
@@ -256,6 +257,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bmpIcon6 = (HBITMAP)LoadImage(NULL, L"cyan.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon7 = (HBITMAP)LoadImage(NULL, L"yellow.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"magenta.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		checkedIcon = (HBITMAP)LoadImage(NULL, L"checkedIcon.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		/*if (bmpIcon1)
 		{
 			SendMessage(hwndButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
@@ -273,25 +275,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			//ModifyMenu(hMenu, ID_COMMAND_1, MF_BYCOMMAND | MF_STRING, ID_COMMAND_1, (PCTSTR)(LONG)bmpIcon1);
 			HMENU hMenu2 = GetSubMenu(hMenu, 1);
 			HMENU hMenu3 = GetSubMenu(hMenu2, 5);
-			//CheckMenuItem(hMenu, ID_BLACK, MF_CHECKED);
-			/*ModifyMenu(hMenu3, 0, MF_BYPOSITION | MF_BITMAP, ID_BLACK, (LPCTSTR)bmpIcon1);
+			
+			ModifyMenu(hMenu3, 0, MF_BYPOSITION | MF_BITMAP, ID_BLACK, (LPCTSTR)bmpIcon1);
 			ModifyMenu(hMenu3, 1, MF_BYPOSITION | MF_BITMAP, ID_GRAY, (LPCTSTR)bmpIcon2);
 			ModifyMenu(hMenu3, 2, MF_BYPOSITION | MF_BITMAP, ID_RED, (LPCTSTR)bmpIcon3);
 			ModifyMenu(hMenu3, 3, MF_BYPOSITION | MF_BITMAP, ID_GREEN, (LPCTSTR)bmpIcon4);
 			ModifyMenu(hMenu3, 4, MF_BYPOSITION | MF_BITMAP, ID_BLU, (LPCTSTR)bmpIcon5);
 			ModifyMenu(hMenu3, 5, MF_BYPOSITION | MF_BITMAP, ID_CYAN, (LPCTSTR)bmpIcon6);
 			ModifyMenu(hMenu3, 6, MF_BYPOSITION | MF_BITMAP, ID_YELLOW, (LPCTSTR)bmpIcon7);
-			ModifyMenu(hMenu3, 7, MF_BYPOSITION | MF_BITMAP, ID_Magenta, (LPCTSTR)bmpIcon8);*/
-			SetMenuItemBitmaps(hMenu3, 0, MF_BYPOSITION, bmpIcon1, bmpIcon1);
+			ModifyMenu(hMenu3, 7, MF_BYPOSITION | MF_BITMAP, ID_Magenta, (LPCTSTR)bmpIcon8);
+			CheckMenuItem(hMenu3, ID_BLACK, MF_CHECKED);
+			SetMenuItemBitmaps(hMenu3, 0, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 1, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 2, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 3, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 4, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 5, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 6, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu3, 7, MF_BYPOSITION, NULL, checkedIcon);
+			
 			//bmpIcon1 = (HBITMAP)LoadImage(NULL, L"grey.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 			//bmpIcon2 = (HBITMAP)LoadImage(NULL, L"greychecked.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+			/*SetMenuItemBitmaps(hMenu3, 0, MF_BYPOSITION, bmpIcon1, bmpIcon1);
 			SetMenuItemBitmaps(hMenu3, 1, MF_BYPOSITION, bmpIcon2, bmpIcon2);
 			SetMenuItemBitmaps(hMenu3, 2, MF_BYPOSITION, bmpIcon3, bmpIcon3);
 			SetMenuItemBitmaps(hMenu3, 3, MF_BYPOSITION, bmpIcon4, bmpIcon4);
 			SetMenuItemBitmaps(hMenu3, 4, MF_BYPOSITION, bmpIcon5, bmpIcon5);
 			SetMenuItemBitmaps(hMenu3, 5, MF_BYPOSITION, bmpIcon6, bmpIcon6);
 			SetMenuItemBitmaps(hMenu3, 6, MF_BYPOSITION, bmpIcon7, bmpIcon7);
-			SetMenuItemBitmaps(hMenu3, 7, MF_BYPOSITION, bmpIcon8, bmpIcon8);
+			SetMenuItemBitmaps(hMenu3, 7, MF_BYPOSITION, bmpIcon8, bmpIcon8);*/
 			/*AppendMenu(hMenu3, MF_BITMAP, 111, (PCTSTR)(LONG)bmpIcon1);
 			CheckMenuItem(hMenu3, 111, MF_CHECKED);*/
 		}
@@ -360,7 +372,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case ID_COMMAND_1:  //清除
-			DrawObjList.clear();			
+			for (auto& it : DrawObjList)  //delete each pointer. 
+				delete(it);
+			DrawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
 			newline.clean();
 			newRect.clean();
 			newText.clean();
@@ -376,11 +390,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);  //uncheck others
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
-			//bmpIcon1 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[0], BM_SETSTATE, BN_PUSHED, 0);
+			SendMessage(myButton[1], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[2], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[3], BM_SETSTATE, 0, 0);
 			break;
 		case 121:
 			SetFocus(hWnd);
@@ -390,10 +403,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_CHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[0], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[1], BM_SETSTATE, BN_PUSHED, 0);
+			SendMessage(myButton[2], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[3], BM_SETSTATE, 0, 0);
 			break;
 		case 122:
 			SetFocus(hWnd);
@@ -403,10 +416,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_CHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[0], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[1], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[2], BM_SETSTATE, BN_PUSHED, 0);
+			SendMessage(myButton[3], BM_SETSTATE, 0, 0);
 			break;
 		case 123:
 			SetFocus(hWnd);
@@ -416,34 +429,106 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_CHECKED);
-			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"line.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
-			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+			SendMessage(myButton[0], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[1], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[2], BM_SETSTATE, 0, 0);
+			SendMessage(myButton[3], BM_SETSTATE, BN_PUSHED, 0);
 			break;
 		case ID_BLACK:
 			currentColor = 0;
+			CheckMenuItem(hMenu, ID_BLACK, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_GRAY:
 			currentColor = 1;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_RED:
 			currentColor = 2;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_GREEN:
 			currentColor = 3;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_BLU:
 			currentColor = 4;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_CYAN:
 			currentColor = 5;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_YELLOW:
 			currentColor = 6;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_CHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			newText.color = currentColor;
 			break;
 		case ID_Magenta:
 			currentColor = 7;
+			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
+			CheckMenuItem(hMenu, ID_Magenta, MF_CHECKED);
+			newText.color = currentColor;
 			break;
 		default:
 			wsprintf(szBuffer, TEXT("Button ID %d : %d"), wParam, lParam);
@@ -546,10 +631,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 				{
-					if (newText.text.size() > 0)
+					if (newText.text.size() > 0 && newText.text.back().size() >0)
 					{
 						newText.endFinished = true;
-						DrawObjList.push_back(move(make_unique<TextObj>(newText)));
+						//DrawObjList.push_back(move(make_unique<TextObj>(newText)));
+						DrawObjList.push_back(new TextObj(newText));
 					}
 					newText.clean();
 					newText.ptBeg.x = mouseX;
@@ -575,22 +661,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				newline.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
 				newline.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				newline.endFinished = true;
-				DrawObjList.push_back(move(make_unique<LineObj>(newline)));
+				DrawObjList.push_back(new LineObj(newline));
+				//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 			}
 			else if (currentDrawMode == 1)
 			{
 				newRect.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
 				newRect.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				newRect.endFinished = true;
-				//DrawObjList.push_back(new RectangularObj(newRect));
-				DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
+				DrawObjList.push_back(new RectangularObj(newRect));
+				//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 			}
 			else if (currentDrawMode == 2)
 			{
 				newCircle.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
 				newCircle.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				newCircle.endFinished = true;
-				DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
+				DrawObjList.push_back(new CircleObj(newCircle));
+				//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 			}
 			else
 			{
@@ -605,45 +693,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (wParam)
 		{
 			if (currentDrawMode == 3 && newText.startFinished)
-			{
+			{			
 				if (wParam >= 65 && wParam <= 90)  //A~Z
 				{
-					if (newText.text.size() == 0)
-						newText.text.push_back("");
-					newText.text.back().push_back(wParam+32);
+					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1990) //if x > 2000 add new line and add new char
+					{
+						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
+						{
+							newText.addNewLine();
+						}
+						else
+							break;  //do nothing
+					}					
+					newText.addChar(wParam+32);
 				}
 				else if (wParam >= 48 && wParam <= 57) //0~9
 				{
-					if (newText.text.size() == 0)
+					/*if (newText.text.size() == 0)
 						newText.text.push_back("");
-					newText.text.back().push_back(wParam);
+					newText.text.back().push_back(wParam);*/
+					newText.addChar(wParam);
+				}
+				else if (wParam >= 0x60 && wParam <= 0x69) //Numeric keypad 0~9
+				{
+					newText.addChar(wParam-48);
 				}
 				else if (wParam == 0x20) //space
 				{
-					if (newText.text.size() == 0)
-						newText.text.push_back("");
-					newText.text.back().push_back(' ');
+					newText.addChar(' ');
 				}
 				else if (wParam == 0x0D)  //enter
 				{
-					if (newText.text.size() == 0)
-						newText.text.push_back("");
-					newText.text.push_back("");  //insert a "" string to back
+					if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)
+					{
+						newText.addNewLine();  //insert a "" string to back
+					}
 				}
 				else if (wParam == 0x08)  //backspace <-
 				{
-					if (newText.text.size() > 0)
-					{
-						if (newText.text.back().size() > 0)  //string is not empty
-						{
-							newText.text.back().pop_back();
-						}
-						else
-						{
-							newText.text.pop_back();
-						}
-					}
+					newText.backspace();
 				}
+
 				int x, y;  //x and y is current caret position on window
 				if (newText.text.size() > 0)
 				{
@@ -655,7 +745,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					x = newText.ptBeg.x - xCurrentScroll;
 					y = newText.ptBeg.y - yCurrentScroll;
 				}
-				AutoScroll(hWnd, x, y, xCurrentScroll, yCurrentScroll, rect);
+				
+				AutoScroll(hWnd, x, y+10, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
 		}
@@ -689,30 +780,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		sprintf(info, "Mouse position: %i  %i ", mouseX, mouseY);
 
 		//print client size
-		char Hbuffer[10], Lbuffer[10];
+		/*char Hbuffer[10], Lbuffer[10];
 		string s = "client height = ";
 		_itoa(clientRec.right, Hbuffer, 10);
 		_itoa(clientRec.bottom, Lbuffer, 10);
-		s = s + Hbuffer + " length=" + Lbuffer;
+		s = s + Hbuffer + " length=" + Lbuffer;*/
 
-		TextOut(memoryDC, 10 - xCurrentScroll, 30 - yCurrentScroll, TEXT("123456"), 6);
-		TextOutA(memoryDC, 10 - xCurrentScroll, 50 - yCurrentScroll, info, strlen(info));  //TextOutA ???
-		TextOutA(memoryDC, 10 - xCurrentScroll, 70 - yCurrentScroll, s.c_str(), s.length());
+		//TextOut(memoryDC, 10 - xCurrentScroll, 30 - yCurrentScroll, TEXT("123456"), 6);
+		//TextOutA(memoryDC, 10 - xCurrentScroll, 50 - yCurrentScroll, info, strlen(info));  //TextOutA ???
+		//TextOutA(memoryDC, 10 - xCurrentScroll, 70 - yCurrentScroll, s.c_str(), s.length());
 
 		string s2 = "new line start.x= ";
-		s2 = s2 + to_string(newline.ptBeg.x) + " start.y=" + to_string(newline.ptBeg.y);
-		TextOutA(memoryDC, 10 - xCurrentScroll, 90 - yCurrentScroll, s2.c_str(), s2.length());
-		s2 = "new line end.x= ";
-		s2 = s2 + to_string(newline.ptEnd.x) + " end.y=" + to_string(newline.ptEnd.y);
-		TextOutA(memoryDC, 10 - xCurrentScroll, 110 - yCurrentScroll, s2.c_str(), s2.length());
-
-		newline.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+		//s2 = s2 + to_string(newline.ptBeg.x) + " start.y=" + to_string(newline.ptBeg.y);
+		//TextOutA(memoryDC, 10 - xCurrentScroll, 90 - yCurrentScroll, s2.c_str(), s2.length());
+		//s2 = "new line end.x= ";
+		//s2 = s2 + to_string(newline.ptEnd.x) + " end.y=" + to_string(newline.ptEnd.y);
+		//TextOutA(memoryDC, 10 - xCurrentScroll, 110 - yCurrentScroll, s2.c_str(), s2.length());
 
 		//for (auto it = LineObjList.begin(); it != LineObjList.end(); it++)
 		//{
 		//	it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		//}
 
+		newline.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
 		newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
@@ -737,10 +827,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetCaretPos(x, y);
 		}
 		else
-			DestroyCaret();//HideCaret(hWnd);
-		
+			DestroyCaret();//HideCaret(hWnd);		
 
-		for (auto& it : DrawObjList)
+		for (auto& it : DrawObjList)  //Draw each object in DrawObjList
 		{
 			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		}
@@ -1052,12 +1141,12 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		// 剖析功能表選取項目: 
 		switch (wmId)
 		{
-		case 104:
+		/*case 104:
 			SendMessage(hWndFather, WM_COMMAND, 110, 0);
 			break;
 		case 105:
 			SendMessage(hWndFather, WM_COMMAND, 111, 0);
-			break;
+			break;*/
 		default:
 			SendMessage(hWndFather, WM_COMMAND, wmId, 0);
 		}		
@@ -1065,7 +1154,12 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		//image for child window buttons
-		if (currentDrawMode == 0)
+		SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
+		SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
+		SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
+		SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
+		SendMessage(myButton[0], BM_SETSTATE, BN_PUSHED, 0);
+		/*if (currentDrawMode == 0)
 		{
 			SendMessage(myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon5);
 			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
@@ -1092,7 +1186,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 			SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
 			SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
 			SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon8);
-		}
+		}*/
 
 		if (!bmpIcon1)
 			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
@@ -1125,13 +1219,13 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
-	else if (xCurrentScroll > 0 && Xfocus < 0)
+	else if (xCurrentScroll > 0 && Xfocus <= 0)
 	{		
 		WPARAM wParam;
 		if (currentDrawMode == 3)
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus-8) < 0 ? 0 : xCurrentScroll + Xfocus - 8);  //留個空位給新輸入文字
 		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) < 0 ? 0 : xCurrentScroll + Xfocus);
+			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) <= 5 ? 0 : xCurrentScroll + Xfocus - 5);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 
@@ -1142,7 +1236,12 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	}
 	else if (yCurrentScroll > 0 && Yfocus < 0)
 	{
-		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus) < 0 ? 0 : yCurrentScroll + Yfocus);
+
+		WPARAM wParam;
+		if (currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus -10 ) < 0 ? 0 : yCurrentScroll + Yfocus -10);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus) < 0 ? 0 : yCurrentScroll + Yfocus);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
 }
