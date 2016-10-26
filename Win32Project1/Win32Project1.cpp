@@ -675,7 +675,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					if (newText.ptBeg.x + newText.text.back().size() * 8 > 1987) //if x > 2000 add new line and add new char
 					{
-						if (newText.ptBeg.y + (newText.text.size()+1) * 13 < 1985)  //if y < 2000 add new line
+						int newy = newText.ptBeg.y + (newText.text.size() + 1) * 13;
+						if (newy < 1988)  //if y < 2000 add new line
 						{
 							newText.addNewLine();
 						}
@@ -686,7 +687,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else if (wParam == 0x0D)  //enter
 				{
-					if (newText.ptBeg.y + (newText.text.size() + 1) * 13 < 1985)
+					if (newText.ptBeg.y + (newText.text.size() + 1) * 13 < 1988)
 					{
 						newText.addNewLine();  //insert a "" string to back
 					}
@@ -810,9 +811,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{			
 			s2 = " " + to_string(i);
 			TextOutA(memoryDC, 0- xCurrentScroll, i - yCurrentScroll, s2.c_str(), s2.length());
-			TextOutA(memoryDC, i - xCurrentScroll, 0 - yCurrentScroll, s2.c_str(), s2.length());
+			TextOutA(memoryDC, i - xCurrentScroll, 0 - yCurrentScroll, s2.c_str(), s2.length());			
 			i += 200;
 		}
+
+		/*for (int i = 0; i < 2000; i+=25)
+		{
+			s2 = " " + to_string(i);
+			TextOutA(memoryDC, 1950 - xCurrentScroll, i - yCurrentScroll, s2.c_str(), s2.length());
+		}*/
 
 		//---------------------------------------------------------------
 		// Blt the changes to the screen DC.
@@ -1132,30 +1139,25 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		DeleteObject(bmpIcon8);
 		PostQuitMessage(0);
 		break;
-	case WM_MOVE:  //replace WM_EXITSIZEMOVE, not only called once
-		RECT rect = getLocalCoordinates(hWnd);
+	case WM_WINDOWPOSCHANGING:  //passed when dragging
+	{
+		WINDOWPOS *pos = (WINDOWPOS *)lParam;
 		RECT rectFather;
 		GetWindowRect(hWndFather, &rectFather);
-		//int deltaX, deltaY;
-		//deltaX = rect.right - (rectFather.right - rectFather.left - 35);
-		//deltaY = rect.bottom - (rectFather.bottom - rectFather.top - 60);
 
-		if (rect.left < 0)
-			rect.left = 0;
+		if (pos->x < 0)
+			pos->x = 0;
 
-		if (rect.top < 0)
-			rect.top = 0;
+		if (pos->y < 0)
+			pos->y = 0;
 
-		if (rect.bottom > rectFather.bottom - rectFather.top - 60)
-			rect.top = rectFather.bottom - rectFather.top - 341;
+		if (pos->y > rectFather.bottom - rectFather.top - 341)
+			pos->y = rectFather.bottom - rectFather.top - 341;
 
-		if (rect.right > rectFather.right - rectFather.left - 35)
-			rect.left = rectFather.right - rectFather.left - 110;
-		
-		SetWindowPos(hWnd, NULL,rect.left, rect.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-		//MoveWindow(hWnd, rect.left, rect.top, 77, 265, FALSE);
-
+		if (pos->x > rectFather.right - rectFather.left - 110)
+			pos->x = rectFather.right - rectFather.left - 110;
 		break;
+	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -1171,7 +1173,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	{
 		WPARAM wParam;
 		if (currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
+			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right)+1);
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
