@@ -21,9 +21,9 @@ HINSTANCE hInst;                                // 目前執行個體
 WCHAR szTitle[MAX_LOADSTRING];                  // 標題列文字
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
 WCHAR szChildClass[]=L"123";
-HWND hWndFather;
+HWND hWndFather, myChildWindow;
 HWND myButton[4];
-int  currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
+int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
 
 // 這個程式碼模組中所包含之函式的向前宣告: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -87,7 +87,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	childClass.hIconSm = LoadIcon(childClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&childClass);
 
-	HWND myChildWindow = CreateWindow(szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 30, 10, 77, 265, hWndFather, (HMENU)103, hInst, NULL);
+	myChildWindow = CreateWindow(szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 265, hWndFather, (HMENU)103, hInst, NULL);
 
 	myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, myChildWindow, (HMENU)120, hInst, NULL);
 	myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, myChildWindow, (HMENU)121, hInst, NULL);
@@ -671,55 +671,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (currentDrawMode == 3 && newText.startFinished)
 			{			
-				if (wParam >= 65 && wParam <= 90)  //A~Z
+				if ((wParam >= 65 && wParam <= 90) || (wParam >= 48 && wParam <= 57) || (wParam >= 0x60 && wParam <= 0x69) || (wParam == 0x20))
 				{
-					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1985) //if x > 2000 add new line and add new char
+					if (newText.ptBeg.x + newText.text.back().size() * 8 > 1987) //if x > 2000 add new line and add new char
 					{
-						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
+						if (newText.ptBeg.y + (newText.text.size()+1) * 13 < 1985)  //if y < 2000 add new line
 						{
 							newText.addNewLine();
 						}
 						else
 							break;  //do nothing
 					}					
-					newText.addChar(wParam+32);
-				}
-				else if (wParam >= 48 && wParam <= 57) //0~9
-				{
-					/*if (newText.text.size() == 0)
-						newText.text.push_back("");
-					newText.text.back().push_back(wParam);*/
-					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1982) //if x > 2000 add new line and add new char
-					{
-						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
-						{
-							newText.addNewLine();
-						}
-						else
-							break;  //do nothing
-					}
 					newText.addChar(wParam);
-				}
-				else if (wParam >= 0x60 && wParam <= 0x69) //Numeric keypad 0~9
-				{
-					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1982) //if x > 2000 add new line and add new char
-					{
-						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
-						{
-							newText.addNewLine();
-						}
-						else
-							break;  //do nothing
-					}
-					newText.addChar(wParam-48);
-				}
-				else if (wParam == 0x20) //space
-				{
-					newText.addChar(' ');
 				}
 				else if (wParam == 0x0D)  //enter
 				{
-					if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)
+					if (newText.ptBeg.y + (newText.text.size() + 1) * 13 < 1985)
 					{
 						newText.addNewLine();  //insert a "" string to back
 					}
@@ -933,6 +900,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		si.nPage = yNewSize;
 		si.nPos = yCurrentScroll;
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+		if(myChildWindow)
+			SetWindowPos(myChildWindow, NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		InvalidateRect(hWnd, NULL, false);
 		return 0;
 	}
@@ -1163,18 +1132,28 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		DeleteObject(bmpIcon8);
 		PostQuitMessage(0);
 		break;
-	case WM_MOVE:
+	case WM_MOVE:  //replace WM_EXITSIZEMOVE, not only called once
 		RECT rect = getLocalCoordinates(hWnd);
 		RECT rectFather;
 		GetWindowRect(hWndFather, &rectFather);
+		//int deltaX, deltaY;
+		//deltaX = rect.right - (rectFather.right - rectFather.left - 35);
+		//deltaY = rect.bottom - (rectFather.bottom - rectFather.top - 60);
 
 		if (rect.left < 0)
-			SetWindowPos(hWnd, NULL, 0, rect.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-		if (rect.top < 0)
-			SetWindowPos(hWnd, NULL, rect.left, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+			rect.left = 0;
 
-		/*if (rect.bottom > 1000)
-			SetWindowPos(hWnd, NULL, rect.left, 1000, 0, 0, SWP_NOSIZE | SWP_NOZORDER);*/
+		if (rect.top < 0)
+			rect.top = 0;
+
+		if (rect.bottom > rectFather.bottom - rectFather.top - 60)
+			rect.top = rectFather.bottom - rectFather.top - 341;
+
+		if (rect.right > rectFather.right - rectFather.left - 35)
+			rect.left = rectFather.right - rectFather.left - 110;
+		
+		SetWindowPos(hWnd, NULL,rect.left, rect.top, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+		//MoveWindow(hWnd, rect.left, rect.top, 77, 265, FALSE);
 
 		break;
 	default:
@@ -1188,11 +1167,11 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 {
 	RECT rect;
 	GetWindowRect(hwnd, &rect);
-	if (Xfocus > (rect.right-rect.left-25) && xCurrentScroll < 2000)
+	if (Xfocus > (rect.right-rect.left-29) && xCurrentScroll < 2000)
 	{
 		WPARAM wParam;
 		if (currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right)-3);
+			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);

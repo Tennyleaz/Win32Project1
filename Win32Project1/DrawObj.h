@@ -192,7 +192,7 @@ public:
 			/*SIZE size;
 			GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 			s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-			s = "line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()):"NULL");
+			s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()):"NULL");
 			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
 			
 			// Restore the original font.        
@@ -201,11 +201,19 @@ public:
 		SetTextColor(hdc, RGB(0, 0, 0));
 		DeleteObject(hFont);
 	}
-	void addChar(char c)
+	void addChar(int c)
 	{
 		if (text.size() == 0)
 			text.push_back("");
-		text.back().push_back(c);
+
+		if (c >= 65 && c <= 90)  //A~Z
+			text.back().push_back(c + 32);
+		else if(c >= 48 && c <= 57)  //0~9
+			text.back().push_back(c);  
+		else if (c >= 0x60 && c <= 0x69) //Numeric keypad 0~9
+			text.back().push_back(c - 48);
+		else if (c == 0x20)  //space
+			text.back().push_back(' ');
 	}
 	void addNewLine()
 	{
