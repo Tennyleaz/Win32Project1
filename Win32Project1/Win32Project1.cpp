@@ -23,7 +23,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
 WCHAR szChildClass[]=L"123";
 HWND hWndFather;
 HWND myButton[4];
-int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
+int  currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
 
 // 這個程式碼模組中所包含之函式的向前宣告: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -626,6 +626,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					newText.clean();
 					newText.makeStart(mouseX, mouseY, currentColor);
 				}
+				if (newText.ptBeg.y > 1987)
+					newText.ptBeg.y = 1987;
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			mouseHasDown = true;			
@@ -671,7 +673,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{			
 				if (wParam >= 65 && wParam <= 90)  //A~Z
 				{
-					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1990) //if x > 2000 add new line and add new char
+					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1985) //if x > 2000 add new line and add new char
 					{
 						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
 						{
@@ -687,10 +689,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					/*if (newText.text.size() == 0)
 						newText.text.push_back("");
 					newText.text.back().push_back(wParam);*/
+					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1982) //if x > 2000 add new line and add new char
+					{
+						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
+						{
+							newText.addNewLine();
+						}
+						else
+							break;  //do nothing
+					}
 					newText.addChar(wParam);
 				}
 				else if (wParam >= 0x60 && wParam <= 0x69) //Numeric keypad 0~9
 				{
+					if (newText.ptBeg.x + newText.text.back().size() * 8 >= 1982) //if x > 2000 add new line and add new char
+					{
+						if (newText.ptBeg.y + (newText.text.size()) * 13 < 1975)  //if y < 2000 add new line
+						{
+							newText.addNewLine();
+						}
+						else
+							break;  //do nothing
+					}
 					newText.addChar(wParam-48);
 				}
 				else if (wParam == 0x20) //space
@@ -1124,7 +1144,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
 		SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
 		SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
-		SendMessage(myButton[0], BM_SETSTATE, BN_PUSHED, 0);
+		SendMessage(myButton[currentDrawMode], BM_SETSTATE, BN_PUSHED, 0);
 
 		if (!bmpIcon1)
 			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
@@ -1168,7 +1188,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 {
 	RECT rect;
 	GetWindowRect(hwnd, &rect);
-	if (Xfocus > (rect.right-rect.left) && xCurrentScroll < 2000)
+	if (Xfocus > (rect.right-rect.left-25) && xCurrentScroll < 2000)
 	{
 		WPARAM wParam;
 		if (currentDrawMode == 3)
