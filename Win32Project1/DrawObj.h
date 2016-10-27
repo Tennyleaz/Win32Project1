@@ -11,6 +11,8 @@ public:
 	POINT ptEnd;
 	int objectType;  //1=line 2=rect 3=circle 4=text 0=undefined!
 	int color;
+	int backgroundColor;  //0=transparent
+	int lineWidth; //1~5
 	bool startFinished, endFinished;
 	DrawObj()
 	{
@@ -18,6 +20,8 @@ public:
 		objectType = 0;
 		startFinished = false;
 		endFinished = false;
+		backgroundColor = 0;
+		lineWidth = 1;
 	}
 	void clean()
 	{

@@ -513,16 +513,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
-		case ID_SAVE:
-			break;
+		//case ID_SAVE:
+		//	break;
 		case ID_SAVE_AS:
 		{
+			if (newText.text.size() > 0 && newText.text.back().size() > 0 && newText.startFinished && !newText.endFinished)
+			{
+				newText.endFinished = true;
+				DrawObjList.push_back(new TextObj(newText));
+				newText.clean();
+			}
 			SaveToFile(DrawObjList);
 			break;
 		}
-		case ID_NEW_FILE:
-			break;
+		//case ID_NEW_FILE:
+		//	break;
 		case ID_OPEN_FILE:
+			ReadFromFile(DrawObjList);
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		default:
 			wsprintf(szBuffer, TEXT("Button ID %d : %d"), wParam, lParam);
