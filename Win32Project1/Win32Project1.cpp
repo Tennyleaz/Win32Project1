@@ -11,6 +11,7 @@
 #include <memory>
 #include <algorithm>
 #include "DrawObj.h"
+#include "Save.h"
 
 using namespace std;
 
@@ -22,7 +23,7 @@ WCHAR szTitle[MAX_LOADSTRING];                  // 標題列文字
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
 WCHAR szChildClass[]=L"123";
 HWND hWndFather, myChildWindow;
-HWND myButton[4];
+HWND myButton[5];
 int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
 
 // 這個程式碼模組中所包含之函式的向前宣告: 
@@ -33,21 +34,6 @@ LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void				AutoScroll(HWND, int, int, int, int, RECT);
 RECT				getLocalCoordinates(HWND hWnd);
-
-struct
-{
-	int iStyle;
-	TCHAR * szText;
-}
-button[] =
-{
-	BS_PUSHBUTTON, TEXT("PushButton"),
-	BS_DEFPUSHBUTTON, TEXT("DefPushButton"),
-	BS_CHECKBOX, TEXT("CheckBox"),
-	BS_CHECKBOX, TEXT("CheckBox")
-};
-
-#define NUM (sizeof button / sizeof button[0])
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -87,12 +73,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	childClass.hIconSm = LoadIcon(childClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&childClass);
 
-	myChildWindow = CreateWindow(szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 265, hWndFather, (HMENU)103, hInst, NULL);
+	myChildWindow = CreateWindow(szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 320, hWndFather, (HMENU)103, hInst, NULL);
 
 	myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, myChildWindow, (HMENU)120, hInst, NULL);
 	myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, myChildWindow, (HMENU)121, hInst, NULL);
 	myButton[2] = CreateWindow(L"BUTTON", L"B3", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 115, 50, 50, myChildWindow, (HMENU)122, hInst, NULL);
 	myButton[3] = CreateWindow(L"BUTTON", L"B4", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 170, 50, 50, myChildWindow, (HMENU)123, hInst, NULL);
+	myButton[4] = CreateWindow(L"BUTTON", L"B5", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 225, 50, 50, myChildWindow, (HMENU)123, hInst, NULL);
 	
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
 
@@ -169,11 +156,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
 //vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
-/*list<LineObj> LineObjList;
-list<RectangularObj> RectObjList;
-list<CircleObj> CircleObjList;
-list<TextObj> TextObjList;*/
-#define IDM_COMMAND_2 17
 
 //
 //  函式: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -194,7 +176,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static CircleObj newCircle;
 	static bool mouseHasDown = false;
 
-	static HWND hwndButton[NUM];
+	//static HWND hwndButton[NUM];
 	static RECT rect;
 	static TCHAR szTop[] = TEXT("message  wparam  lparam"),
 		szFormat[] = TEXT("%-16s%04x-%04x    %04x-%04x"),
@@ -229,7 +211,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	
 	static int currentColor = 0;        //0=black, 0~7 kinds of color
 	//static HWND myWindow;
-	string debugmessage = "cursorX=";
+	//string debugmessage = "cursorX=";
 
 	switch (message)
 	{
@@ -275,8 +257,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (hMenu)
 		{			
 			//ModifyMenu(hMenu, ID_COMMAND_1, MF_BYCOMMAND | MF_STRING, ID_COMMAND_1, (PCTSTR)(LONG)bmpIcon1);
-			HMENU hMenu2 = GetSubMenu(hMenu, 1);
-			HMENU hMenu3 = GetSubMenu(hMenu2, 5);
+			HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
+			HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
 			
 			ModifyMenu(hMenu3, 0, MF_BYPOSITION | MF_BITMAP, ID_BLACK, (LPCTSTR)bmpIcon1);
 			ModifyMenu(hMenu3, 1, MF_BYPOSITION | MF_BITMAP, ID_GRAY, (LPCTSTR)bmpIcon2);
@@ -353,16 +335,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DeleteDC(hdcScreen);
 		return 0;
 	case WM_COMMAND:
-	{
-		/*ScrollWindow(hWnd, 0, -cyChar, &rect, &rect);
-		hdc = GetDC(hWnd);
-		TextOut(hdc, 24 * cxChar, cyChar*(rect.bottom / cyChar - 1), szBuffer,
-			wsprintf(szBuffer, szFormat, message == WM_DRAWITEM ? TEXT("WM_DRAWITEM") : TEXT("WM_COMMAND"),
-				HIWORD(wParam), LOWORD(wParam),
-				HIWORD(lParam), LOWORD(lParam)));
-		ReleaseDC(hWnd, hdc);
-		ValidateRect(hWnd, &rect);*/		
-
+	{	
 		int wmId = LOWORD(wParam);
 		// 剖析功能表選取項目: 
 		switch (wmId)
@@ -401,7 +374,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetFocus(hWnd);
 		case ID_RectTool:
 			currentDrawMode = 1;
-			CheckMenuItem(hMenu, ID_LineTool, MF_UNCHECKED);  
+			CheckMenuItem(hMenu, ID_LineTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_RectTool, MF_CHECKED);
 			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
 			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
@@ -540,6 +513,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
+		case ID_SAVE:
+			break;
+		case ID_SAVE_AS:
+		{
+			SaveToFile(DrawObjList);
+			break;
+		}
+		case ID_NEW_FILE:
+			break;
+		case ID_OPEN_FILE:
+			break;
 		default:
 			wsprintf(szBuffer, TEXT("Button ID %d : %d"), wParam, lParam);
 			MessageBox(hWnd, szBuffer, TEXT("Pressed"), MB_OK);
@@ -676,7 +660,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					if (newText.ptBeg.x + newText.text.back().size() * 8 > 1987) //if x > 2000 add new line and add new char
 					{
 						int newy = newText.ptBeg.y + (newText.text.size() + 1) * 13;
-						if (newy < 1988)  //if y < 2000 add new line
+						if (newy < 1989)  //if y < 2000 add new line
 						{
 							newText.addNewLine();
 						}
@@ -739,32 +723,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// TODO: 在此加入任何使用 hdc 的繪圖程式碼...
 		//---------------------------------------------------------------
 
-		// create string with the information about mouse position.
-		//char info[100] = "";
-		//sprintf(info, "Mouse position: %i  %i ", mouseX, mouseY);
-
-		//print client size
-		/*char Hbuffer[10], Lbuffer[10];
-		string s = "client height = ";
-		_itoa(clientRec.right, Hbuffer, 10);
-		_itoa(clientRec.bottom, Lbuffer, 10);
-		s = s + Hbuffer + " length=" + Lbuffer;*/
-
 		//TextOut(memoryDC, 10 - xCurrentScroll, 30 - yCurrentScroll, TEXT("123456"), 6);
 		//TextOutA(memoryDC, 10 - xCurrentScroll, 50 - yCurrentScroll, info, strlen(info));  //TextOutA ???
 		//TextOutA(memoryDC, 10 - xCurrentScroll, 70 - yCurrentScroll, s.c_str(), s.length());
 
-		string s2 = "new line start.x= ";
-		//s2 = s2 + to_string(newline.ptBeg.x) + " start.y=" + to_string(newline.ptBeg.y);
-		//TextOutA(memoryDC, 10 - xCurrentScroll, 90 - yCurrentScroll, s2.c_str(), s2.length());
-		//s2 = "new line end.x= ";
-		//s2 = s2 + to_string(newline.ptEnd.x) + " end.y=" + to_string(newline.ptEnd.y);
-		//TextOutA(memoryDC, 10 - xCurrentScroll, 110 - yCurrentScroll, s2.c_str(), s2.length());
-
-		//for (auto it = LineObjList.begin(); it != LineObjList.end(); it++)
-		//{
-		//	it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-		//}
+		string s2 = "";
 
 		newline.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
@@ -798,27 +761,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		}
 
-		s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
+		/*s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
 		TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
 		s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
-		TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
-		//s2 = "newRect.ptrBeg.x=" + to_string(newRect.ptBeg.x) + " newRect.ptBeg.y" + to_string(newRect.ptBeg.y);
-		//TextOutA(memoryDC, 700 - xCurrentScroll, 600 - yCurrentScroll, s2.c_str(), s2.length());
-		//s2 = "color=" + to_string(newline.color);
-		//TextOutA(memoryDC, 700 - xCurrentScroll, 580 - yCurrentScroll, s2.c_str(), s2.length());
+		TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());*/
 
-		for (int i = 0; i < 2000; )
+		/*for (int i = 0; i < 2000; )
 		{			
 			s2 = " " + to_string(i);
 			TextOutA(memoryDC, 0- xCurrentScroll, i - yCurrentScroll, s2.c_str(), s2.length());
-			TextOutA(memoryDC, i - xCurrentScroll, 0 - yCurrentScroll, s2.c_str(), s2.length());			
+			TextOutA(memoryDC, i - xCurrentScroll, 0 - yCurrentScroll, s2.c_str(), s2.length());
 			i += 200;
-		}
-
-		/*for (int i = 0; i < 2000; i+=25)
-		{
-			s2 = " " + to_string(i);
-			TextOutA(memoryDC, 1950 - xCurrentScroll, i - yCurrentScroll, s2.c_str(), s2.length());
 		}*/
 
 		//---------------------------------------------------------------
@@ -1100,10 +1053,6 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		/*bmpIcon5 = (HBITMAP)LoadImage(NULL, L"lineSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon6 = (HBITMAP)LoadImage(NULL, L"rectSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon7 = (HBITMAP)LoadImage(NULL, L"circleSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"textSelected.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);*/
 		break;
 	case WM_SIZE:
 		//InvalidateRect(hWnd, NULL, TRUE);
@@ -1151,8 +1100,8 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		if (pos->y < 0)
 			pos->y = 0;
 
-		if (pos->y > rectFather.bottom - rectFather.top - 341)
-			pos->y = rectFather.bottom - rectFather.top - 341;
+		if (pos->y > rectFather.bottom - rectFather.top - 397)
+			pos->y = rectFather.bottom - rectFather.top - 397;
 
 		if (pos->x > rectFather.right - rectFather.left - 110)
 			pos->x = rectFather.right - rectFather.left - 110;

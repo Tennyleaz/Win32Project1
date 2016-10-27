@@ -9,13 +9,13 @@ class DrawObj
 public:
 	POINT ptBeg;
 	POINT ptEnd;
-	int nObjType;
+	int objectType;  //1=line 2=rect 3=circle 4=text 0=undefined!
 	int color;
 	bool startFinished, endFinished;
 	DrawObj()
 	{
 		color = 0;
-		//nObjType = 0;
+		objectType = 0;
 		startFinished = false;
 		endFinished = false;
 	}
@@ -94,7 +94,7 @@ protected:
 class LineObj : public DrawObj
 {
 public:
-	LineObj()	{	}
+	LineObj() { objectType = 1; }
 	virtual ~LineObj() {}
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
 	{
@@ -122,6 +122,7 @@ public:
 	{
 		text.clear(); 
 		text.push_back("");
+		objectType = 4;
 	}
 	void clean()
 	{
@@ -245,7 +246,7 @@ public:
 class RectangularObj : public DrawObj
 {
 public:
-	RectangularObj() {}
+	RectangularObj() { objectType = 2; }
 	virtual ~RectangularObj() {}
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
 	{
@@ -271,7 +272,7 @@ class CircleObj : public DrawObj
 {
 	//int xRadius, yRadius;
 public:
-	CircleObj()	{	}
+	CircleObj() { objectType = 3; }
 	virtual ~CircleObj() {}
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
 	{
