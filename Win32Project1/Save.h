@@ -8,24 +8,24 @@
 using json = nlohmann::json;
 using namespace std;
 
-int SaveToFile(list<DrawObj>& saveList)
+int SaveToFile(const list<DrawObj*>& saveList)
 {
 	//put each object to json
 	json j;
 	for (auto& it : saveList)  //Draw each object in DrawObjList
 	{
 		json jit;
-		jit["objectType"] = it.objectType;
-		jit["ptBeg"] = { it.ptBeg.x, it.ptBeg.y };
-		jit["ptEnd"] = { it.ptEnd.x, it.ptEnd.y };
-		jit["color"] = it.color;
-		if (it.objectType == 4)
+		jit["objectType"] = it->objectType;
+		jit["ptBeg"] = { it->ptBeg.x, it->ptBeg.y };
+		jit["ptEnd"] = { it->ptEnd.x, it->ptEnd.y };
+		jit["color"] = it->color;
+		if (it->objectType == 4)
 		{
-			//TextObj* t = dynamic_cast<TextObj*>(it);
-			TextObj *t = new TextObj(*it);
-			jit["text"] = t->text;
+			TextObj* t = dynamic_cast<TextObj*>(it);
+			list<string> ls = t->text;
+			jit["text"] = ls;
 		}
-		cout << "jit = " << jit << endl;
+		//cout << "jit = " << jit << endl;
 		j.push_back(jit);
 	}
 
