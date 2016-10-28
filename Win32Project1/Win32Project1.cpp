@@ -221,13 +221,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static HMENU hMenu=NULL;        //try to get the system menu
 	static HBITMAP hBmp;          //bitmap for memory DC
 	
-	static int currentColor = 0;        //0=black, 0~7 kinds of color
+	static int currentColor;        //0=black, 0~7 kinds of color
+	static bool hasSelected;
 	//static HWND myWindow;
 	//string debugmessage = "cursorX=";
 
 	switch (message)
 	{
 	case WM_CREATE:
+		currentColor = 0;
+		hasSelected = false;
 		cxChar = LOWORD(GetDialogBaseUnits());
 		cyChar = HIWORD(GetDialogBaseUnits());	
 
@@ -360,6 +363,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			currentDrawMode = 0;
 			ChangeToolsSelectionState(currentDrawMode, hMenu);
 			PushCurrentNewText(newText);
+			hasSelected = false;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case 121:
@@ -368,6 +372,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			currentDrawMode = 1;			
 			ChangeToolsSelectionState(currentDrawMode, hMenu);
 			PushCurrentNewText(newText);
+			hasSelected = false;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case 122:
@@ -376,12 +381,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			currentDrawMode = 2;
 			ChangeToolsSelectionState(currentDrawMode, hMenu);
 			PushCurrentNewText(newText);
+			hasSelected = false;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case 123:
 			SetFocus(hWnd);
 		case ID_TextTool:
 			currentDrawMode = 3;
+			hasSelected = false;
 			ChangeToolsSelectionState(currentDrawMode, hMenu);
 			break;
 		case 124:
@@ -493,7 +500,7 @@ SAVE_AS_NEW_FILE:
 	case WM_MOUSEMOVE:
 	{
 		
-		if (mouseHasDown)  //scroll the scrollbars when mouse out of range
+		if (currentDrawMode!=4 && mouseHasDown)  //scroll the scrollbars when mouse out of range
 		{
 			mouseX = GET_X_LPARAM(lParam);
 			mouseY = GET_Y_LPARAM(lParam);
@@ -572,14 +579,21 @@ SAVE_AS_NEW_FILE:
 			}
 			else
 			{
-				//check mouse & DrawObjList have collision or not (from tail)
+				//check mouse & DrawObjList have collision or not (from tail)				
 				for (auto it = DrawObjList.crbegin(); it != DrawObjList.crend(); ++it)
 				{
-					it->CheckObjectCollision(mouseX + xCurrentScroll, mouseY + yCurrentScroll);
-					//selectedObject = it;
+					if ((*it)->CheckObjectCollision(mouseX, mouseY))
+					{
+						selectedObject = (*it);
+						hasSelected = true;
+						break;
+					}
 				}
 
 				//draw a selected rectangle
+				mouseHasDown = false;
+				InvalidateRect(hWnd, NULL, FALSE);
+				return 0;
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			mouseHasDown = true;			
@@ -594,21 +608,21 @@ SAVE_AS_NEW_FILE:
 			if (currentDrawMode == 0)
 			{
 				newLine.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
-				if(newLine.ptBeg.x != newLine.ptEnd.x && newLine.ptBeg.y != newLine.ptEnd.y)
+				if(newLine.ptBeg.x != newLine.ptEnd.x || newLine.ptBeg.y != newLine.ptEnd.y)
 					DrawObjList.push_back(new LineObj(newLine));
 				//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 			}
 			else if (currentDrawMode == 1)
 			{
 				newRect.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
-				if (newRect.ptBeg.x != newRect.ptEnd.x && newRect.ptBeg.y != newRect.ptEnd.y)
+				if (newRect.ptBeg.x != newRect.ptEnd.x || newRect.ptBeg.y != newRect.ptEnd.y)
 					DrawObjList.push_back(new RectangularObj(newRect));
 				//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 			}
 			else if (currentDrawMode == 2)
 			{
 				newCircle.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
-				if(newCircle.ptBeg.x != newCircle.ptEnd.x && newCircle.ptBeg.y != newCircle.ptEnd.y)
+				if(newCircle.ptBeg.x != newCircle.ptEnd.x || newCircle.ptBeg.y != newCircle.ptEnd.y)
 					DrawObjList.push_back(new CircleObj(newCircle));
 				//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 			}
@@ -745,6 +759,9 @@ SAVE_AS_NEW_FILE:
 		{
 			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		}
+
+		if (hasSelected)
+			selectedObject->PaintSelectedRect(memoryDC, xCurrentScroll, yCurrentScroll);
 
 		s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
 		TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
@@ -1038,6 +1055,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		bmpIcon2 = (HBITMAP)LoadImage(NULL, L"rect.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon3 = (HBITMAP)LoadImage(NULL, L"circle.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon4 = (HBITMAP)LoadImage(NULL, L"text.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		bmpIcon5 = (HBITMAP)LoadImage(NULL, L"select.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		break;
 	case WM_SIZE:
 		//InvalidateRect(hWnd, NULL, TRUE);
@@ -1054,6 +1072,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		SendMessage(myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
 		SendMessage(myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
 		SendMessage(myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
+		SendMessage(myButton[4], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon5);
 		SendMessage(myButton[currentDrawMode], BM_SETSTATE, BN_PUSHED, 0);
 
 		if (!bmpIcon1)
