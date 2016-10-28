@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "DrawObj.h"
 
 DrawObj::DrawObj()
@@ -83,3 +84,4 @@ void DrawObj::releaseColor(HDC hdc)
 	DeleteObject(hPen);*/
 	GetStockObject(DC_PEN);
 }
+
