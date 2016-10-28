@@ -24,7 +24,13 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
 WCHAR szChildClass[]=L"123";
 HWND hWndFather, myChildWindow;
 HWND myButton[5];
-int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text
+int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text, 4=select 
+int modifyState = 0;  //0=new file, 1=modified but not saved, 2=saved or opened
+string fileName = "Untitiled";
+auto lastStateObject = NULL;  //上一步用的物件
+auto recoverObject = NULL;  //下一步用的
+auto pastebinObject = NULL;  //剪貼簿用的
+DrawObj* selectedObject = NULL;  //選取工具選中的
 
 // 這個程式碼模組中所包含之函式的向前宣告: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -34,6 +40,11 @@ LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void				AutoScroll(HWND, int, int, int, int, RECT);
 RECT				getLocalCoordinates(HWND hWnd);
+void				CleanObjects(HWND);
+void				SetTitle(string, HWND);
+void				PushCurrentNewText(TextObj&);
+void				ChangeToolsSelectionState(int, HMENU);
+void				ChangeColorsSelectionState(int, HMENU);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -79,7 +90,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, myChildWindow, (HMENU)121, hInst, NULL);
 	myButton[2] = CreateWindow(L"BUTTON", L"B3", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 115, 50, 50, myChildWindow, (HMENU)122, hInst, NULL);
 	myButton[3] = CreateWindow(L"BUTTON", L"B4", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 170, 50, 50, myChildWindow, (HMENU)123, hInst, NULL);
-	myButton[4] = CreateWindow(L"BUTTON", L"B5", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 225, 50, 50, myChildWindow, (HMENU)123, hInst, NULL);
+	myButton[4] = CreateWindow(L"BUTTON", L"B5", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 225, 50, 50, myChildWindow, (HMENU)124, hInst, NULL);
 	
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
 
@@ -170,10 +181,11 @@ list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static int mouseX, mouseY;
-	static LineObj  newline;
+	static LineObj  newLine;
 	static RectangularObj newRect;
 	static TextObj newText;
 	static CircleObj newCircle;
+	static SelectedRect selectedRect;
 	static bool mouseHasDown = false;
 
 	//static HWND hwndButton[NUM];
@@ -219,19 +231,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		cxChar = LOWORD(GetDialogBaseUnits());
 		cyChar = HIWORD(GetDialogBaseUnits());	
 
-		//myWindow = CreateWindow((LPCTSTR)"BUTTON", (LPCTSTR)"WindowName", WS_CHILD | WS_VISIBLE, 300, 200, 100, 100, hWnd, (HMENU)0xCAC, hInst, &myWindow);
-		//myWindow = CreateWindow(L"STATIC", L"MyWindow", WS_VISIBLE | WS_CHILD , 5, 120, 80, 230, hWnd, (HMENU)102, hInst, NULL);
-		//CreateWindow((LPCTSTR)"BUTTON", (LPCTSTR)"WindowName", WS_CHILD | WS_VISIBLE, 10, 10, 100, 20, myWindow, (HMENU)103, hInst, NULL);
-		//ShowWindow(myWindow, SW_SHOW);
-		/*for (i = 0; i < NUM; i++)
-			hwndButton[i] = CreateWindow(TEXT("Button"),
-				button[i].szText,
-				WS_CHILD | WS_VISIBLE | BS_BITMAP,
-				cxChar, cyChar*(1 + 3.5 * i) + 120,
-				40, 40,
-				hWnd, (HMENU)i,
-				hInst, NULL);*/
-
 		//image for child window buttons
 		bmpIcon1 = (HBITMAP)LoadImage(NULL, L"black.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon2 = (HBITMAP)LoadImage(NULL, L"grey.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -242,15 +241,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		bmpIcon7 = (HBITMAP)LoadImage(NULL, L"yellow.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		bmpIcon8 = (HBITMAP)LoadImage(NULL, L"magenta.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		checkedIcon = (HBITMAP)LoadImage(NULL, L"checkedIcon.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		/*if (bmpIcon1)
-		{
-			SendMessage(hwndButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
-			SendMessage(hwndButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
-			SendMessage(hwndButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
-			SendMessage(hwndButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
-		}
-		else
-			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);*/
 
 		//add image to menu
 		hMenu = GetMenu(hWnd); //LoadMenu(NULL, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
@@ -344,194 +334,155 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;
 		case IDM_EXIT:
+			if (modifyState == 1)
+			{
+				if (DisplayConfirmNewFileMessageBox(fileName) == IDYES)
+					SaveToFile(DrawObjList, fileName);
+			}
 			DestroyWindow(hWnd);
 			break;
 		case ID_COMMAND_1:  //清除
-			for (auto& it : DrawObjList)  //delete each pointer. 
-				delete(it);
-			DrawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
-			newline.clean();
+			if (modifyState == 1)
+			{
+				if (DisplayConfirmClearMessageBox(fileName) == IDYES)
+					SaveToFile(DrawObjList, fileName);
+			}
+			modifyState = 1;
+			newLine.clean();
 			newRect.clean();
 			newText.clean();
 			newCircle.clean();
-			InvalidateRect(hWnd, NULL, TRUE);
-			//MessageBox(hWnd, szBuffer, TEXT("Pressed"), MB_OK);
+			CleanObjects(hWnd);
 			break;
 		case 120:
 			SetFocus(hWnd);  //return the focus back to main window
 		case ID_LineTool:
 			currentDrawMode = 0;
-			CheckMenuItem(hMenu, ID_LineTool, MF_CHECKED);  //check the line tool
-			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);  //un-check others
-			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
-			SendMessage(myButton[0], BM_SETSTATE, BN_PUSHED, 0);
-			SendMessage(myButton[1], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[2], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[3], BM_SETSTATE, 0, 0);
+			ChangeToolsSelectionState(currentDrawMode, hMenu);
+			PushCurrentNewText(newText);
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case 121:
 			SetFocus(hWnd);
 		case ID_RectTool:
-			currentDrawMode = 1;
-			CheckMenuItem(hMenu, ID_LineTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RectTool, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
-			SendMessage(myButton[0], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[1], BM_SETSTATE, BN_PUSHED, 0);
-			SendMessage(myButton[2], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[3], BM_SETSTATE, 0, 0);
+			currentDrawMode = 1;			
+			ChangeToolsSelectionState(currentDrawMode, hMenu);
+			PushCurrentNewText(newText);
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case 122:
 			SetFocus(hWnd);
 		case ID_CircleTool:
 			currentDrawMode = 2;
-			CheckMenuItem(hMenu, ID_LineTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CircleTool, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_TextTool, MF_UNCHECKED);
-			SendMessage(myButton[0], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[1], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[2], BM_SETSTATE, BN_PUSHED, 0);
-			SendMessage(myButton[3], BM_SETSTATE, 0, 0);
+			ChangeToolsSelectionState(currentDrawMode, hMenu);
+			PushCurrentNewText(newText);
+			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case 123:
 			SetFocus(hWnd);
 		case ID_TextTool:
 			currentDrawMode = 3;
-			CheckMenuItem(hMenu, ID_LineTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RectTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CircleTool, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_TextTool, MF_CHECKED);
-			SendMessage(myButton[0], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[1], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[2], BM_SETSTATE, 0, 0);
-			SendMessage(myButton[3], BM_SETSTATE, BN_PUSHED, 0);
+			ChangeToolsSelectionState(currentDrawMode, hMenu);
+			break;
+		case 124:
+			SetFocus(hWnd);
+		case ID_SelectTool:
+			currentDrawMode = 4;
+			PushCurrentNewText(newText);
+			ChangeToolsSelectionState(currentDrawMode, hMenu);
 			break;
 		case ID_BLACK:
-			currentColor = 0;
-			CheckMenuItem(hMenu, ID_BLACK, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			currentColor = 0;			
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_GRAY:
 			currentColor = 1;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_RED:
 			currentColor = 2;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_GREEN:
 			currentColor = 3;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_BLU:
 			currentColor = 4;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_CYAN:
 			currentColor = 5;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_YELLOW:
 			currentColor = 6;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_CHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_UNCHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
 		case ID_Magenta:
 			currentColor = 7;
-			CheckMenuItem(hMenu, ID_BLACK, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GRAY, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_RED, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_GREEN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_BLU, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_CYAN, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_YELLOW, MF_UNCHECKED);
-			CheckMenuItem(hMenu, ID_Magenta, MF_CHECKED);
+			ChangeColorsSelectionState(currentColor, hMenu);
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
-		//case ID_SAVE:
-		//	break;
+		case ID_SAVE:
+			if (modifyState == 0 || lastFilePath == NULL || wcslen(lastFilePath) < 1)
+				goto SAVE_AS_NEW_FILE;
+			PushCurrentNewText(newText);
+			SaveToLastFilePath(DrawObjList);
+			modifyState = 2;
+			break;
 		case ID_SAVE_AS:
 		{
-			if (newText.text.size() > 0 && newText.text.back().size() > 0 && newText.startFinished && !newText.endFinished)
-			{
-				newText.endFinished = true;
-				DrawObjList.push_back(new TextObj(newText));
-				newText.clean();
-			}
-			SaveToFile(DrawObjList);
+SAVE_AS_NEW_FILE:
+			PushCurrentNewText(newText);
+			SaveToFile(DrawObjList, fileName);
+			SetTitle(fileName, hWnd);
+			modifyState = 2;
 			break;
 		}
-		//case ID_NEW_FILE:
-		//	break;
-		case ID_OPEN_FILE:
-			ReadFromFile(DrawObjList);
-			InvalidateRect(hWnd, NULL, FALSE);
+		case ID_NEW_FILE:
+			if (modifyState == 1)
+			{
+				if (DisplayConfirmNewFileMessageBox(fileName) == IDYES)
+					SaveToFile(DrawObjList, fileName);
+			}
+			modifyState = 0;
+			fileName = "Untitled";
+			lastFilePath = NULL;
+			SetTitle(fileName, hWnd);
+			newLine.clean();
+			newRect.clean();
+			newText.clean();
+			newCircle.clean();
+			CleanObjects(hWnd);
 			break;
+		case ID_OPEN_FILE:
+		{			
+			//cleanObjects(hWnd);
+			ReadFromFile(DrawObjList, fileName);
+			newLine.clean();
+			newRect.clean();
+			newText.clean();
+			newCircle.clean();
+			SetTitle(fileName, hWnd);
+			InvalidateRect(hWnd, NULL, FALSE);
+			modifyState = 2;
+			break;
+		}
 		default:
 			wsprintf(szBuffer, TEXT("Button ID %d : %d"), wParam, lParam);
 			MessageBox(hWnd, szBuffer, TEXT("Pressed"), MB_OK);
@@ -551,10 +502,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		if (currentDrawMode == 0)
 		{
-			if (!newline.endFinished && newline.startFinished)
+			if (!newLine.endFinished && newLine.startFinished)
 			{
-				newline.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
-				newline.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
+				newLine.ptEnd.x = GET_X_LPARAM(lParam) + xCurrentScroll;
+				newLine.ptEnd.y = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
 		}
@@ -591,17 +542,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
 			if (currentDrawMode == 0)
 			{
-				newline.makeStart(mouseX, mouseY, currentColor);
+				newLine.makeStart(mouseX, mouseY, currentColor);
+				modifyState = 1;
 			}
 			else if (currentDrawMode == 1)
 			{
 				newRect.makeStart(mouseX, mouseY, currentColor);
+				modifyState = 1;
 			}
 			else if (currentDrawMode == 2)
 			{
 				newCircle.makeStart(mouseX, mouseY, currentColor);
+				modifyState = 1;
 			}
-			else
+			else if (currentDrawMode == 3)
 			{
 				if (!newText.startFinished) //click to a new text position without previous start
 				{
@@ -609,17 +563,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 				{
-					if (newText.text.size() > 0 && newText.text.back().size() >0)
-					{
-						newText.endFinished = true;
-						//DrawObjList.push_back(move(make_unique<TextObj>(newText)));
-						DrawObjList.push_back(new TextObj(newText));
-					}
-					newText.clean();
+					PushCurrentNewText(newText);
 					newText.makeStart(mouseX, mouseY, currentColor);
 				}
 				if (newText.ptBeg.y > 1987)
 					newText.ptBeg.y = 1987;
+				modifyState = 1;
+			}
+			else
+			{
+				//check mouse & DrawObjList have collision or not (from tail)
+				for (auto it = DrawObjList.crbegin(); it != DrawObjList.crend(); ++it)
+				{
+					it->CheckObjectCollision(mouseX + xCurrentScroll, mouseY + yCurrentScroll);
+					//selectedObject = it;
+				}
+
+				//draw a selected rectangle
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			mouseHasDown = true;			
@@ -633,24 +593,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ReleaseCapture();  //stop capture mouse
 			if (currentDrawMode == 0)
 			{
-				newline.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
-				DrawObjList.push_back(new LineObj(newline));
+				newLine.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
+				if(newLine.ptBeg.x != newLine.ptEnd.x && newLine.ptBeg.y != newLine.ptEnd.y)
+					DrawObjList.push_back(new LineObj(newLine));
 				//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 			}
 			else if (currentDrawMode == 1)
 			{
 				newRect.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
-				DrawObjList.push_back(new RectangularObj(newRect));
+				if (newRect.ptBeg.x != newRect.ptEnd.x && newRect.ptBeg.y != newRect.ptEnd.y)
+					DrawObjList.push_back(new RectangularObj(newRect));
 				//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 			}
 			else if (currentDrawMode == 2)
 			{
 				newCircle.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
-				DrawObjList.push_back(new CircleObj(newCircle));
+				if(newCircle.ptBeg.x != newCircle.ptEnd.x && newCircle.ptBeg.y != newCircle.ptEnd.y)
+					DrawObjList.push_back(new CircleObj(newCircle));
 				//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 			}
+			else if (currentDrawMode == 3)
+			{	/*do nothing for newText*/	}
 			else
 			{
+
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			mouseHasDown = false;
@@ -728,6 +694,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		FillRect(memoryDC, &clientRec, hbrBkGnd);
 		DeleteObject(hbrBkGnd);
 
+		if (modifyState == 1) //add a * at file name
+		{
+			string title = fileName;
+			title.append("*");
+			SetTitle(title, hWnd);
+		}
+		else  //remove last * at file name
+		{
+			SetTitle(fileName, hWnd);
+		}
+
 		// TODO: 在此加入任何使用 hdc 的繪圖程式碼...
 		//---------------------------------------------------------------
 
@@ -737,7 +714,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		string s2 = "";
 
-		newline.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+		newLine.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
 		newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
@@ -769,10 +746,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		}
 
-		/*s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
+		s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
 		TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
 		s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
-		TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());*/
+		TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
 
 		/*for (int i = 0; i < 2000; )
 		{			
@@ -1052,7 +1029,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	PAINTSTRUCT ps;
 	HDC hdc;
 	int wmId;
-	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
+	static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5;   //a bitmap icon for button
 
 	switch (message)
 	{
@@ -1091,9 +1068,6 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		DeleteObject(bmpIcon3);
 		DeleteObject(bmpIcon4);
 		DeleteObject(bmpIcon5);
-		DeleteObject(bmpIcon6);
-		DeleteObject(bmpIcon7);
-		DeleteObject(bmpIcon8);
 		PostQuitMessage(0);
 		break;
 	case WM_WINDOWPOSCHANGING:  //passed when dragging
@@ -1167,4 +1141,64 @@ RECT getLocalCoordinates(HWND hWnd)
 	GetWindowRect(hWnd, &Rect);
 	MapWindowPoints(HWND_DESKTOP, GetParent(hWnd), (LPPOINT)&Rect, 2);
 	return Rect;
+}
+
+void CleanObjects(HWND hWnd)
+{
+	for (auto& it : DrawObjList)  //delete each pointer. 
+		delete(it);
+	DrawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
+	InvalidateRect(hWnd, NULL, TRUE);
+}
+
+void SetTitle(string name, HWND hWnd)
+{
+	wstring stemp = wstring(name.begin(), name.end());
+	LPCWSTR sw = stemp.c_str();
+	SetWindowText(hWnd, sw);
+}
+
+void PushCurrentNewText(TextObj& newText)
+{
+	if (newText.text.size() > 0 && newText.text.back().size() > 0)
+	{
+		newText.endFinished = true;
+		DrawObjList.push_back(new TextObj(newText));
+	}
+	newText.clean();
+}
+
+void ChangeToolsSelectionState(int position, HMENU hMenu)
+{
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
+	for (int i = 0; i < 5; i++)
+	{
+		if (i == position)
+		{
+			SendMessage(myButton[i], BM_SETSTATE, BN_PUSHED, 0);
+			CheckMenuItem(hMenu2, i, MF_CHECKED | MF_BYPOSITION);
+		}
+		else
+		{
+			SendMessage(myButton[i], BM_SETSTATE, 0, 0);
+			CheckMenuItem(hMenu2, i, MF_UNCHECKED | MF_BYPOSITION);
+		}
+	}
+}
+
+void ChangeColorsSelectionState(int position, HMENU hMenu)
+{
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
+	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
+	for (int i = 0; i < 8; i++)
+	{
+		if (i == position)
+		{
+			CheckMenuItem(hMenu3, i, MF_CHECKED | MF_BYPOSITION);
+		}
+		else
+		{
+			CheckMenuItem(hMenu3, i, MF_UNCHECKED | MF_BYPOSITION);
+		}
+	}
 }

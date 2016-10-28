@@ -10,12 +10,14 @@
 using json = nlohmann::json;
 using namespace std;
 
+static PWSTR lastFilePath = NULL;
+
 PWSTR BasicFileOpen();
 PWSTR BasicFileSave();
-string wstrtostr(const std::wstring &);
+string wstr_to_str(const std::wstring &);
 bool end_with(const std::string &, const std::string &);
 
-int SaveToFile(const list<DrawObj*>& saveList)
+int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 {
 	//put each object to json
 	json j;
@@ -42,20 +44,30 @@ int SaveToFile(const list<DrawObj*>& saveList)
 	PWSTR filePath = BasicFileSave();
 	if (filePath)
 	{
-		string fp = wstrtostr(filePath);
+		string fp = wstr_to_str(filePath);
 		if (!end_with(fp, ".json"))
 			fp.append(".json");
 		outfile.open(fp);
 		outfile << j << endl;
 		outfile.close();
+		lastFilePath = filePath;
 	}
 	else
-		MessageBox(NULL, L"File name failed.", L"Error!", MB_OK);
+	{
+		MessageBox(NULL, L"You did not save.", L"Warning!", MB_OK);
+		return 1;
+	}
+
+	string name = wstr_to_str(filePath);
+	//wstring name = filePath;
+	auto const pos = name.find_last_of('\\');
+	auto const result = name.substr(pos + 1);
+	fileName = result;
 
 	return 0;
 }
 
-int ReadFromFile(list<DrawObj*>& readList)
+int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 {
 	PWSTR filePath = BasicFileOpen();
 	if (!filePath)
@@ -75,6 +87,15 @@ int ReadFromFile(list<DrawObj*>& readList)
 		return 1;
 	}
 	infile >> j;
+	lastFilePath = filePath;
+	string name = wstr_to_str(filePath);
+	//wstring name = filePath;
+	auto const pos = name.find_last_of('\\');
+	auto const result = name.substr(pos + 1);
+	fileName = result;
+	//LPCWSTR sw = result.c_str();
+	//MessageBox(NULL, sw, L"name", MB_OK);
+	readList.clear();
 	
 	int i = 0;
 	for (json::iterator it = j.begin(); it != j.end(); it++)
@@ -127,6 +148,46 @@ int ReadFromFile(list<DrawObj*>& readList)
 	return 0;
 }
 
+int SaveToLastFilePath(const list<DrawObj*>& saveList)
+{
+	//put each object to json
+	json j;
+	for (auto& it : saveList)  //Draw each object in DrawObjList
+	{
+		json jit;
+		jit["objectType"] = it->objectType;
+		jit["ptBeg"] = { it->ptBeg.x, it->ptBeg.y };
+		jit["ptEnd"] = { it->ptEnd.x, it->ptEnd.y };
+		jit["color"] = it->color;
+		jit["backgroundColor"] = it->backgroundColor;
+		jit["lineWidth"] = it->lineWidth;
+		if (it->objectType == 4)
+		{
+			TextObj* t = dynamic_cast<TextObj*>(it);
+			list<string> ls = t->text;
+			jit["text"] = ls;
+		}
+		j.push_back(jit);
+	}
+
+	// open a file in write mode.
+	ofstream outfile;
+	//PWSTR filePath = BasicFileSave();
+	if (lastFilePath!=NULL && wcslen(lastFilePath) >0 )
+	{
+		string fp = wstr_to_str(lastFilePath);
+		outfile.open(fp);
+		outfile << j << endl;
+		outfile.close();
+	}
+	else
+	{
+		MessageBox(NULL, L"SaveToLastFilePath Failed", L"ERROR!", MB_OK);
+		return 1;
+	}
+	return 0;
+}
+
 PWSTR BasicFileOpen()
 {
 	PWSTR pszFilePath = NULL;
@@ -157,7 +218,7 @@ PWSTR BasicFileOpen()
 					if (SUCCEEDED(hr))
 					{
 						//MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
-						CoTaskMemFree(pszFilePath);
+						//CoTaskMemFree(pszFilePath);
 					}
 					pItem->Release();
 				}
@@ -220,8 +281,8 @@ PWSTR BasicFileSave()
 					// Display the file name to the user.
 					if (SUCCEEDED(hr))
 					{
-						MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
-						CoTaskMemFree(pszFilePath);
+						//MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
+						//CoTaskMemFree(pszFilePath);
 					}
 					pItem->Release();
 				}
@@ -233,7 +294,7 @@ PWSTR BasicFileSave()
 	return pszFilePath;
 }
 
-std::string wstrtostr(const std::wstring &wstr)
+std::string wstr_to_str(const std::wstring &wstr)
 {
 	std::string strTo;
 	char *szTo = new char[wstr.length() + 1];
@@ -248,4 +309,48 @@ bool end_with(const std::string &str, const std::string &suffix)
 {
 	return str.size() >= suffix.size() &&
 		str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+std::wstring str_to_wstr(const std::string& s)
+{
+	wstring stemp = wstring(s.begin(), s.end());
+	return stemp;
+}
+
+int DisplayConfirmClearMessageBox(const string fileName)
+{
+	wstring ws = str_to_wstr(fileName);
+	ws += L" has been modified.\nDo you want to save it?";
+	int msgboxID = MessageBox(
+		NULL,
+		ws.c_str(),
+		L"Confirm to Clear",
+		MB_ICONEXCLAMATION | MB_YESNO
+	);
+
+	if (msgboxID == IDYES)
+	{
+		// TODO: add code
+	}
+
+	return msgboxID;
+}
+
+int DisplayConfirmNewFileMessageBox(const string fileName)
+{
+	wstring ws = str_to_wstr(fileName);
+	ws += L" has been modified.\nDo you want to save it?";
+	int msgboxID = MessageBox(
+		NULL,
+		ws.c_str(),
+		L"Confirm New File",
+		MB_ICONEXCLAMATION | MB_YESNO
+	);
+
+	if (msgboxID == IDYES)
+	{
+		// TODO: add code
+	}
+
+	return msgboxID;
 }

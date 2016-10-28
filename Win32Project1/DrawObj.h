@@ -35,7 +35,8 @@ public:
 	}
 	virtual ~DrawObj() {};
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
-	void makeStart(int x, int y, int currentColor)
+	virtual bool CheckObjectCollision(int mouseX, int mouseY) = 0;  //x and y is absolute position on background
+	void makeStart(int x, int y, int currentColor)  //x and y is absolute position on background
 	{
 		ptBeg.x = x;
 		ptBeg.y = y;
@@ -45,12 +46,13 @@ public:
 		endFinished = false;
 		color = currentColor;
 	}
-	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)
+	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)  //x and y is related position
 	{
 		ptEnd.x = x + xCurrentScroll;
 		ptEnd.y = y + yCurrentScroll;
 		endFinished = true;
 	}
+	
 protected:
 	HPEN switchColor()
 	{
@@ -58,31 +60,31 @@ protected:
 		switch (color)
 		{
 		case 0:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 0));
 			break;
 		case 1:
-			hPen = CreatePen(PS_SOLID, 1, RGB(180, 180, 180));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(180, 180, 180));
 			break;
 		case 2:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 0, 0));
 			break;
 		case 3:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 255, 0));
 			break;
 		case 4:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 255));
 			break;
 		case 5:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 255, 255));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 255, 255));
 			break;
 		case 6:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 255, 0));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 255, 0));
 			break;
 		case 7:
-			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 255));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 0, 255));
 			break;
 		default:
-			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+			hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 0));
 		}
 		return hPen;
 	}
@@ -116,6 +118,75 @@ public:
 		DeleteObject(hPen);
 		releaseColor(hdc);
 	}
+	virtual bool CheckObjectCollision(int mouseX, int mouseY) override
+	{
+		float slope, intercept, epsilon;
+		float x1, y1, x2, y2;
+		float px, py;
+		float left, top, right, bottom; // Bounding Box For Line Segment
+		float dx, dy;
+		epsilon = 1.0;
+
+		x1 = ptBeg.x;
+		y1 = ptBeg.y;
+		x2 = ptEnd.x;
+		y2 = ptEnd.y;
+		px = mouseX;
+		py = mouseY;
+
+		dx = x2 - x1;
+		dy = y2 - y1;
+		slope = dy / dx;
+
+		// y = mx + c
+		// intercept c = y - mx
+
+		intercept = y1 - slope * x1; // which is same as y2 - slope * x2
+
+		// For Bounding Box
+		if (x1 < x2)
+		{
+			left = x1;
+			right = x2;
+		}
+		else
+		{
+			left = x2;
+			right = x1;
+		}
+
+		if (y1 < y2)
+		{
+			top = y1;
+			bottom = y2;
+		}
+		else
+		{
+			top = y1;
+			bottom = y2;
+		}
+
+		//std::cout << "Equation of the line: ";
+		//std::cout << slope << "X " << ((intercept < 0) ? ' ' : '+') << intercept << "\n";
+
+		if (slope * px + intercept > (py - epsilon) &&
+			slope * px + intercept < (py + epsilon))
+		{
+			if (px >= left && px <= right &&
+				py >= top && py <= bottom)
+			{
+				//std::cout << "Given point lies in the line segment\n";
+				MessageBox(NULL, L"Given point lies in the line segment", L"Detection", MB_OK);
+				return true;
+			}
+			else
+				MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
+				//std::cout << "Given point is outside the line segment\n";
+		}
+		else
+			MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
+		return false;
+	}
 };
 
 class TextObj : public DrawObj
@@ -145,6 +216,7 @@ public:
 	{
 		if (!startFinished)
 			return;
+
 		string s = "";
 		RECT rc;
 		SetRect(&rc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptBeg.x - Xoffset+ 300, ptBeg.y - Yoffset + 300);		
@@ -245,6 +317,11 @@ public:
 			text.push_back("");
 		}
 	}
+	virtual bool CheckObjectCollision(int mouseX, int mouseY) override
+	{
+		return false;
+		//do nothing currently
+	}
 };
 
 class RectangularObj : public DrawObj
@@ -269,6 +346,11 @@ public:
 
 		DeleteObject(hPen);
 		releaseColor(hdc);
+	}
+	virtual bool CheckObjectCollision(int mouseX, int mouseY) override
+	{
+		return false;
+		//do nothing currently
 	}
 };
 
@@ -296,5 +378,53 @@ public:
 		DeleteObject(hPen);
 		releaseColor(hdc);
 	}
+	virtual bool CheckObjectCollision(int mouseX, int mouseY) override
+	{
+		return false;
+		//do nothing currently
+	}
 };
 
+class SelectedRect : public DrawObj
+{
+public:
+	bool shown;
+	SelectedRect() 
+	{ 
+		objectType = 0; 
+		shown = false;
+	}
+	virtual ~SelectedRect() {}
+	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override
+	{
+		if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
+			return;
+		if (!shown)
+			return;
+
+		HPEN hpen, hpenOld;
+		hpen = CreatePen(PS_DASH, 1, RGB(255, 255, 255));
+		hpenOld = (HPEN)SelectObject(hdc, hpen); 
+		
+		// do something...
+		int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
+		int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
+		int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
+		int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
+		Rectangle(hdc, left - Xoffset, top - Yoffset, right - Xoffset, buttom - Yoffset);
+
+		//return the pen
+		SelectObject(hdc, hpenOld);
+		DeleteObject(hpen);		
+	}
+	void Create(POINT pBeg, POINT pEnd)
+	{
+		SelectedRect::ptBeg = pBeg;
+		SelectedRect::ptEnd = pEnd;
+	}
+	virtual bool CheckObjectCollision(int mouseX, int mouseY) override
+	{
+		return false;
+		//do nothing currently
+	}
+};
