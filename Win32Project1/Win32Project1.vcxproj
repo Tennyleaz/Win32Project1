@@ -169,6 +169,7 @@
     </ClCompile>
     <ClCompile Include="TextObj.cpp" />
     <ClCompile Include="Win32Project1.cpp" />
+    <ClCompile Include="WindowMessage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Win32Project1.rc" />

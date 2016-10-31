@@ -64,8 +64,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	LoadStringW(hInstance, IDC_WIN32PROJECT1, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	Listener::MyWinProcMessageListener().AddDefaultEvent(DefaultEvnetHandler);
-	//Listener::MyWinProcMessageListener().AddEvent(WM_LBUTTONDOWN, ExampleEvnetHandler1);
+	//Listener::MyWinProcMessageListener().AddDefaultEvent(DefaultEvnetHandler);
+	Listener::MyWinProcMessageListener().AddEvent(IDM_ABOUT, AboutEvent());
 	//Listener::MyWinProcMessageListener().AddEvent(WM_LBUTTONUP, ExampleEvnetHandler1);
 
 	// 執行應用程式初始設定: 
