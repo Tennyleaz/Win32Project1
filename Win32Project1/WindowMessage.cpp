@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "WindowMessage.h"
 #include "Listener.h"
+#include "Resource.h"
 
 LRESULT DefaultEvnetHandler(Parameter& param)
 {
@@ -12,6 +13,6 @@ LRESULT DefaultEvnetHandler(Parameter& param)
 
 LRESULT AboutEvent(Parameter& param)
 {
-	DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+	DialogBox(Listener::MyWinProcMessageListener().hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), param.hWnd_, About);
 	return 0;
 }

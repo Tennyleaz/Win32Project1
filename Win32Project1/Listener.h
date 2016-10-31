@@ -26,6 +26,7 @@ private:
 	std::unordered_map<UINT, Event> evnetHandlerMap_;
 	Event defaultEventHandler_;
 public:
+	HINSTANCE hInst;
 	static Listener& MyWinProcMessageListener() {
 		static Listener l;
 		return l;

@@ -58,6 +58,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	// TODO: 在此置入程式碼。
 	hInst = hInstance;
+	Listener::MyWinProcMessageListener().hInst = hInstance;
 
 	// 初始化全域字串
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
