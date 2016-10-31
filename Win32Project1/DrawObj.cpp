@@ -55,19 +55,19 @@ int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)
 	if (mouseY >= top - 4 && mouseY <= top + 1 && mouseX >= left - 4 && mouseX <= left + 1)  //左上
 		return 1;
 	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //右下
-		return 1;
+		return 2;
 	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //左下
-		return 2;
+		return 4;
 	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= top - 4 && mouseY <= top + 1) //右上
-		return 2;
+		return 3;
 	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //左
-		return 3;
+		return 5;
 	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //右
-		return 3;
+		return 6;
 	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= top - 4 && mouseY <= top + 1) //上
-		return 4;
+		return 7;
 	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= buttom - 1 && mouseY <= buttom + 4) //下
-		return 4;
+		return 8;
 
 	return 0;
 }
@@ -92,6 +92,88 @@ void DrawObj::Moving(int mouseX, int mouseY)
 	ptEnd.y = originalEnd.y + deltaY;
 
 	return;
+}
+
+void DrawObj::Resizing(int mouseX, int mouseY, int mode)
+{
+	int deltaX, deltaY;
+	deltaX = mouseX - originalMouseX;
+	deltaY = mouseY - originalMouseY;
+
+	//check if resizing is too small
+	//if (abs(originalBegin.x - originalEnd.x) < abs(deltaX) - 2)
+	//	deltaX = 2 - abs(originalBegin.x - originalEnd.x);
+
+	int beginDeltaX=0, beginDeltaY=0, endDeltaX=0, endDeltaY=0;  //assume begin at upper left...
+
+	switch (mode)
+	{
+	case 1:
+		beginDeltaX = deltaX;
+		beginDeltaY = deltaY;
+		break;
+	case 2:
+		endDeltaX = deltaX;
+		endDeltaY = deltaY;
+		break;
+	case 3:  //右上
+		endDeltaX = deltaX;
+		beginDeltaY = deltaY;		
+		break;
+	case 4:  //左下
+		beginDeltaX = deltaX;
+		endDeltaY = deltaY;
+		break;
+	case 5:  //左
+		beginDeltaX = deltaX;
+		break;
+	case 6:  //右
+		endDeltaX = deltaX;
+		break;
+	case 7:  //上
+		beginDeltaY = deltaY;
+		break;
+	case 8:  //下
+		endDeltaY = deltaY;
+		break;
+	default:
+		return;
+		break;
+	}
+
+	//find which point is upper right
+	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg 在左上
+	{
+		ptBeg.x = originalBegin.x + beginDeltaX;
+		ptBeg.y = originalBegin.y + beginDeltaY;
+		ptEnd.x = originalEnd.x + endDeltaX;
+		ptEnd.y = originalEnd.y + endDeltaY;
+		/*if (ptBeg.x > ptEnd.x - 2)
+			ptBeg.x = ptEnd.x + 2;
+		if (ptBeg.y > ptEnd.y - 2)
+			ptBeg.y = ptEnd.y + 2;*/
+	}
+	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg 在左下
+	{
+		ptBeg.x = originalBegin.x + beginDeltaX;
+		ptBeg.y = originalBegin.y + endDeltaY;
+		ptEnd.x = originalEnd.x + endDeltaX;
+		ptEnd.y = originalEnd.y + beginDeltaY;
+	}
+	else if (originalBegin.x >= originalEnd.x && originalBegin.y < originalEnd.y) //ptBeg 在右上
+	{
+		ptBeg.x = originalBegin.x + endDeltaX;
+		ptBeg.y = originalBegin.y + beginDeltaY;
+		ptEnd.x = originalEnd.x + beginDeltaX;
+		ptEnd.y = originalEnd.y + endDeltaY;
+	}
+	else  //ptBeg在右下
+	{
+		ptBeg.x = originalBegin.x + endDeltaX;
+		ptBeg.y = originalBegin.y + endDeltaY;
+		ptEnd.x = originalEnd.x + beginDeltaX;
+		ptEnd.y = originalEnd.y + beginDeltaY;
+	}
 }
 
 HPEN DrawObj::switchColor()

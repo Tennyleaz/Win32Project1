@@ -24,9 +24,9 @@ public:
 	void makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth); //x and y is absolute position on background
 	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
 	int CheckMouseIsOnSizingOpint(int mouseX, int mouseY);	//return 0~4, 0 is normal mouse
-	void StartToMove(int mouseX, int mouseY);  //x and y is absolute position on background
+	void StartToMove(int mouseX, int mouseY);  //prepare to move or resize the object. x and y is absolute position on background
 	void Moving(int mouseX, int mouseY); 
-	void MoveEnd(int mouseX, int mouseY);
+	void Resizing(int mouseX, int mouseY, int mode);
 protected:
 	int originalMouseX, originalMouseY;
 	POINT originalBegin, originalEnd; 

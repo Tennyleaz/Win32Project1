@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="DrawObj.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="Listener.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Save.h" />
     <ClInclude Include="stdafx.h" />
@@ -157,6 +158,7 @@
     <ClCompile Include="CircleObj.cpp" />
     <ClCompile Include="DrawObj.cpp" />
     <ClCompile Include="LineObj.cpp" />
+    <ClCompile Include="Listener.cpp" />
     <ClCompile Include="RectangularObj.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

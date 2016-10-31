@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "DrawObj.h"
 #include "Save.h"
+#include "Listener.h"
 
 using namespace std;
 
@@ -187,11 +188,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static CircleObj newCircle;
 	static bool mouseHasDown = false;
 
-	//static HWND hwndButton[NUM];
 	static RECT rect;
-	static TCHAR szTop[] = TEXT("message  wparam  lparam"),
-		szFormat[] = TEXT("%-16s%04x-%04x    %04x-%04x"),
-		szBuffer[50];
+	static TCHAR szBuffer[50];
 	static int cxChar, cyChar;
 	//int i;
 
@@ -223,11 +221,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static int currentColor;        //0=black, 0~7 kinds of color
 	static int currentBgColor;      //0=transparent, 0~7 kinds of color
 	static int currentLineWidth;    //width 1~5
-	static int currentCursorMode;   //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
+	static int currentCursorMode;   //0=original 1=左上 2=右下 3=右上 4=左下 5=左 6=右 7=上 8=下 9=四向
 	static bool hasSelected;
 	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
-	//static HWND myWindow;
 	//string debugmessage = "cursorX=";
+
+	//Listener::MyWinProcMessageListener().Trig(message, Parameter(hWnd, lParam, wParam));
 
 	switch (message)
 	{
@@ -590,9 +589,7 @@ SAVE_AS_NEW_FILE:
 			}
 		}
 		else if (currentDrawMode == 3)
-		{
-			//do nothing on text
-		}
+		{	/*do nothing on text*/	}
 		else 
 		{
 			//if mouse is not down on object, only change the mouse icon
@@ -602,22 +599,29 @@ SAVE_AS_NEW_FILE:
 				mouseX = GET_X_LPARAM(lParam) + xCurrentScroll;
 				mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
 				currentCursorMode =selectedObject->CheckMouseIsOnSizingOpint(mouseX, mouseY);
-				SetCursor(cursors[currentCursorMode]);
+				//if(currentCursorMode == 0)
+					SetCursor(cursors[(currentCursorMode+1)/2]);
+				//else if(currentCursorMode == 1 || currentCursorMode == 2)
 
 				//draw a moving arrow if mouse is on the object
 				if (currentCursorMode == 0 && selectedObject->CheckObjectCollision(mouseX, mouseY))
 				{
 					SetCursor(cursors[5]);
-					currentCursorMode = 5;
+					currentCursorMode = 9;
 				}
 			}
 			else if (hasSelected && mouseHasDown)  //if mouse is down on object, then perform move/resize
 			{
 				mouseX = GET_X_LPARAM(lParam) + xCurrentScroll;
 				mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
-				if (currentCursorMode == 5)  //perform move
+				if (currentCursorMode == 9)  //perform move
 				{
 					selectedObject->Moving(mouseX, mouseY);
+					InvalidateRect(hWnd, NULL, FALSE);
+				}
+				else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
+				{
+					selectedObject->Resizing(mouseX, mouseY, currentCursorMode);
 					InvalidateRect(hWnd, NULL, FALSE);
 				}
 			}
