@@ -13,7 +13,7 @@
 #include "DrawObj.h"
 #include "Save.h"
 #include "Listener.h"
-#include "WindowMessage.h"
+#include "WM_Command.h"
 
 using namespace std;
 
@@ -39,7 +39,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+//INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void				AutoScroll(HWND, int, int, int, int, RECT);
 RECT				getLocalCoordinates(HWND hWnd);
 void				CleanObjects(HWND);
@@ -58,7 +58,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	// TODO: 在此置入程式碼。
 	hInst = hInstance;
-	Listener::MyWinProcMessageListener().hInst = hInstance;
+	Listener::WinProcMsgListener().hInst = hInstance;
 
 	// 初始化全域字串
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -66,7 +66,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	MyRegisterClass(hInstance);
 
 	//Listener::MyWinProcMessageListener().AddDefaultEvent(DefaultEvnetHandler);
-	Listener::MyWinProcMessageListener().AddEvent(IDM_ABOUT, AboutEvent());
+	Listener::WinProcMsgListener().AddEvent(WM_COMMAND, AboutEvent);
 	//Listener::MyWinProcMessageListener().AddEvent(WM_LBUTTONUP, ExampleEvnetHandler1);
 
 	// 執行應用程式初始設定: 
@@ -232,7 +232,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 	//string debugmessage = "cursorX=";
 
-	Listener::MyWinProcMessageListener().Trig(message, Parameter(hWnd, message, lParam, wParam));
+	Listener::WinProcMsgListener().Trig(message, Parameter(hWnd, message, lParam, wParam));
 
 	switch (message)
 	{
@@ -348,9 +348,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// 剖析功能表選取項目: 
 		switch (wmId)
 		{
-		case IDM_ABOUT:
+		/*case IDM_ABOUT:
 			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-			break;
+			break;*/
 		case IDM_EXIT:
 			if (modifyState == 1)
 			{
@@ -1132,7 +1132,7 @@ SAVE_AS_NEW_FILE:
 
 
 
-// [關於] 方塊的訊息處理常式。
+/*// [關於] 方塊的訊息處理常式。
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
@@ -1150,7 +1150,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (INT_PTR)FALSE;
-}
+}*/
 
 //the callback class for child window
 LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

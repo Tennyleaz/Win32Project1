@@ -152,8 +152,9 @@
     <ClInclude Include="Save.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="WinProcVars.h" />
     <ClInclude Include="Win32Project1.h" />
-    <ClInclude Include="WindowMessage.h" />
+    <ClInclude Include="WM_Command.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CircleObj.cpp" />
@@ -168,8 +169,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TextObj.cpp" />
+    <ClCompile Include="WinProcVars.cpp" />
     <ClCompile Include="Win32Project1.cpp" />
-    <ClCompile Include="WindowMessage.cpp" />
+    <ClCompile Include="WM_Command.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Win32Project1.rc" />

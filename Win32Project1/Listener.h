@@ -27,7 +27,7 @@ private:
 	Event defaultEventHandler_;
 public:
 	HINSTANCE hInst;
-	static Listener& MyWinProcMessageListener() {
+	static Listener& WinProcMsgListener() {
 		static Listener l;
 		return l;
 	}

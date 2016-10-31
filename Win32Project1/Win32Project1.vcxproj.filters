@@ -45,7 +45,10 @@
     <ClInclude Include="Listener.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="WindowMessage.h">
+    <ClInclude Include="WM_Command.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="WinProcVars.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,7 +77,10 @@
     <ClCompile Include="Listener.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
-    <ClCompile Include="WindowMessage.cpp">
+    <ClCompile Include="WM_Command.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="WinProcVars.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>
