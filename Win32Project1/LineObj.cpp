@@ -28,15 +28,35 @@ void LineObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	hpenOld = (HPEN)SelectObject(hdc, hpen);
 
 	// do something...
-	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
-	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
-	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
-	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
-	Rectangle(hdc, left - Xoffset, top - Yoffset, right - Xoffset, buttom - Yoffset);
+	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y) - Yoffset;
+	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x) - Xoffset;
+	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y) - Yoffset;
+	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x) - Xoffset;
+	Rectangle(hdc, left, top, right, buttom);
 
 	//return the pen
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
+
+	//draw the 8-points
+	{
+		//左上
+		Rectangle(hdc, left - 4, top - 4, left + 1, top + 1);
+		//右上
+		Rectangle(hdc, right - 1, top - 4, right + 4, top + 1);
+		//左下
+		Rectangle(hdc, left - 4, buttom - 1, left + 1, buttom + 4);
+		//右下
+		Rectangle(hdc, right - 1, buttom - 1, right + 4, buttom + 4);
+		//左中
+		Rectangle(hdc, left - 4, (buttom + top) / 2 - 3, left + 1, (buttom + top) / 2 + 2);
+		//右中
+		Rectangle(hdc, right - 1, (buttom + top) / 2 - 3, right + 4, (buttom + top) / 2 + 2);
+		//上中
+		Rectangle(hdc, (right + left) / 2 - 3, top - 4, (right + left) / 2 + 2, top + 1);
+		//下中
+		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
+	}
 }
 
 bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
@@ -46,7 +66,7 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 	float px, py;
 	float left, top, right, bottom; // Bounding Box For Line Segment
 	float dx, dy;
-	epsilon = 5.0;
+	epsilon = 4.0 + lineWidth;
 
 	x1 = ptBeg.x;
 	y1 = ptBeg.y;
@@ -58,7 +78,7 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 	dx = x2 - x1;
 	dy = y2 - y1;
 
-	if (dx == 0)
+	if (dx == 0)  //vertical line
 	{
 		//only check Y coordinate
 		if (y1 < y2)

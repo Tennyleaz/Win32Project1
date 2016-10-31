@@ -24,7 +24,7 @@ void DrawObj::clean()
 
 DrawObj::~DrawObj(){ }
 
-void DrawObj::makeStart(int x, int y, int currentColor)  //x and y is absolute position on background
+void DrawObj::makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth)  //x and y is absolute position on background
 {
 	ptBeg.x = x;
 	ptBeg.y = y;
@@ -33,6 +33,8 @@ void DrawObj::makeStart(int x, int y, int currentColor)  //x and y is absolute p
 	startFinished = true;
 	endFinished = false;
 	color = currentColor;
+	backgroundColor = currentBgColor;
+	lineWidth = currentLineWidth;
 }
 
 void DrawObj::makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)  //x and y is related position
@@ -40,6 +42,56 @@ void DrawObj::makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)  //x
 	ptEnd.x = x + xCurrentScroll;
 	ptEnd.y = y + yCurrentScroll;
 	endFinished = true;
+	//startFinished = false;
+}
+
+int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)  
+{
+	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
+	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
+	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
+	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
+
+	if (mouseY >= top - 4 && mouseY <= top + 1 && mouseX >= left - 4 && mouseX <= left + 1)  //左上
+		return 1;
+	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //右下
+		return 1;
+	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //左下
+		return 2;
+	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= top - 4 && mouseY <= top + 1) //右上
+		return 2;
+	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //左
+		return 3;
+	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //右
+		return 3;
+	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= top - 4 && mouseY <= top + 1) //上
+		return 4;
+	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= buttom - 1 && mouseY <= buttom + 4) //下
+		return 4;
+
+	return 0;
+}
+
+void DrawObj::StartToMove(int mouseX, int mouseY)
+{
+	originalMouseX = mouseX;
+	originalMouseY = mouseY;
+	originalBegin = ptBeg;
+	originalEnd = ptEnd;
+}
+
+void DrawObj::Moving(int mouseX, int mouseY)
+{
+	int deltaX, deltaY;
+	deltaX = mouseX - originalMouseX;
+	deltaY = mouseY - originalMouseY;
+
+	ptBeg.x = originalBegin.x + deltaX;
+	ptBeg.y = originalBegin.y + deltaY;
+	ptEnd.x = originalEnd.x + deltaX;
+	ptEnd.y = originalEnd.y + deltaY;
+
+	return;
 }
 
 HPEN DrawObj::switchColor()
@@ -82,6 +134,44 @@ void DrawObj::releaseColor(HDC hdc)
 	/*HPEN hPen = GetStockObject(BLACK_PEN);//CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	SelectObject(hdc, hPen);
 	DeleteObject(hPen);*/
-	GetStockObject(DC_PEN);
+	SelectObject(hdc, GetStockObject(DC_PEN));
+	SelectObject(hdc, GetStockObject(NULL_BRUSH));
+}
+
+HBRUSH DrawObj::switchBackgroundColor()
+{
+	HBRUSH brush;
+	switch (backgroundColor)
+	{
+	case 0:
+		//brush = CreateSolidBrush(RGB(255, 255, 255));
+		return NULL;
+		break;
+	case 1:
+		brush = CreateSolidBrush(RGB(180, 180, 180));
+		break;
+	case 2:
+		brush = CreateSolidBrush(RGB(255, 0, 0));
+		break;
+	case 3:
+		brush = CreateSolidBrush(RGB(0, 255, 0));
+		break;
+	case 4:
+		brush = CreateSolidBrush(RGB(0, 0, 255));
+		break;
+	case 5:
+		brush = CreateSolidBrush(RGB(0, 255, 255));
+		break;
+	case 6:
+		brush = CreateSolidBrush(RGB(255, 255, 0));
+		break;
+	case 7:
+		brush = CreateSolidBrush(RGB(255, 0, 255));
+		break;
+	default:
+		return NULL;
+	}
+	return brush;
+	//SelectObject(hdc, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
 }
 

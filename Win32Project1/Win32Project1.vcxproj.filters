@@ -56,6 +56,12 @@
     <ClCompile Include="TextObj.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
+    <ClCompile Include="RectangularObj.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="CircleObj.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Win32Project1.rc">

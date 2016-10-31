@@ -154,8 +154,10 @@
     <ClInclude Include="Win32Project1.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CircleObj.cpp" />
     <ClCompile Include="DrawObj.cpp" />
     <ClCompile Include="LineObj.cpp" />
+    <ClCompile Include="RectangularObj.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

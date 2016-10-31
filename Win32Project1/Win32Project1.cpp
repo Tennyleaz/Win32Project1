@@ -185,7 +185,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static RectangularObj newRect;
 	static TextObj newText;
 	static CircleObj newCircle;
-	static SelectedRect selectedRect;
 	static bool mouseHasDown = false;
 
 	//static HWND hwndButton[NUM];
@@ -222,7 +221,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static HBITMAP hBmp;          //bitmap for memory DC
 	
 	static int currentColor;        //0=black, 0~7 kinds of color
+	static int currentBgColor;      //0=transparent, 0~7 kinds of color
+	static int currentLineWidth;    //width 1~5
+	static int currentCursorMode;   //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 	static bool hasSelected;
+	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 	//static HWND myWindow;
 	//string debugmessage = "cursorX=";
 
@@ -286,6 +289,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else
 			MessageBox(hWnd, 0, TEXT("NO MENU"), MB_OK);
+
+		cursors[0] = LoadCursor(NULL, IDC_ARROW);  // 0 = default mouse
+		cursors[1] = LoadCursor(NULL, IDC_SIZENWSE);  //1~2 = 四角的游標 1=左上右下
+		cursors[2] = LoadCursor(NULL, IDC_SIZENESW);  //2=右上左下
+		cursors[3] = LoadCursor(NULL, IDC_SIZEWE);  //3~4 = 邊上的游標 3=左右
+		cursors[4] = LoadCursor(NULL, IDC_SIZENS);  //4=上下
+		cursors[5] = LoadCursor(NULL, IDC_SIZEALL);
 
 		// Create a normal DC and a memory DC for the entire 
 		// screen. The normal DC provides a snapshot of the 
@@ -355,6 +365,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			newRect.clean();
 			newText.clean();
 			newCircle.clean();
+			selectedObject = NULL;
+			currentCursorMode = 0;
+			hasSelected = false;
 			CleanObjects(hWnd);
 			break;
 		case 120:
@@ -445,6 +458,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			newText.color = currentColor;
 			InvalidateRect(hWnd, NULL, FALSE);
 			break;
+		case ID_BG_Transparent:
+			currentBgColor = 0;
+			break;
+		case  ID_BG_GRAY:
+			currentBgColor = 1;
+			break;
+		case  ID_BG_RED:
+			currentBgColor = 2;
+			break;
+		case  ID_BG_GREEN:
+			currentBgColor = 3;
+			break;
+		case  ID_BG_BLU:
+			currentBgColor = 4;
+			break;
+		case  ID_BG_CYAN:
+			currentBgColor = 5;
+			break;
+		case  ID_BG_YELLOW:
+			currentBgColor = 6;
+			break;
+		case  ID_BG_Magenta:
+			currentBgColor = 7;
+			break;
+		case ID_Wide1:
+			currentLineWidth = 1;
+			break;
+		case ID_Wide2:
+			currentLineWidth = 2;
+			break;
+		case ID_Wide3:
+			currentLineWidth = 3;
+			break;
+		case ID_Wide4:
+			currentLineWidth = 4;
+			break;
+		case ID_Wide5:
+			currentLineWidth = 5;
+			break;
 		case ID_SAVE:
 			if (modifyState == 0 || lastFilePath == NULL || wcslen(lastFilePath) < 1)
 				goto SAVE_AS_NEW_FILE;
@@ -475,6 +527,9 @@ SAVE_AS_NEW_FILE:
 			newRect.clean();
 			newText.clean();
 			newCircle.clean();
+			selectedObject = NULL;
+			currentCursorMode = 0;
+			hasSelected = false;
 			CleanObjects(hWnd);
 			break;
 		case ID_OPEN_FILE:
@@ -534,9 +589,41 @@ SAVE_AS_NEW_FILE:
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
 		}
-		else
+		else if (currentDrawMode == 3)
 		{
+			//do nothing on text
+		}
+		else 
+		{
+			//if mouse is not down on object, only change the mouse icon
+			if (hasSelected && !mouseHasDown)
+			{
+				//draw a double arrow mouse if mouse is on the 8-points
+				mouseX = GET_X_LPARAM(lParam) + xCurrentScroll;
+				mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
+				currentCursorMode =selectedObject->CheckMouseIsOnSizingOpint(mouseX, mouseY);
+				SetCursor(cursors[currentCursorMode]);
 
+				//draw a moving arrow if mouse is on the object
+				if (currentCursorMode == 0 && selectedObject->CheckObjectCollision(mouseX, mouseY))
+				{
+					SetCursor(cursors[5]);
+					currentCursorMode = 5;
+				}
+			}
+			else if (hasSelected && mouseHasDown)  //if mouse is down on object, then perform move/resize
+			{
+				mouseX = GET_X_LPARAM(lParam) + xCurrentScroll;
+				mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
+				if (currentCursorMode == 5)  //perform move
+				{
+					selectedObject->Moving(mouseX, mouseY);
+					InvalidateRect(hWnd, NULL, FALSE);
+				}
+			}
+			
+			//else
+				//SetCursor(cursors[0]); //do nothing
 		}
 		break;
 	}
@@ -549,29 +636,29 @@ SAVE_AS_NEW_FILE:
 			mouseY = GET_Y_LPARAM(lParam) + yCurrentScroll;
 			if (currentDrawMode == 0)
 			{
-				newLine.makeStart(mouseX, mouseY, currentColor);
+				newLine.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 				modifyState = 1;
 			}
 			else if (currentDrawMode == 1)
 			{
-				newRect.makeStart(mouseX, mouseY, currentColor);
+				newRect.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 				modifyState = 1;
 			}
 			else if (currentDrawMode == 2)
 			{
-				newCircle.makeStart(mouseX, mouseY, currentColor);
+				newCircle.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 				modifyState = 1;
 			}
 			else if (currentDrawMode == 3)
 			{
 				if (!newText.startFinished) //click to a new text position without previous start
 				{
-					newText.makeStart(mouseX, mouseY, currentColor);
+					newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 				}
 				else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 				{
 					PushCurrentNewText(newText);
-					newText.makeStart(mouseX, mouseY, currentColor);
+					newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 				}
 				if (newText.ptBeg.y > 1987)
 					newText.ptBeg.y = 1987;
@@ -579,6 +666,17 @@ SAVE_AS_NEW_FILE:
 			}
 			else
 			{
+				//if mouse is on the 8 sizing point, start to resize
+				if (currentCursorMode != 0)
+				{
+					mouseHasDown = true;
+					selectedObject->StartToMove(mouseX, mouseY);
+					return 0;
+				}
+				
+				//if mouse is on Object, start to drag
+
+				//if no sizing or moving, detect a collision and select an object
 				//check mouse & DrawObjList have collision or not (from tail)				
 				for (auto it = DrawObjList.crbegin(); it != DrawObjList.crend(); ++it)
 				{
@@ -610,6 +708,7 @@ SAVE_AS_NEW_FILE:
 				newLine.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
 				if(newLine.ptBeg.x != newLine.ptEnd.x || newLine.ptBeg.y != newLine.ptEnd.y)
 					DrawObjList.push_back(new LineObj(newLine));
+				newLine.startFinished = false;
 				//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 			}
 			else if (currentDrawMode == 1)
@@ -617,6 +716,7 @@ SAVE_AS_NEW_FILE:
 				newRect.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
 				if (newRect.ptBeg.x != newRect.ptEnd.x || newRect.ptBeg.y != newRect.ptEnd.y)
 					DrawObjList.push_back(new RectangularObj(newRect));
+				newRect.startFinished = false;
 				//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 			}
 			else if (currentDrawMode == 2)
@@ -624,13 +724,15 @@ SAVE_AS_NEW_FILE:
 				newCircle.makeEnd(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), xCurrentScroll, yCurrentScroll);
 				if(newCircle.ptBeg.x != newCircle.ptEnd.x || newCircle.ptBeg.y != newCircle.ptEnd.y)
 					DrawObjList.push_back(new CircleObj(newCircle));
+				newCircle.startFinished = false;
 				//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 			}
 			else if (currentDrawMode == 3)
 			{	/*do nothing for newText*/	}
 			else
 			{
-
+				//stop resizing
+				currentCursorMode = 0;
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			mouseHasDown = false;
@@ -729,7 +831,7 @@ SAVE_AS_NEW_FILE:
 		string s2 = "";
 
 		newLine.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-		SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
+		//SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
 		newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 		newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);

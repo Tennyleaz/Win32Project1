@@ -106,7 +106,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		case 1:
 		{
 			LineObj newLine;
-			newLine.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"]);
+			newLine.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
 			newLine.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			readList.push_back(new LineObj(newLine));
 			break;
@@ -114,7 +114,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		case 2:
 		{
 			RectangularObj newRect;
-			newRect.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"]);
+			newRect.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
 			newRect.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			readList.push_back(new RectangularObj(newRect));
 			break;
@@ -122,7 +122,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		case 3:
 		{
 			CircleObj newCircle;
-			newCircle.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"]);
+			newCircle.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
 			newCircle.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			readList.push_back(new CircleObj(newCircle));
 			break;
@@ -130,7 +130,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		case 4:
 		{
 			TextObj newText;
-			newText.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"]);
+			newText.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
 			newText.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			list<string> text = j5["text"];
 			newText.text = text;
