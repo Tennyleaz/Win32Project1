@@ -9,8 +9,10 @@ struct Parameter
 	HWND hWnd_;
 	WPARAM wParam_;
 	LPARAM lParam_;
-	Parameter(HWND hWnd, WPARAM wParam, LPARAM lParam)
+	UINT message_;
+	Parameter(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		:hWnd_(hWnd)
+		, message_(message)
 		, wParam_(wParam)
 		, lParam_(lParam)
 	{}

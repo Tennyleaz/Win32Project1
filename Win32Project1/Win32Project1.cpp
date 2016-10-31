@@ -13,6 +13,7 @@
 #include "DrawObj.h"
 #include "Save.h"
 #include "Listener.h"
+#include "WindowMessage.h"
 
 using namespace std;
 
@@ -62,6 +63,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_WIN32PROJECT1, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
+
+	Listener::MyWinProcMessageListener().AddDefaultEvent(DefaultEvnetHandler);
+	//Listener::MyWinProcMessageListener().AddEvent(WM_LBUTTONDOWN, ExampleEvnetHandler1);
+	//Listener::MyWinProcMessageListener().AddEvent(WM_LBUTTONUP, ExampleEvnetHandler1);
 
 	// 執行應用程式初始設定: 
 	if (!InitInstance(hInstance, SW_MAXIMIZE))
@@ -226,7 +231,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 	//string debugmessage = "cursorX=";
 
-	//Listener::MyWinProcMessageListener().Trig(message, Parameter(hWnd, lParam, wParam));
+	Listener::MyWinProcMessageListener().Trig(message, Parameter(hWnd, message, lParam, wParam));
 
 	switch (message)
 	{
