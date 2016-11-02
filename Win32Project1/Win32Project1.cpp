@@ -4,12 +4,12 @@
 #include "stdafx.h"
 #include "Win32Project1.h"
 #include <string>
-#include "Windowsx.h"
-#include "Windows.h"
-//#include <list>
 #include <vector>
 #include <memory>
 #include <algorithm>
+//#include <list>
+#include "Windowsx.h"
+#include "Windows.h"
 #include "DrawObj.h"
 #include "Save.h"
 #include "Listener.h"
