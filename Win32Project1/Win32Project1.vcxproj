@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClCompile Include="CircleObj.cpp" />
     <ClCompile Include="DrawObj.cpp" />
+    <ClCompile Include="globals.cpp" />
     <ClCompile Include="LineObj.cpp" />
     <ClCompile Include="Listener.cpp" />
     <ClCompile Include="RectangularObj.cpp" />
