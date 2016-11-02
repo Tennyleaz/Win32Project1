@@ -49,5 +49,10 @@ public:
 	static bool hasSelected;
 	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 	//string debugmessage = "cursorX=";
+
 	WinProcVars();
+	static WinProcVars& MyVar(){
+		static WinProcVars var;
+		return var;
+	}
 };

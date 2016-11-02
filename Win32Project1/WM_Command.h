@@ -4,6 +4,6 @@
 
 LRESULT DefaultEvnetHandler(Parameter& param);
 
-LRESULT AboutEvent(Parameter& param);
+LRESULT WM_CommandEvent(Parameter& param);
 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);

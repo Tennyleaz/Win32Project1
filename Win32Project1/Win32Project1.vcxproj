@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DrawObj.h" />
+    <ClInclude Include="globals.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Listener.h" />
     <ClInclude Include="Resource.h" />

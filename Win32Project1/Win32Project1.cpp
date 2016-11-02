@@ -14,10 +14,12 @@
 #include "Save.h"
 #include "Listener.h"
 #include "WM_Command.h"
+//#include "WinProcVars.h"
+#include "globals.h"
 
 using namespace std;
 
-#define MAX_LOADSTRING 100
+/*#define MAX_LOADSTRING 100
 
 // 全域變數: 
 HINSTANCE hInst;                                // 目前執行個體
@@ -32,9 +34,9 @@ string fileName = "Untitiled";
 auto lastStateObject = NULL;  //上一步用的物件
 auto recoverObject = NULL;  //下一步用的
 auto pastebinObject = NULL;  //剪貼簿用的
-DrawObj* selectedObject = NULL;  //選取工具選中的
+DrawObj* selectedObject = NULL;  //選取工具選中的*/
 
-// 這個程式碼模組中所包含之函式的向前宣告: 
+/*// 這個程式碼模組中所包含之函式的向前宣告: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -46,7 +48,7 @@ void				CleanObjects(HWND);
 void				SetTitle(string, HWND);
 void				PushCurrentNewText(TextObj&);
 void				ChangeToolsSelectionState(int, HMENU);
-void				ChangeColorsSelectionState(int, HMENU);
+void				ChangeColorsSelectionState(int, HMENU);*/
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -66,7 +68,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	MyRegisterClass(hInstance);
 
 	//Listener::MyWinProcMessageListener().AddDefaultEvent(DefaultEvnetHandler);
-	Listener::WinProcMsgListener().AddEvent(WM_COMMAND, AboutEvent);
+	Listener::WinProcMsgListener().AddEvent(WM_COMMAND, WM_CommandEvent);
 	//Listener::MyWinProcMessageListener().AddEvent(WM_LBUTTONUP, ExampleEvnetHandler1);
 
 	// 執行應用程式初始設定: 
@@ -172,9 +174,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	return TRUE;
 }
 
-list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
-//vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
-
 //
 //  函式: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -187,7 +186,7 @@ list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static int mouseX, mouseY;
+	/*static int mouseX, mouseY;
 	static LineObj  newLine;
 	static RectangularObj newRect;
 	static TextObj newText;
@@ -230,7 +229,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static int currentCursorMode;   //0=original 1=左上 2=右下 3=右上 4=左下 5=左 6=右 7=上 8=下 9=四向
 	static bool hasSelected;
 	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
-	//string debugmessage = "cursorX=";
+	//string debugmessage = "cursorX=";*/
 
 	Listener::WinProcMsgListener().Trig(message, Parameter(hWnd, message, lParam, wParam));
 
@@ -342,15 +341,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		yMaxScroll = 0;
 		DeleteDC(hdcScreen);
 		return 0;
-	case WM_COMMAND:
+	/*case WM_COMMAND:
 	{	
 		int wmId = LOWORD(wParam);
 		// 剖析功能表選取項目: 
 		switch (wmId)
 		{
-		/*case IDM_ABOUT:
+		case IDM_ABOUT:
 			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-			break;*/
+			break;
 		case IDM_EXIT:
 			if (modifyState == 1)
 			{
@@ -556,7 +555,7 @@ SAVE_AS_NEW_FILE:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}		
 		break;
-	}	
+	}	*/
 	case WM_MOUSEMOVE:
 	{
 		
