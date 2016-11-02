@@ -67,7 +67,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	LoadStringW(hInstance, IDC_WIN32PROJECT1, globals::var().szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	Listener::WinProcMsgListener().AddDefaultEvent(DefaultEvnetHandler);
+	//Listener::WinProcMsgListener().AddDefaultEvent(DefaultEvnetHandler);
 	Listener::WinProcMsgListener().AddEvent(WM_COMMAND, WM_CommandEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_CREATE, WM_CreateEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_MOUSEMOVE, WM_MouseMoveEvent);
@@ -1134,7 +1134,8 @@ SAVE_AS_NEW_FILE:
 	//default:
 	//	return DefWindowProc(hWnd, message, wParam, lParam);
 	//}
-	return 0;
+	//return 0;
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 
