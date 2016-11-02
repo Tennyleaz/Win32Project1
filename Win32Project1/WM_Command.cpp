@@ -422,7 +422,49 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		}
 	}
 	else if (globals::var().currentDrawMode == 3)
-	{	/*do nothing on text*/
+	{	
+		/*do nothing on text*/
+
+		//if mouse is not down on object, only change the mouse icon
+		if (hasSelected && !mouseHasDown)
+		{
+			//draw a double arrow mouse if mouse is on the 8-points
+			mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
+			mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
+			currentCursorMode = globals::var().selectedObject->CheckMouseIsOnSizingOpint(mouseX, mouseY);
+			//if(currentCursorMode == 0)
+			SetCursor(cursors[(currentCursorMode + 1) / 2]);
+			//else if(currentCursorMode == 1 || currentCursorMode == 2)
+
+			//draw a moving arrow if mouse is on the object
+			if (currentCursorMode == 0 && globals::var().selectedObject->CheckObjectCollision(mouseX, mouseY))
+			{
+				SetCursor(cursors[5]);
+				currentCursorMode = 9;
+			}
+		}
+		else if (hasSelected && mouseHasDown)  //if mouse is down on object, then perform move/resize
+		{
+			mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
+			mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
+			if (currentCursorMode == 9)  //perform move
+			{
+				globals::var().selectedObject->Moving(mouseX, mouseY);
+				InvalidateRect(param.hWnd_, NULL, FALSE);
+			}
+			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
+			{
+				if (globals::var().selectedObject->objectType == 4)
+				{
+					TextObj * temp;
+					temp = (TextObj*)globals::var().selectedObject;
+					temp->ResizingText(mouseX, mouseY, currentCursorMode);
+				}
+				else
+					globals::var().selectedObject->Resizing(mouseX, mouseY, currentCursorMode);
+				InvalidateRect(param.hWnd_, NULL, FALSE);
+			}
+		}
 	}
 	else
 	{
@@ -455,7 +497,14 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 			}
 			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
 			{
-				globals::var().selectedObject->Resizing(mouseX, mouseY, currentCursorMode);
+				if (globals::var().selectedObject->objectType == 4)
+				{
+					TextObj * temp;
+					temp = (TextObj*)globals::var().selectedObject;
+					temp->ResizingText(mouseX, mouseY, currentCursorMode);
+				}
+				else
+					globals::var().selectedObject->Resizing(mouseX, mouseY, currentCursorMode);
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 		}
@@ -491,9 +540,19 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 		}
 		else if (globals::var().currentDrawMode == 3)
 		{
+			//if mouse is on the 8 sizing point, start to resize
+			if (currentCursorMode != 0)
+			{
+				mouseHasDown = true;
+				globals::var().selectedObject->StartToMove(mouseX, mouseY);
+				return 0;
+			}
+
 			if (!newText.startFinished) //click to a new text position without previous start
 			{
 				newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
+				newText.makeEnd(mouseX + 8 * 5 + 1, mouseY + 1 * 13 + 1, xCurrentScroll, yCurrentScroll);
+				newText.endFinished = false;
 			}
 			else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 			{
@@ -503,6 +562,8 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 			if (newText.ptBeg.y > 1987)
 				newText.ptBeg.y = 1987;
 			globals::var().modifyState = 1;
+			globals::var().selectedObject = &newText;
+			hasSelected = true;
 		}
 		else
 		{
@@ -586,33 +647,9 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 {
 	if (param.wParam_)
 	{
-		if (globals::var().currentDrawMode == 3 && newText.startFinished)
+		if ((globals::var().currentDrawMode == 3 && newText.startFinished))
 		{
-			if ((param.wParam_ >= 65 && param.wParam_ <= 90) || (param.wParam_ >= 48 && param.wParam_ <= 57) || (param.wParam_ >= 0x60 && param.wParam_ <= 0x69) || (param.wParam_ == 0x20))
-			{
-				if (newText.ptBeg.x + newText.text.back().size() * 8 > 1987) //if x > 2000 add new line and add new char
-				{
-					int newy = newText.ptBeg.y + (newText.text.size() + 1) * 13;
-					if (newy < 1989)  //if y < 2000 add new line
-					{
-						newText.addNewLine();
-					}
-					else
-						return 0;  //do nothing
-				}
-				newText.addChar(param.wParam_);
-			}
-			else if (param.wParam_ == 0x0D)  //enter
-			{
-				if (newText.ptBeg.y + (newText.text.size() + 1) * 13 < 1988)
-				{
-					newText.addNewLine();  //insert a "" string to back
-				}
-			}
-			else if (param.wParam_ == 0x08)  //backspace <-
-			{
-				newText.backspace();
-			}
+			newText.KeyIn(param.wParam_);
 
 			int x, y;  //x and y is current caret position on window
 			if (newText.text.size() > 0)
@@ -624,6 +661,29 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			{
 				x = newText.ptBeg.x - xCurrentScroll;
 				y = newText.ptBeg.y - yCurrentScroll;
+			}
+			mouseX = x;
+			mouseY = y;
+			AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
+			InvalidateRect(param.hWnd_, NULL, FALSE);
+		}
+		else if (globals::var().currentDrawMode == 4 && globals::var().selectedObject->objectType == 4)
+		{
+			TextObj * temp;
+			temp = (TextObj*)globals::var().selectedObject;
+
+			temp->KeyIn(param.wParam_);
+
+			int x, y;  //x and y is current caret position on window
+			if (temp->text.size() > 0)
+			{
+				x = temp->ptBeg.x + temp->text.back().size() * 8 - xCurrentScroll;
+				y = temp->ptBeg.y + (temp->text.size() - 1) * 13 - yCurrentScroll;
+			}
+			else
+			{
+				x = temp->ptBeg.x - xCurrentScroll;
+				y = temp->ptBeg.y - yCurrentScroll;
 			}
 			mouseX = x;
 			mouseY = y;
@@ -696,7 +756,8 @@ LRESULT WM_PaintEvent(Parameter& param)
 			y = newText.ptBeg.y - yCurrentScroll;
 		}
 		// Adjust the caret position, in client coordinates. 
-		SetCaretPos(x, y);
+		//SetCaretPos(x, y);
+		SetCaretPos(newText.ptBeg.x + newText.tailPos.x, newText.ptBeg.y + newText.tailPos.y);
 	}
 	else
 		DestroyCaret();//HideCaret(param.hWnd_);		
@@ -730,32 +791,6 @@ LRESULT WM_PaintEvent(Parameter& param)
 		memoryDC,
 		0, 0,
 		SRCCOPY);
-
-	// If scrolling has occurred, use the following call to 
-	// BitBlt to paint the invalid rectangle. 
-	// 
-	// The coordinates of this rectangle are specified in the 
-	// RECT structure to which prect points. 
-	// 
-	// Note that it is necessary to increment the seventh 
-	// argument (prect->left) by xCurrentScroll and the 
-	// eighth argument (prect->top) by yCurrentScroll in 
-	// order to map the correct pixels from the source bitmap. 
-	//if (fScroll)
-	//{
-	//	prect = &ps.rcPaint;
-	//
-	//	BitBlt(hdc,
-	//		prect->left, prect->top,
-	//		(prect->right - prect->left),
-	//		(prect->bottom - prect->top),
-	//		memoryDC,
-	//		prect->left + xCurrentScroll,
-	//		prect->top + yCurrentScroll,
-	//		SRCCOPY);
-	//
-	//	fScroll = FALSE;
-	//}
 
 	DeleteDC(memoryDC);  //release a memory DC
 	DeleteObject(hBmp);

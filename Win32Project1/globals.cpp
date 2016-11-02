@@ -8,6 +8,7 @@ globals::globals()
 	modifyState = 0;
 	selectedObject = NULL;
 	mouseHasDown = false;
+	wcsncpy(szChildClass, L"123", 3);
 }
 
 globals & globals::var()

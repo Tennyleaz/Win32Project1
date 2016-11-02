@@ -1,7 +1,9 @@
 #pragma once
+
 #include "Windows.h"
 #include <string>
 #include <list>
+#include <vector>
 using namespace std;
 
 class DrawObj
@@ -24,11 +26,11 @@ public:
 	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
 	int CheckMouseIsOnSizingOpint(int mouseX, int mouseY);	//return 0~4, 0 is normal mouse
 	void StartToMove(int mouseX, int mouseY);  //prepare to move or resize the object. x and y is absolute position on background
-	void Moving(int mouseX, int mouseY); 
+	void Moving(int mouseX, int mouseY);
 	void Resizing(int mouseX, int mouseY, int mode);
 protected:
 	int originalMouseX, originalMouseY;
-	POINT originalBegin, originalEnd; 
+	POINT originalBegin, originalEnd;
 	HPEN switchColor();
 	void releaseColor(HDC hdc);
 	HBRUSH switchBackgroundColor();
@@ -46,17 +48,23 @@ public:
 
 class TextObj : public DrawObj
 {
+private:
+	int textWidth, textHeight, maxTextWidth;
+	void addChar(int c);
+	void addNewLine();
+	void backspace();
 public:
-	list<string> text;
+	vector<string> text;
+	POINT tailPos;
 	TextObj();
 	void clean();
 	virtual ~TextObj();
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset);
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset);
-	void addChar(int c);
-	void addNewLine();
-	void backspace();
 	virtual bool CheckObjectCollision(int mouseX, int mouseY);
+	void KeyIn(int wParam);
+	void ResizingText(int mouseX, int mouseY, int mode);
+	bool CheckTextBoxBigEnough(int X, int Y);
 };
 
 class RectangularObj : public DrawObj

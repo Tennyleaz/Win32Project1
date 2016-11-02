@@ -17,7 +17,7 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 		if (it->objectType == 4)
 		{
 			TextObj* t = dynamic_cast<TextObj*>(it);
-			list<string> ls = t->text;
+			vector<string> ls = t->text;
 			jit["text"] = ls;
 		}
 		j.push_back(jit);
@@ -116,7 +116,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 			TextObj newText;
 			newText.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
 			newText.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
-			list<string> text = j5["text"];
+			vector<string> text = j5["text"];
 			newText.text = text;
 			readList.push_back(new TextObj(newText));
 			break;
@@ -148,7 +148,7 @@ int SaveToLastFilePath(const list<DrawObj*>& saveList)
 		if (it->objectType == 4)
 		{
 			TextObj* t = dynamic_cast<TextObj*>(it);
-			list<string> ls = t->text;
+			vector<string> ls = t->text;
 			jit["text"] = ls;
 		}
 		j.push_back(jit);
