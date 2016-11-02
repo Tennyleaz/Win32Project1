@@ -51,8 +51,8 @@ public:
 	//string debugmessage = "cursorX=";
 
 	WinProcVars();
-	static WinProcVars& MyVar(){
+	/*static WinProcVars& MyVar(){
 		static WinProcVars var;
 		return var;
-	}
+	}*/
 };
