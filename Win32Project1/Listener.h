@@ -27,10 +27,7 @@ private:
 	Event defaultEventHandler_;
 public:
 	HINSTANCE hInst;
-	static Listener& WinProcMsgListener() {
-		static Listener l;
-		return l;
-	}
+	static Listener& WinProcMsgListener();
 	inline void AddDefaultEvent(Event e) { defaultEventHandler_ = e; }
 	inline void AddEvent(UINT msg, Event e) { evnetHandlerMap_[msg] = e; }
 	LRESULT Trig(UINT msg, Parameter& param);

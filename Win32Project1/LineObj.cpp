@@ -152,7 +152,6 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 		//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
 		//std::cout << "Given point is outside the line segment\n";
 	}
-	else
 		//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
-		return false;
+	return false;
 }

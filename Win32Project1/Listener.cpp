@@ -9,3 +9,8 @@ LRESULT Listener::Trig(UINT msg, Parameter& param)
 		return defaultEventHandler_(param);
 	return 0;
 }
+
+Listener& Listener::WinProcMsgListener() {
+	static Listener l;
+	return l;
+}

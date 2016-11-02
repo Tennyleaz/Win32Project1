@@ -5,7 +5,7 @@
 class WinProcVars
 {
 public:
-	static int mouseX, mouseY;
+	/*static int mouseX, mouseY;
 	static LineObj  newLine;
 	static RectangularObj newRect;
 	static TextObj newText;
@@ -48,7 +48,7 @@ public:
 	static int currentCursorMode;   //0=original 1=左上 2=右下 3=右上 4=左下 5=左 6=右 7=上 8=下 9=四向
 	static bool hasSelected;
 	static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
-	//string debugmessage = "cursorX=";
+	//string debugmessage = "cursorX=";*/
 
 	WinProcVars();
 	/*static WinProcVars& MyVar(){

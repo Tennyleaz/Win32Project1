@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include "DrawObj.h"
 
 #define MAX_LOADSTRING 100
