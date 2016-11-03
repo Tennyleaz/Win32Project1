@@ -19,37 +19,6 @@
 
 using namespace std;
 
-//#define MAX_LOADSTRING 100
-
-/*// 全域變數: 
-HINSTANCE hInst;                                // 目前執行個體
-WCHAR szTitle[MAX_LOADSTRING];                  // 標題列文字
-WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
-WCHAR szChildClass[]=L"123";
-HWND globlas::var().hWndFather, myChildWindow;
-HWND globlas::var().myButton[5];
-int currentDrawMode = 0;     //0=line, 1=rect, 2=circle, 3=text, 4=select 
-int modifyState = 0;  //0=new file, 1=modified but not saved, 2=saved or opened
-string fileName = "Untitiled";
-auto lastStateObject = NULL;  //上一步用的物件
-auto recoverObject = NULL;  //下一步用的
-auto pastebinObject = NULL;  //剪貼簿用的
-DrawObj* selectedObject = NULL;  //選取工具選中的*/
-
-/*// 這個程式碼模組中所包含之函式的向前宣告: 
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
-//INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-void				AutoScroll(HWND, int, int, int, int, RECT);
-RECT				getLocalCoordinates(HWND hWnd);
-void				CleanObjects(HWND);
-void				SetTitle(string, HWND);
-void				PushCurrentNewText(TextObj&);
-void				ChangeToolsSelectionState(int, HMENU);
-void				ChangeColorsSelectionState(int, HMENU);*/
-
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR    lpCmdLine,
@@ -377,6 +346,40 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 		else
 		{
 			CheckMenuItem(hMenu3, i, MF_UNCHECKED | MF_BYPOSITION);
+		}
+	}
+}
+
+void ChangeBGSelectionState(int position, HMENU hMenu)
+{
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
+	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = 底色
+	for (int i = 0; i < 8; i++)
+	{
+		if (i == position)
+		{
+			CheckMenuItem(hMenu5, i, MF_CHECKED | MF_BYPOSITION);
+		}
+		else
+		{
+			CheckMenuItem(hMenu5, i, MF_UNCHECKED | MF_BYPOSITION);
+		}
+	}
+}
+
+void ChangeLineSelectionState(int position, HMENU hMenu)
+{
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
+	HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = 線寬
+	for (int i = 0; i < 5; i++)
+	{
+		if (i == position-1)
+		{
+			CheckMenuItem(hMenu4, i, MF_CHECKED | MF_BYPOSITION);
+		}
+		else
+		{
+			CheckMenuItem(hMenu4, i, MF_UNCHECKED | MF_BYPOSITION);
 		}
 	}
 }

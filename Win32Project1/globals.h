@@ -19,6 +19,7 @@ public:
 	//auto recoverObject;  //下一步用的
 	//auto pastebinObject ;  //剪貼簿用的
 	DrawObj* selectedObject;  //選取工具選中的
+	DrawObj* preSelectObject;
 
 	int mouseX, mouseY;
 	LineObj  newLine;

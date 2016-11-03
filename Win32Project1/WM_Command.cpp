@@ -38,7 +38,7 @@ static int xMaxScroll;       // maximum horizontal scroll value
 static int yMinScroll;       // minimum vertical scroll value
 static int yCurrentScroll;   // current vertical scroll value
 static int yMaxScroll;       // maximum vertical scroll value
-static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8;   //a bitmap icon for button
+static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8, bmpIcon9;   //a bitmap icon for button
 static HBITMAP checkedIcon;
 static HMENU hMenu=NULL;        //try to get the system menu
 static HBITMAP hBmp;          //bitmap for memory DC
@@ -89,6 +89,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		newText.clean();
 		newCircle.clean();
 		globals::var().selectedObject = NULL;
+		//globals::var().currentDrawMode = 0;
 		currentCursorMode = 0;
 		hasSelected = false;
 		CleanObjects(param.hWnd_);
@@ -183,42 +184,55 @@ LRESULT WM_CommandEvent(Parameter& param)
 		break;
 	case ID_BG_Transparent:
 		currentBgColor = 0;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_GRAY:
 		currentBgColor = 1;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_RED:
 		currentBgColor = 2;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_GREEN:
 		currentBgColor = 3;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_BLU:
 		currentBgColor = 4;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_CYAN:
 		currentBgColor = 5;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_YELLOW:
 		currentBgColor = 6;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case  ID_BG_Magenta:
 		currentBgColor = 7;
+		ChangeBGSelectionState(currentBgColor, hMenu);
 		break;
 	case ID_Wide1:
 		currentLineWidth = 1;
+		ChangeLineSelectionState(currentLineWidth, hMenu);
 		break;
 	case ID_Wide2:
 		currentLineWidth = 2;
+		ChangeLineSelectionState(currentLineWidth, hMenu);
 		break;
 	case ID_Wide3:
 		currentLineWidth = 3;
+		ChangeLineSelectionState(currentLineWidth, hMenu);
 		break;
 	case ID_Wide4:
 		currentLineWidth = 4;
+		ChangeLineSelectionState(currentLineWidth, hMenu);
 		break;
 	case ID_Wide5:
 		currentLineWidth = 5;
+		ChangeLineSelectionState(currentLineWidth, hMenu);
 		break;
 	case ID_SAVE:
 		if (globals::var().modifyState == 0 || lastFilePath == NULL || wcslen(lastFilePath) < 1)
@@ -251,6 +265,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		newText.clean();
 		newCircle.clean();
 		globals::var().selectedObject = NULL;
+		//globals::var().currentDrawMode = 0;
 		currentCursorMode = 0;
 		hasSelected = false;
 		CleanObjects(param.hWnd_);
@@ -258,6 +273,10 @@ LRESULT WM_CommandEvent(Parameter& param)
 	case ID_OPEN_FILE:
 	{
 		//cleanObjects(param.hWnd_);
+		globals::var().selectedObject = NULL;
+		//globals::var().currentDrawMode = 0;
+		hasSelected = false;
+		currentCursorMode = 0;
 		ReadFromFile(globals::var().DrawObjList, globals::var().fileName);
 		newLine.clean();
 		newRect.clean();
@@ -292,6 +311,7 @@ LRESULT WM_CreateEvent(Parameter& param)
 	bmpIcon6 = (HBITMAP)LoadImage(NULL, L"cyan.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	bmpIcon7 = (HBITMAP)LoadImage(NULL, L"yellow.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	bmpIcon8 = (HBITMAP)LoadImage(NULL, L"magenta.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	bmpIcon9 = (HBITMAP)LoadImage(NULL, L"transparent.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	checkedIcon = (HBITMAP)LoadImage(NULL, L"checkedIcon.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
 	//add image to menu
@@ -301,6 +321,8 @@ LRESULT WM_CreateEvent(Parameter& param)
 		//ModifyMenu(hMenu, ID_COMMAND_1, MF_BYCOMMAND | MF_STRING, ID_COMMAND_1, (PCTSTR)(LONG)bmpIcon1);
 		HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 		HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
+		HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = 線寬
+		HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = 底色
 
 		ModifyMenu(hMenu3, 0, MF_BYPOSITION | MF_BITMAP, ID_BLACK, (LPCTSTR)bmpIcon1);
 		ModifyMenu(hMenu3, 1, MF_BYPOSITION | MF_BITMAP, ID_GRAY, (LPCTSTR)bmpIcon2);
@@ -310,15 +332,22 @@ LRESULT WM_CreateEvent(Parameter& param)
 		ModifyMenu(hMenu3, 5, MF_BYPOSITION | MF_BITMAP, ID_CYAN, (LPCTSTR)bmpIcon6);
 		ModifyMenu(hMenu3, 6, MF_BYPOSITION | MF_BITMAP, ID_YELLOW, (LPCTSTR)bmpIcon7);
 		ModifyMenu(hMenu3, 7, MF_BYPOSITION | MF_BITMAP, ID_Magenta, (LPCTSTR)bmpIcon8);
+		ModifyMenu(hMenu5, 0, MF_BYPOSITION | MF_BITMAP, ID_BG_Transparent, (LPCTSTR)bmpIcon9);
+		ModifyMenu(hMenu5, 1, MF_BYPOSITION | MF_BITMAP, ID_BG_GRAY, (LPCTSTR)bmpIcon2);
+		ModifyMenu(hMenu5, 2, MF_BYPOSITION | MF_BITMAP, ID_BG_RED, (LPCTSTR)bmpIcon3);
+		ModifyMenu(hMenu5, 3, MF_BYPOSITION | MF_BITMAP, ID_BG_GREEN, (LPCTSTR)bmpIcon4);
+		ModifyMenu(hMenu5, 4, MF_BYPOSITION | MF_BITMAP, ID_BG_BLU, (LPCTSTR)bmpIcon5);
+		ModifyMenu(hMenu5, 5, MF_BYPOSITION | MF_BITMAP, ID_BG_CYAN, (LPCTSTR)bmpIcon6);
+		ModifyMenu(hMenu5, 6, MF_BYPOSITION | MF_BITMAP, ID_BG_YELLOW, (LPCTSTR)bmpIcon7);
+		ModifyMenu(hMenu5, 7, MF_BYPOSITION | MF_BITMAP, ID_BG_Magenta, (LPCTSTR)bmpIcon8);
 		CheckMenuItem(hMenu3, ID_BLACK, MF_CHECKED);
-		SetMenuItemBitmaps(hMenu3, 0, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 1, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 2, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 3, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 4, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 5, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 6, MF_BYPOSITION, NULL, checkedIcon);
-		SetMenuItemBitmaps(hMenu3, 7, MF_BYPOSITION, NULL, checkedIcon);
+		CheckMenuItem(hMenu4, ID_Wide1, MF_CHECKED);
+		CheckMenuItem(hMenu5, ID_BG_Transparent, MF_CHECKED);
+		for (int i = 0; i < 8; i++)
+		{
+			SetMenuItemBitmaps(hMenu3, i, MF_BYPOSITION, NULL, checkedIcon);
+			SetMenuItemBitmaps(hMenu5, i, MF_BYPOSITION, NULL, checkedIcon);
+		}
 
 		//bmpIcon1 = (HBITMAP)LoadImage(NULL, L"grey.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 		//bmpIcon2 = (HBITMAP)LoadImage(NULL, L"greychecked.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -466,8 +495,31 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 			}
 		}
 	}
-	else
+	else  //currentDrawMode == 4
 	{
+		if (!mouseHasDown)
+		{
+			//check mouse & DrawObjList have collision or not (from tail)
+			mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
+			mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
+			globals::var().preSelectObject = NULL;
+			for (auto it = globals::var().DrawObjList.crbegin(); it != globals::var().DrawObjList.crend(); ++it)
+			{
+				if ((*it)->CheckObjectCollision(mouseX, mouseY))
+				{
+					globals::var().preSelectObject = (*it);
+					//MessageBox(NULL, L"Mouse Is On An Obj!", L"Yes", MB_OK);
+					InvalidateRect(param.hWnd_, NULL, FALSE);
+					break;
+					//hasSelected = true;
+					//break;
+					//it->PaintMouseOnRect();
+				}
+				globals::var().preSelectObject = NULL;
+				InvalidateRect(param.hWnd_, NULL, FALSE);
+			}
+		}
+
 		//if mouse is not down on object, only change the mouse icon
 		if (hasSelected && !mouseHasDown)
 		{
@@ -493,6 +545,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 			if (currentCursorMode == 9)  //perform move
 			{
 				globals::var().selectedObject->Moving(mouseX, mouseY);
+				AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
@@ -504,13 +557,17 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 					temp->ResizingText(mouseX, mouseY, currentCursorMode);
 				}
 				else
+				{
 					globals::var().selectedObject->Resizing(mouseX, mouseY, currentCursorMode);
+					AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
+				}
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 		}
+		else 
+		{
 
-		//else
-		//SetCursor(cursors[0]); //do nothing
+		}
 	}
 	//break;
 	return 0;
@@ -551,13 +608,15 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 			if (!newText.startFinished) //click to a new text position without previous start
 			{
 				newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
-				newText.makeEnd(mouseX + 8 * 5 + 1, mouseY + 1 * 13 + 1, xCurrentScroll, yCurrentScroll);
-				newText.endFinished = false;
+				newText.ptEnd.x = newText.ptBeg.x + 8 * 5 + 1;
+				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
 			}
 			else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
 			{
 				PushCurrentNewText(newText);
 				newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
+				newText.ptEnd.x = newText.ptBeg.x + 8 * 5 + 1;
+				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
 			}
 			if (newText.ptBeg.y > 1987)
 				newText.ptBeg.y = 1987;
@@ -652,18 +711,11 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			newText.KeyIn(param.wParam_);
 
 			int x, y;  //x and y is current caret position on window
-			if (newText.text.size() > 0)
-			{
-				x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
-				y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
-			}
-			else
-			{
-				x = newText.ptBeg.x - xCurrentScroll;
-				y = newText.ptBeg.y - yCurrentScroll;
-			}
-			mouseX = x;
-			mouseY = y;
+			newText.CalculateCaretPosition();
+			x = newText.caretPos.x - xCurrentScroll;
+			y = newText.caretPos.y - yCurrentScroll;
+			mouseX = newText.caretPos.x;
+			mouseY = newText.caretPos.y;
 			AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
@@ -675,16 +727,9 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			temp->KeyIn(param.wParam_);
 
 			int x, y;  //x and y is current caret position on window
-			if (temp->text.size() > 0)
-			{
-				x = temp->ptBeg.x + temp->text.back().size() * 8 - xCurrentScroll;
-				y = temp->ptBeg.y + (temp->text.size() - 1) * 13 - yCurrentScroll;
-			}
-			else
-			{
-				x = temp->ptBeg.x - xCurrentScroll;
-				y = temp->ptBeg.y - yCurrentScroll;
-			}
+			newText.CalculateCaretPosition();
+			x = newText.caretPos.x - xCurrentScroll;
+			y = newText.caretPos.y - yCurrentScroll;
 			mouseX = x;
 			mouseY = y;
 			AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
@@ -733,42 +778,40 @@ LRESULT WM_PaintEvent(Parameter& param)
 	//TextOutA(memoryDC, 10 - xCurrentScroll, 70 - yCurrentScroll, s.c_str(), s.length());
 
 	string s2 = "";
-
-	newLine.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-	//SelectObject(memoryDC, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
-	newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-	newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-	newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-
-	if (globals::var().currentDrawMode == 3 && newText.startFinished && !newText.endFinished)
-	{
-		// Create a solid black caret. 
-		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
-		int x, y;
-		if (newText.text.size() > 0)
-		{
-			x = newText.ptBeg.x + newText.text.back().size() * 8 - xCurrentScroll;
-			y = newText.ptBeg.y + (newText.text.size() - 1) * 13 - yCurrentScroll;
-		}
-		else
-		{
-			x = newText.ptBeg.x - xCurrentScroll;
-			y = newText.ptBeg.y - yCurrentScroll;
-		}
-		// Adjust the caret position, in client coordinates. 
-		//SetCaretPos(x, y);
-		SetCaretPos(newText.ptBeg.x + newText.tailPos.x, newText.ptBeg.y + newText.tailPos.y);
-	}
-	else
-		DestroyCaret();//HideCaret(param.hWnd_);		
-
 	for (auto& it : globals::var().DrawObjList)  //Draw each object in DrawObjList
 	{
 		it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	}
 
+	newLine.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+	newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+	newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+	newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+
+	//s2 = "mouse on state=";
+	if (globals::var().preSelectObject != NULL)
+		globals::var().preSelectObject->PaintMouseOnRect(memoryDC, xCurrentScroll, yCurrentScroll);
+
 	if (hasSelected)
 		globals::var().selectedObject->PaintSelectedRect(memoryDC, xCurrentScroll, yCurrentScroll);
+
+	if (globals::var().currentDrawMode == 3 && newText.startFinished && !newText.endFinished)
+	{
+		// Create a solid black caret. 
+		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
+		SetCaretPos(newText.caretPos.x - xCurrentScroll, newText.caretPos.y - yCurrentScroll);
+		s2 = "caretPos=" + to_string(newText.caretPos.x) + ", " + to_string(newText.caretPos.y);
+		//s2 += "  mouse on state "
+		TextOutA(memoryDC, 500 - xCurrentScroll, 500 - yCurrentScroll, s2.c_str(), s2.length());
+	}
+	else if (hasSelected && globals::var().currentDrawMode == 4 && globals::var().selectedObject->objectType == 4)
+	{
+		TextObj* t = (TextObj *)globals::var().selectedObject;
+		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
+		SetCaretPos(t->caretPos.x - xCurrentScroll, t->caretPos.y - yCurrentScroll);
+	}
+	else
+		DestroyCaret();//HideCaret(param.hWnd_);
 
 	s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
 	TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());

@@ -7,6 +7,7 @@ globals::globals()
 	currentDrawMode = 0;
 	modifyState = 0;
 	selectedObject = NULL;
+	preSelectObject = NULL;
 	mouseHasDown = false;
 	wcsncpy(szChildClass, L"123", 3);
 }

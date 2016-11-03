@@ -22,6 +22,7 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) = 0;  //x and y is absolute position on background
+	void PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset);
 	void makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth); //x and y is absolute position on background
 	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
 	int CheckMouseIsOnSizingOpint(int mouseX, int mouseY);	//return 0~4, 0 is normal mouse
@@ -50,12 +51,16 @@ class TextObj : public DrawObj
 {
 private:
 	int textWidth, textHeight, maxTextWidth;
+	POINT inputPos;
 	void addChar(int c);
 	void addNewLine();
 	void backspace();
+	void del();
 public:
+	//int textWidth, textHeight, maxTextWidth;
 	vector<string> text;
-	POINT tailPos;
+	POINT tailPos;  //tailPos is the last char position of text
+	POINT caretPos;
 	TextObj();
 	void clean();
 	virtual ~TextObj();
@@ -65,6 +70,7 @@ public:
 	void KeyIn(int wParam);
 	void ResizingText(int mouseX, int mouseY, int mode);
 	bool CheckTextBoxBigEnough(int X, int Y);
+	void CalculateCaretPosition();
 };
 
 class RectangularObj : public DrawObj

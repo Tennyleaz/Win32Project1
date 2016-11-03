@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "DrawObj.h"
+#include "globals.h"
 
 TextObj::TextObj()
 {
@@ -10,6 +11,9 @@ TextObj::TextObj()
 	textWidth = 5 * 8 + 1;
 	tailPos.x = 0;
 	tailPos.y = 0;
+	inputPos.x = 0;
+	inputPos.y = 0;
+	caretPos = tailPos;
 }
 
 void TextObj::clean()
@@ -20,6 +24,11 @@ void TextObj::clean()
 	ptEnd.y = 0;
 	tailPos.x = 0;
 	tailPos.y = 0;
+	inputPos.x = 0;
+	inputPos.y = 0;
+	caretPos = tailPos;
+	textHeight = 13 + 1;
+	textWidth = 5 * 8 + 1;
 	startFinished = false;
 	endFinished = false;
 	color = 0;
@@ -75,11 +84,13 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	HFONT hFont, hOldFont;
 	hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //目前寬8，高13
 
-	// Select the variable stock font into the specified device context. 
+	int lineSize = textWidth / 8;
+	if (lineSize <= 0)
+		lineSize = 1;
+	// Select the variable stock font into the specified device context.
 	if (hOldFont = (HFONT)SelectObject(hdc, hFont))
 	{
 		// Display the text string.  Using a Stock Font to Draw Text.
-		int lineSize = textWidth / 8;
 		tailPos.y = -13;
 		for (auto it : text)
 		{
@@ -100,7 +111,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 			}
 			//s += it;
 			s += '\n';
-			tailPos.y += 13;
+			tailPos.y += 13;	
 		}
 		DrawTextA(hdc, s.c_str(), s.length(), &rc, DT_LEFT | DT_NOCLIP);
 
@@ -118,16 +129,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 
 	textWidth = ptEnd.x - ptBeg.x;
 	textHeight = ptEnd.y - ptBeg.y;
-	//paint the text block
-	/*HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));
-	int top = ptBeg.y ;
-	int left = ptBeg.x;
-	int buttom = ptEnd.y;
-	int right = ptEnd.x;	
-	Rectangle(hdc, left - Xoffset, top - Yoffset, left + textWidth - Xoffset, top + textHeight - Yoffset);
-	SelectObject(hdc, oldBrush);
-	DeleteObject(oldBrush);*/
-	//PaintSelectedRect(hdc, Xoffset, Yoffset);
+	CalculateCaretPosition();
 }
 
 void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
@@ -141,11 +143,11 @@ void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));
 
 	// do something...
-	int top = ptBeg.y ;
-	int left = ptBeg.x;
-	int buttom = ptEnd.y;
-	int right = ptEnd.x;
-	Rectangle(hdc, left - Xoffset, top - Yoffset, right - Xoffset, buttom - Yoffset);
+	int top = ptBeg.y - Yoffset;
+	int left = ptBeg.x - Xoffset;
+	int buttom = ptEnd.y - Yoffset;
+	int right = ptEnd.x - Xoffset;
+	Rectangle(hdc, left, top, right, buttom);
 
 	//return the pen and brush
 	SelectObject(hdc, hpenOld);
@@ -180,40 +182,95 @@ void TextObj::addChar(int c)
 	if (text.size() == 0)
 		text.push_back("");
 
+	//do oversize checking
+	if (text.size() < inputPos.y + 1)
+		inputPos.y = text.size() - 1;
+	if (text[inputPos.y].size() < inputPos.x)
+		inputPos.x = text[inputPos.y].size();
+
+	//add char to input position
 	if (c >= 65 && c <= 90)  //A~Z
-		text.back().push_back(c + 32);
+		text[inputPos.y].insert(inputPos.x, 1, c + 32); //text.back().push_back(c + 32);
 	else if (c >= 48 && c <= 57)  //0~9
-		text.back().push_back(c);
+		text[inputPos.y].insert(inputPos.x, 1, c); //text.back().push_back(c);
 	else if (c >= 0x60 && c <= 0x69) //Numeric keypad 0~9
-		text.back().push_back(c - 48);
+		text[inputPos.y].insert(inputPos.x, 1, c + -48); //text.back().push_back(c - 48);
 	else if (c == 0x20)  //space
-		text.back().push_back(' ');
+		text[inputPos.y].insert(inputPos.x, 1, ' '); //text.back().push_back(' ');
+
+	inputPos.x ++;
 }
 
 void TextObj::addNewLine()
 {
 	if (text.size() == 0)
 		text.push_back("");
-	text.push_back("");
+
+	//do oversize checking
+	if (text.size() < inputPos.y + 1)
+		inputPos.y = text.size() - 1;
+
+    //cut down string by X
+	string tail = text[inputPos.y].substr(inputPos.x);
+
+	//cut the original string by X
+	text[inputPos.y].erase(text[inputPos.y].begin() + inputPos.x, text[inputPos.y].end());
+
+	//insert empty line at Y
+	text.insert(text.begin() + inputPos.y + 1, "");
+
+	//set X and Y again
+	inputPos.y ++;
+	inputPos.x = 0;
+
+	//put everything after X into new line
+	text[inputPos.y].append(tail);
 }
 
 void TextObj::backspace()
 {
 	if (text.size() > 0)
 	{
-		if (text.back().size() > 0)  //string is not empty
+		//if caret X is at 0, delete a "\n"
+		if (inputPos.x == 0 && inputPos.y > 0)
 		{
-			text.back().pop_back();
+			//backup everything in Yth line
+			string s = text[inputPos.y];
+
+			//remove Yth line
+			text.erase(text.begin() + inputPos.y);
+			inputPos.y--;
+			inputPos.x = text[inputPos.y].size();
+
+			//put back s to Y-1th line
+			text[inputPos.y].append(s);
 		}
-		else
+		else if(inputPos.x > 0)  //else remove one char
 		{
-			text.pop_back();
+			text[inputPos.y].erase(text[inputPos.y].begin() + inputPos.x - 1);
+			inputPos.x--;
 		}
 	}
 
+	ENDING:
 	if (text.size() == 0)  //size is 0, put a empty one
 	{
 		text.push_back("");
+	}
+}
+
+void TextObj::del()
+{
+	if (inputPos.x >= text[inputPos.y].size() && inputPos.y+1 < text.size() )  //X is at end of string, delete the next "\n"
+	{
+		//backup everything in Y+1th line
+		string s = text[inputPos.y + 1];
+		text.erase(text.begin() + inputPos.y + 1);
+		text[inputPos.y].append(s);
+	}
+	else if (inputPos.x < text[inputPos.y].size()) //else remove one char
+	{
+		text[inputPos.y].erase(text[inputPos.y].begin() + inputPos.x);
 	}
 }
 
@@ -230,7 +287,7 @@ void TextObj::KeyIn(int wParam)
 {
 	if ((wParam >= 65 && wParam <= 90) || (wParam >= 48 && wParam <= 57) || (wParam >= 0x60 && wParam <= 0x69) || (wParam == 0x20))
 	{
-		if ((text.back().size()+1) * 8 > textWidth) //if x > 2000 add new line and add new char
+		if ((text.back().size()+1) * 8 > ptEnd.x - ptBeg.x) //if x > 2000 add new line and add new char
 		{
 			int newy = ptBeg.y + (text.size() + 1) * 13;
 			if (newy < 1990)  //if y < 2000 add new line
@@ -253,23 +310,105 @@ void TextObj::KeyIn(int wParam)
 	{
 		backspace();
 	}
+	else if (wParam == VK_HOME) //Home
+	{
+		short iState = GetKeyState(VK_CONTROL);
+		if (iState & 0x8000)  //ctrl is pressed
+		{
+			inputPos.y = inputPos.x = 0;
+		}
+		else
+		{
+			inputPos.x = 0;
+		}
+
+	}
+	else if (wParam == VK_END) //End
+	{
+		SHORT iState = GetKeyState(VK_CONTROL);
+		if (iState & 0x8000)  //ctrl is pressed
+		{
+			inputPos.y = text.size() - 1;
+			inputPos.x = text[inputPos.y].size();
+		}
+		else
+		{
+			inputPos.x = text[inputPos.y].size();
+		}
+	}
+	else if (wParam == VK_DELETE) //Delete
+	{
+		del();
+	}
+	else if (wParam == VK_LEFT) //4 arrow keys
+	{
+		if (inputPos.x > 0)
+			inputPos.x--;
+	}
+	else if (wParam == VK_RIGHT) 
+	{
+		if (inputPos.x < text[inputPos.y].size())
+			inputPos.x++;
+	}
+	else if (wParam == VK_UP)
+	{
+		if (inputPos.y > 0)
+			inputPos.y--;
+		if (inputPos.x > text[inputPos.y].size())
+			inputPos.x = text[inputPos.y].size();
+	}
+	else if (wParam == VK_DOWN)
+	{
+		if (inputPos.y < text.size()-1)
+			inputPos.y++;
+		if (inputPos.x > text[inputPos.y].size())
+			inputPos.x = text[inputPos.y].size();
+	}
 	
-	//calculate text box
+	/*//calculate text box
 	int lineCount = 0;
-	int lineSize = textWidth / 8;
+	int lineSize = ptEnd.x - ptBeg.x / 8;
 	for (int i = 0; i < text.size(); i++)
 	{
 		//check each line, see how many chars they have?
 		int chars = text[i].size();
 		lineCount = lineCount + (chars - 1) / lineSize + 1;
 	}
+	textHeight = lineCount * 13;*/
 
-	textHeight = lineCount * 13;
+	{
+		int maxLine = (ptEnd.y - ptBeg.y) / 13;
+		int lineSize = (ptEnd.x - ptBeg.x) / 8;
+		if (lineSize <= 0)
+			lineSize = 1;
 
-	if (text.size() > 0 && textHeight < text.size() * 13)
-		textHeight = text.size() * 13;
-	else if(text.size() == 0)
-		textHeight = 13;
+		POINT t;
+		t.x = 0;
+		t.y = 0;
+
+		for (auto it : text)
+		{
+			//add all the strings to one and print it
+			int i = 0;
+			t.x = 0;
+			for (auto it2 : it)
+			{
+				if (i > 0 && i%lineSize == 0)
+				{
+					t.y += 1;
+					t.x = 0;
+				}
+				i++;
+				t.x += 1;
+			}
+			t.y += 1;
+		}
+		if (t.y > maxLine)
+			textHeight = t.y * 13;
+		else
+			textHeight = ptEnd.y - ptBeg.y;
+
+	}
 
 	ptEnd.x = ptBeg.x + textWidth;
 	ptEnd.y = ptBeg.y + textHeight;
@@ -281,10 +420,11 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 	int deltaX, deltaY;
 	deltaX = mouseX - originalMouseX;
 	deltaY = mouseY - originalMouseY;
+	//deltaYDebog = deltaY;
 
-	//check if resizing is too small
-	//if (abs(originalBegin.x - originalEnd.x) < abs(deltaX) - 2)
-	//	deltaX = 2 - abs(originalBegin.x - originalEnd.x);
+	POINT oldBeg, oldEnd;
+	oldBeg = ptBeg;
+	oldEnd = ptEnd;
 
 	int beginDeltaX = 0, beginDeltaY = 0, endDeltaX = 0, endDeltaY = 0;  //assume begin at upper left...
 
@@ -323,15 +463,6 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		break;
 	}
 
-	//check the new size is valid or not
-	int newWidth, newHeight;
-	newWidth = textWidth + deltaX;
-	newHeight = textHeight + deltaY;
-	//if (!CheckTextBoxBigEnough(newWidth, newHeight))
-	//	return;
-	if (tailPos.y > newHeight)
-		return;
-
 	//find which point is upper right
 	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg 在左上
 	{
@@ -365,9 +496,36 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		ptEnd.x = originalEnd.x + beginDeltaX;
 		ptEnd.y = originalEnd.y + beginDeltaY;
 	}
+
+	//newHeight = ptEnd.y - ptBeg.y;
+	if (!CheckTextBoxBigEnough(ptEnd.x - ptBeg.x, ptEnd.y - ptBeg.y))
+	{
+		//revert to old value
+		ptBeg = oldBeg;
+		ptEnd = oldEnd;
+	}
+
+	//check if < 1*1 text box
+	if(ptEnd.x - ptBeg.x <8 || ptEnd.y - ptBeg.y<13)
+	{
+		//revert to old value
+		ptBeg = oldBeg;
+		ptEnd = oldEnd;
+	}
+
+	//check borders
+	if (ptEnd.x > 1990)
+		ptEnd.x = 1990;
+	if (ptEnd.y > 1990)
+		ptEnd.y = 1990;
+
+	if (ptBeg.x < 1)
+		ptBeg.x = 1;
+	if (ptBeg.y < 1)
+		ptBeg.y = 1;
 }
 
-bool TextObj::CheckTextBoxBigEnough(int X, int Y)
+bool TextObj::CheckTextBoxBigEnough(int X, int Y)  //X and Y is size of box
 {
 	if (text.size() <= 0)
 		return true;
@@ -375,22 +533,53 @@ bool TextObj::CheckTextBoxBigEnough(int X, int Y)
 	if (X < 8 || Y < 13)
 		return false;
 
-	int lineSize = X / 8;
-	int lineCount = Y / 13;
+	int maxLine = (ptEnd.y - ptBeg.y)/13;
+	int lineSize = (ptEnd.x - ptBeg.x) / 8;
+	if (lineSize <= 0)
+		lineSize = 1;
 
-	//if(text.size() == 1 && text.front().size() < 5)
+	POINT t;
+	t.x = 0;
+	t.y = 0;
 
-	//take one char from text each time.
-	//if a horizontal line is filled with text, delete y by 1;
-	for (int i = 0; i < text.size(); i++)
+	for (auto it : text)
 	{
-		//check each line, see how many chars they have?
-		int chars = text[i].size();
-		lineCount = lineCount - (chars - 1) / lineSize;
+		//add all the strings to one and print it
+		int i = 0;
+		t.x = 0;
+		for (auto it2 : it)
+		{
+			if (i > 0 && i%lineSize == 0)
+			{
+				t.y += 1;
+				t.x = 0;
+			}
+			i++;
+			t.x += 1;
+		}
+		t.y += 1;
 	}
-	if (lineCount < 0)
+
+	if (t.y > maxLine)
 		return false;
 	else
 		return true;
-
 }
+
+void TextObj::CalculateCaretPosition()
+{
+	//calculate caret position
+	int lineSize = textWidth / 8;
+	if (lineSize <= 0)
+		lineSize = 1;
+	int y = -1;
+	for (int i = 0; i <= inputPos.y; i++)
+	{
+		int s = text[i].size();
+		y += (s - 1) / lineSize;
+		y++;
+	}
+	caretPos.y = ptBeg.y + y * 13;
+	caretPos.x = ptBeg.x + ((inputPos.x - 1) % lineSize + 1) * 8;
+}
+

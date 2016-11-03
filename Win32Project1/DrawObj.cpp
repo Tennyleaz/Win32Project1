@@ -24,6 +24,27 @@ void DrawObj::clean()
 
 DrawObj::~DrawObj(){ }
 
+void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
+{
+	if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
+		return;
+
+	HPEN hpen, hpenOld;
+	hpen = CreatePen(PS_DOT, 1, RGB(0, 0, 0));
+	hpenOld = (HPEN)SelectObject(hdc, hpen);
+
+	// do something...
+	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y) - Yoffset;
+	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x) - Xoffset;
+	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y) - Yoffset;
+	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x) - Xoffset;
+	Rectangle(hdc, left, top, right, buttom);
+
+	//return the pen
+	SelectObject(hdc, hpenOld);
+	DeleteObject(hpen);
+}
+
 void DrawObj::makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth)  //x and y is absolute position on background
 {
 	ptBeg.x = x;

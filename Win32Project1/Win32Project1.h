@@ -16,3 +16,5 @@ void				SetTitle(std::string, HWND);
 void				PushCurrentNewText(TextObj&);
 void				ChangeToolsSelectionState(int, HMENU);
 void				ChangeColorsSelectionState(int, HMENU);
+void				ChangeBGSelectionState(int, HMENU);
+void				ChangeLineSelectionState(int, HMENU);
