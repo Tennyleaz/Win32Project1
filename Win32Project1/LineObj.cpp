@@ -38,6 +38,7 @@ void LineObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
 
+	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
 		//¥ª¤W
@@ -57,6 +58,8 @@ void LineObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 		//¤U¤¤
 		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
 	}
+	SelectObject(hdc, oldBrush);
+	DeleteObject(oldBrush);
 }
 
 bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
@@ -131,12 +134,13 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 	}
 	else
 	{
-		top = y1;
-		bottom = y2;
+		top = y2;
+		bottom = y1;
 	}
 
 	//std::cout << "Equation of the line: ";
 	//std::cout << slope << "X " << ((intercept < 0) ? ' ' : '+') << intercept << "\n";
+
 
 	if (slope * px + intercept > (py - epsilon) &&
 		slope * px + intercept < (py + epsilon))
@@ -154,4 +158,9 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 	}
 		//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
 	return false;
+}
+
+DrawObj * LineObj::clone() const
+{
+	return new LineObj(static_cast<const LineObj&>(*this));
 }

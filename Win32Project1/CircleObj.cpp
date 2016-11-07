@@ -51,6 +51,7 @@ void CircleObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
 
+	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
 		//¥ª¤W
@@ -70,6 +71,8 @@ void CircleObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 		//¤U¤¤
 		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
 	}
+	SelectObject(hdc, oldBrush);
+	DeleteObject(oldBrush);
 }
 
 bool CircleObj::CheckObjectCollision(int mouseX, int mouseY)
@@ -101,4 +104,9 @@ bool CircleObj::CheckObjectCollision(int mouseX, int mouseY)
 	}
 
 	return false;
+}
+
+DrawObj * CircleObj::clone() const
+{
+	return new CircleObj(static_cast<const CircleObj&>(*this));
 }

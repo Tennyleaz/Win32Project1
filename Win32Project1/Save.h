@@ -10,7 +10,7 @@
 using json = nlohmann::json;
 using namespace std;
 
-static PWSTR lastFilePath = NULL;
+//static PWSTR lastFilePath = NULL;
 
 int SaveToFile(const list<DrawObj*>& saveList, std::string& fileName);
 int ReadFromFile(list<DrawObj*>& readList, std::string& fileName);

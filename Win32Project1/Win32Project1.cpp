@@ -242,7 +242,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	return NULL;
 }
 
-//scroll the window if x and y focus are out of border
+//scroll the window if x and y focus are out of border. X, Y focus is mouse position on screen
 void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
 {
 	RECT rect;
@@ -305,18 +305,21 @@ void SetTitle(string name, HWND hWnd)
 	SetWindowText(hWnd, sw);
 }
 
-void PushCurrentNewText(TextObj& newText)
-{
-	if (newText.text.size() > 0 && newText.text.back().size() > 0)
-	{
-		newText.endFinished = true;
-		globals::var().DrawObjList.push_back(new TextObj(newText));
-	}
-	newText.clean();
-}
+//void PushCurrentNewText(TextObj& newText)
+//{
+//	if (newText.text.size() > 0 && newText.text.back().size() > 0)
+//	{
+//		newText.endFinished = true;
+//		globals::var().DrawObjList.push_back(new TextObj(newText));
+//	}
+//	newText.clean();
+//	globals::var().selectedObjectPtr = nullptr;
+//}
 
 void ChangeToolsSelectionState(int position, HMENU hMenu)
 {
+	if (globals::var().selectedObjectPtr != nullptr && position!=4)
+		globals::var().selectedObjectPtr = nullptr;
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	for (int i = 0; i < 5; i++)
 	{
@@ -335,6 +338,11 @@ void ChangeToolsSelectionState(int position, HMENU hMenu)
 
 void ChangeColorsSelectionState(int position, HMENU hMenu)
 {
+	if (globals::var().selectedObjectPtr != nullptr)
+	{
+		globals::var().selectedObjectPtr->color = position;
+		globals::var().modifyState = 1;
+	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
 	for (int i = 0; i < 8; i++)
@@ -352,6 +360,11 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 
 void ChangeBGSelectionState(int position, HMENU hMenu)
 {
+	if (globals::var().selectedObjectPtr != nullptr)
+	{
+		globals::var().selectedObjectPtr->backgroundColor = position;
+		globals::var().modifyState = 1;
+	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = 底色
 	for (int i = 0; i < 8; i++)
@@ -369,6 +382,10 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 
 void ChangeLineSelectionState(int position, HMENU hMenu)
 {
+	if (globals::var().selectedObjectPtr != nullptr)
+	{
+		globals::var().selectedObjectPtr->lineWidth = position;
+	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = 線寬
 	for (int i = 0; i < 5; i++)

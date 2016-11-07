@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Save.h"
+#include "globals.h"
 
 int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 {
@@ -34,7 +35,7 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 		outfile.open(fp);
 		outfile << j << endl;
 		outfile.close();
-		lastFilePath = filePath;
+		globals::var().lastFilePath = filePath;
 	}
 	else
 	{
@@ -71,7 +72,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		return 1;
 	}
 	infile >> j;
-	lastFilePath = filePath;
+	globals::var().lastFilePath = filePath;
 	string name = wstr_to_str(filePath);
 	//wstring name = filePath;
 	auto const pos = name.find_last_of('\\');
@@ -157,12 +158,19 @@ int SaveToLastFilePath(const list<DrawObj*>& saveList)
 	// open a file in write mode.
 	ofstream outfile;
 	//PWSTR filePath = BasicFileSave();
-	if (lastFilePath != NULL && wcslen(lastFilePath) > 0)
+	if (globals::var().lastFilePath.size() > 0)
 	{
-		string fp = wstr_to_str(lastFilePath);
+		string fp = wstr_to_str(globals::var().lastFilePath);
 		outfile.open(fp);
-		outfile << j << endl;
-		outfile.close();
+		if (outfile.is_open()) 
+		{
+			outfile << j << endl;
+			outfile.close();
+		}
+		else
+		{
+			MessageBox(NULL, L"SaveToLastFilePath Failed", L"ERROR!", MB_OK);
+		}
 	}
 	else
 	{

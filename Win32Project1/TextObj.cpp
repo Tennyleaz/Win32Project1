@@ -18,12 +18,12 @@ TextObj::TextObj()
 
 void TextObj::clean()
 {
-	ptBeg.x = 0;
-	ptBeg.y = 0;
-	ptEnd.x = 0;
-	ptEnd.y = 0;
-	tailPos.x = 0;
-	tailPos.y = 0;
+	ptBeg.x = -8;
+	ptBeg.y = -13;
+	ptEnd.x = -8;
+	ptEnd.y = -13;
+	tailPos.x = -8;
+	tailPos.y = -13;
 	inputPos.x = 0;
 	inputPos.y = 0;
 	caretPos = tailPos;
@@ -151,11 +151,10 @@ void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 
 	//return the pen and brush
 	SelectObject(hdc, hpenOld);
-	SelectObject(hdc, oldBrush);
-	DeleteObject(oldBrush);
 	DeleteObject(hpen);
 	DeleteObject(hpenOld);
 
+	SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
 		//¥ª¤W
@@ -175,6 +174,8 @@ void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 		//¤U¤¤
 		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
 	}
+	SelectObject(hdc, oldBrush);
+	DeleteObject(oldBrush);
 }
 
 void TextObj::addChar(int c)
@@ -581,5 +582,10 @@ void TextObj::CalculateCaretPosition()
 	}
 	caretPos.y = ptBeg.y + y * 13;
 	caretPos.x = ptBeg.x + ((inputPos.x - 1) % lineSize + 1) * 8;
+}
+
+DrawObj * TextObj::clone() const
+{
+	return new TextObj(static_cast<const TextObj&>(*this));
 }
 

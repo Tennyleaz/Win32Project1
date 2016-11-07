@@ -4,7 +4,8 @@
 #define MAX_LOADSTRING 100
 
 // 全域變數: 
-class globals {
+class globals 
+{
 public:
 	HINSTANCE hInst;                                // 目前執行個體
 	WCHAR szTitle[MAX_LOADSTRING];                  // 標題列文字
@@ -16,10 +17,11 @@ public:
 	int modifyState;  //0=new file, 1=modified but not saved, 2=saved or opened
 	string fileName;
 	//auto lastStateObject;  //上一步用的物件
-	//auto recoverObject;  //下一步用的
-	//auto pastebinObject ;  //剪貼簿用的
-	DrawObj* selectedObject;  //選取工具選中的
+	DrawObj* recoverObjectPtr;  //下一步用的
+	DrawObj* pastebinObjectPtr ;  //剪貼簿用的
+	DrawObj* selectedObjectPtr;  //選取工具選中的
 	DrawObj* preSelectObject;
+	wstring lastFilePath;
 
 	int mouseX, mouseY;
 	LineObj  newLine;
@@ -33,6 +35,7 @@ public:
 	int cxChar, cyChar;
 	//int i;
 	list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
+	list<DrawObj*> BackupList;
 	//vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
 
 	//----------------------------------------------------------------------------------------------

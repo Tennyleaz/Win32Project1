@@ -6,7 +6,7 @@ globals::globals()
 	fileName = "Untitiled";
 	currentDrawMode = 0;
 	modifyState = 0;
-	selectedObject = NULL;
+	selectedObjectPtr = NULL;
 	preSelectObject = NULL;
 	mouseHasDown = false;
 	wcsncpy(szChildClass, L"123", 3);

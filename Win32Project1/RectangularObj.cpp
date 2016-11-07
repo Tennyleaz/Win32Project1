@@ -54,6 +54,7 @@ void RectangularObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
 
+	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
 		//¥ª¤W
@@ -73,6 +74,8 @@ void RectangularObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 		//¤U¤¤
 		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
 	}
+	SelectObject(hdc, oldBrush);
+	DeleteObject(oldBrush);
 }
 
 bool RectangularObj::CheckObjectCollision(int mouseX, int mouseY)
@@ -92,4 +95,9 @@ bool RectangularObj::CheckObjectCollision(int mouseX, int mouseY)
 		return true;
 	}
 	return false;
+}
+
+DrawObj * RectangularObj::clone() const
+{
+	return new RectangularObj(static_cast<const RectangularObj&>(*this));
 }

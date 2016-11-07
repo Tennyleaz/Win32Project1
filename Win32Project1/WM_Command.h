@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Listener.h"
+#include "DrawObj.h"
 
 LRESULT DefaultEvnetHandler(Parameter& param);
 
@@ -17,3 +18,10 @@ LRESULT WM_VScrollEvent(Parameter& param);
 LRESULT WM_DestroyEvent(Parameter& param);
 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
+POINT MovePastedObj();
+void PushCurrentNewText(TextObj&);
+
+void Redo();
+void Checkpoint();
+void Undo();

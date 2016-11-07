@@ -13,7 +13,7 @@ void				AutoScroll(HWND, int, int, int, int, RECT);
 RECT				getLocalCoordinates(HWND hWnd);
 void				CleanObjects(HWND);
 void				SetTitle(std::string, HWND);
-void				PushCurrentNewText(TextObj&);
+//void				PushCurrentNewText(TextObj&);
 void				ChangeToolsSelectionState(int, HMENU);
 void				ChangeColorsSelectionState(int, HMENU);
 void				ChangeBGSelectionState(int, HMENU);

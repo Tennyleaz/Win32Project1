@@ -30,6 +30,7 @@ void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 		return;
 
 	HPEN hpen, hpenOld;
+	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));
 	hpen = CreatePen(PS_DOT, 1, RGB(0, 0, 0));
 	hpenOld = (HPEN)SelectObject(hdc, hpen);
 
@@ -43,6 +44,8 @@ void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 	//return the pen
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
+	SelectObject(hdc, oldBrush);
+	DeleteObject(oldBrush);
 }
 
 void DrawObj::makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth)  //x and y is absolute position on background

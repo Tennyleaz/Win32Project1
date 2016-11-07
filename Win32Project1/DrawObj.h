@@ -22,6 +22,7 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) = 0;  //x and y is absolute position on background
+	virtual DrawObj* clone() const = 0;
 	void PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset);
 	void makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth); //x and y is absolute position on background
 	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
@@ -45,6 +46,7 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY);
+	virtual DrawObj* clone() const;
 };
 
 class TextObj : public DrawObj
@@ -71,6 +73,7 @@ public:
 	void ResizingText(int mouseX, int mouseY, int mode);
 	bool CheckTextBoxBigEnough(int X, int Y);
 	void CalculateCaretPosition();
+	virtual DrawObj* clone() const;
 };
 
 class RectangularObj : public DrawObj
@@ -81,6 +84,7 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) override;
+	virtual DrawObj* clone() const;
 };
 
 class CircleObj : public DrawObj
@@ -92,4 +96,5 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) override;
+	virtual DrawObj* clone() const;
 };
