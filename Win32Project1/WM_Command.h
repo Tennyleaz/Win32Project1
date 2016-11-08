@@ -23,5 +23,8 @@ POINT MovePastedObj();
 void PushCurrentNewText(TextObj&);
 
 void Redo();
-void Checkpoint();
+//void Checkpoint();
 void Undo();
+void UpdateNewText(vector<string>, POINT);
+
+void ToggleUndoButton();

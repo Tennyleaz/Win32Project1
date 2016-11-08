@@ -120,6 +120,8 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
 		s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
 		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
+		s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
+		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
 
 		// Restore the original font.
 		SelectObject(hdc, hOldFont);
@@ -228,8 +230,9 @@ void TextObj::addNewLine()
 	text[inputPos.y].append(tail);
 }
 
-void TextObj::backspace()
+bool TextObj::backspace()
 {
+	bool returnValue = false;
 	if (text.size() > 0)
 	{
 		//if caret X is at 0, delete a "\n"
@@ -245,11 +248,13 @@ void TextObj::backspace()
 
 			//put back s to Y-1th line
 			text[inputPos.y].append(s);
+			returnValue = true;
 		}
 		else if(inputPos.x > 0)  //else remove one char
 		{
 			text[inputPos.y].erase(text[inputPos.y].begin() + inputPos.x - 1);
 			inputPos.x--;
+			returnValue = true;
 		}
 	}
 
@@ -258,21 +263,26 @@ void TextObj::backspace()
 	{
 		text.push_back("");
 	}
+	return returnValue;
 }
 
-void TextObj::del()
+bool TextObj::del()
 {
+	bool returnValue = false;
 	if (inputPos.x >= text[inputPos.y].size() && inputPos.y+1 < text.size() )  //X is at end of string, delete the next "\n"
 	{
 		//backup everything in Y+1th line
 		string s = text[inputPos.y + 1];
 		text.erase(text.begin() + inputPos.y + 1);
 		text[inputPos.y].append(s);
+		returnValue = true;
 	}
 	else if (inputPos.x < text[inputPos.y].size()) //else remove one char
 	{
 		text[inputPos.y].erase(text[inputPos.y].begin() + inputPos.x);
+		returnValue = true;
 	}
+	return returnValue;
 }
 
 bool TextObj::CheckObjectCollision(int mouseX, int mouseY)
@@ -284,8 +294,9 @@ bool TextObj::CheckObjectCollision(int mouseX, int mouseY)
 	//do nothing currently
 }
 
-void TextObj::KeyIn(int wParam)
+bool TextObj::KeyIn(int wParam)
 {
+	bool returnValue = false;
 	if ((wParam >= 65 && wParam <= 90) || (wParam >= 48 && wParam <= 57) || (wParam >= 0x60 && wParam <= 0x69) || (wParam == 0x20))
 	{
 		if ((text.back().size()+1) * 8 > ptEnd.x - ptBeg.x) //if x > 2000 add new line and add new char
@@ -296,20 +307,22 @@ void TextObj::KeyIn(int wParam)
 				//addNewLine();
 			}
 			else
-				return;  //do nothing
+				return false;  //do nothing
 		}
 		addChar(wParam);
+		returnValue = true;
 	}
 	else if (wParam == 0x0D)  //enter
 	{
 		if (ptBeg.y + (text.size() + 1) * 13 < 1988)
 		{
 			addNewLine();  //insert a "" string to back
+			returnValue = true;
 		}
 	}
 	else if (wParam == 0x08)  //backspace <-
 	{
-		backspace();
+		returnValue = backspace();
 	}
 	else if (wParam == VK_HOME) //Home
 	{
@@ -339,7 +352,7 @@ void TextObj::KeyIn(int wParam)
 	}
 	else if (wParam == VK_DELETE) //Delete
 	{
-		del();
+		returnValue = del();
 	}
 	else if (wParam == VK_LEFT) //4 arrow keys
 	{
@@ -413,7 +426,7 @@ void TextObj::KeyIn(int wParam)
 
 	ptEnd.x = ptBeg.x + textWidth;
 	ptEnd.y = ptBeg.y + textHeight;
-
+	return returnValue;
 }
 
 void TextObj::ResizingText(int mouseX, int mouseY, int mode)
@@ -573,15 +586,18 @@ void TextObj::CalculateCaretPosition()
 	int lineSize = textWidth / 8;
 	if (lineSize <= 0)
 		lineSize = 1;
-	int y = -1;
+	int y = inputPos.y;
 	for (int i = 0; i <= inputPos.y; i++)
 	{
 		int s = text[i].size();
-		y += (s - 1) / lineSize;
-		y++;
+		if (i == inputPos.y)
+			s = inputPos.x;
+		y += (s) / lineSize;
+		//if((s+1)%lineSize != 0)
+		//	y++;
 	}
 	caretPos.y = ptBeg.y + y * 13;
-	caretPos.x = ptBeg.x + ((inputPos.x - 1) % lineSize + 1) * 8;
+	caretPos.x = ptBeg.x + ((inputPos.x) % lineSize) * 8;
 }
 
 DrawObj * TextObj::clone() const

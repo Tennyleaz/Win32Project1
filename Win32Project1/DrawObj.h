@@ -53,23 +53,23 @@ class TextObj : public DrawObj
 {
 private:
 	int textWidth, textHeight, maxTextWidth;
-	POINT inputPos;
 	void addChar(int c);
 	void addNewLine();
-	void backspace();
-	void del();
+	bool backspace();
+	bool del();
 public:
 	//int textWidth, textHeight, maxTextWidth;
 	vector<string> text;
 	POINT tailPos;  //tailPos is the last char position of text
 	POINT caretPos;
+	POINT inputPos;
 	TextObj();
 	void clean();
 	virtual ~TextObj();
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset);
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset);
 	virtual bool CheckObjectCollision(int mouseX, int mouseY);
-	void KeyIn(int wParam);
+	bool KeyIn(int wParam);  //return false if no change
 	void ResizingText(int mouseX, int mouseY, int mode);
 	bool CheckTextBoxBigEnough(int X, int Y);
 	void CalculateCaretPosition();

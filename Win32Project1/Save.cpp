@@ -18,8 +18,8 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 		if (it->objectType == 4)
 		{
 			TextObj* t = dynamic_cast<TextObj*>(it);
-			vector<string> ls = t->text;
-			jit["text"] = ls;
+			vector<string> vs = t->text;
+			jit["text"] = vs;
 		}
 		j.push_back(jit);
 	}

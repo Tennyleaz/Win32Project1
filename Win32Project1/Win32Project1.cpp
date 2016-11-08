@@ -340,8 +340,15 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 {
 	if (globals::var().selectedObjectPtr != nullptr)
 	{
-		globals::var().selectedObjectPtr->color = position;
-		globals::var().modifyState = 1;
+		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
+		if (it != globals::var().DrawObjList.end())
+		{
+			int pos = distance(globals::var().DrawObjList.begin(), it);
+			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
+			globals::var().selectedObjectPtr->color = position;
+			globals::var().modifyState = 1;
+			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
+		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
@@ -362,8 +369,15 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 {
 	if (globals::var().selectedObjectPtr != nullptr)
 	{
-		globals::var().selectedObjectPtr->backgroundColor = position;
-		globals::var().modifyState = 1;
+		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
+		if (it != globals::var().DrawObjList.end())
+		{
+			int pos = distance(globals::var().DrawObjList.begin(), it);
+			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
+			globals::var().selectedObjectPtr->backgroundColor = position;
+			globals::var().modifyState = 1;
+			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
+		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = 底色
@@ -384,7 +398,14 @@ void ChangeLineSelectionState(int position, HMENU hMenu)
 {
 	if (globals::var().selectedObjectPtr != nullptr)
 	{
-		globals::var().selectedObjectPtr->lineWidth = position;
+		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
+		if (it != globals::var().DrawObjList.end())
+		{
+			int pos = distance(globals::var().DrawObjList.begin(), it);
+			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
+			globals::var().selectedObjectPtr->lineWidth = position;
+			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
+		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = 線寬

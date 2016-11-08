@@ -1,6 +1,6 @@
 #pragma once
 #include "DrawObj.h"
-
+#include "mylog.h"
 #define MAX_LOADSTRING 100
 
 // ¥þ°ìÅÜ¼Æ: 
@@ -29,14 +29,16 @@ public:
 	TextObj newText;
 	CircleObj newCircle;
 	bool mouseHasDown;
+	bool hasSelected;
 
 	RECT rect;
 	TCHAR szBuffer[50];
 	int cxChar, cyChar;
 	//int i;
 	list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
-	list<DrawObj*> BackupList;
+	//list<DrawObj*> BackupList;
 	//vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
+	mylog mlog;
 
 	//----------------------------------------------------------------------------------------------
 

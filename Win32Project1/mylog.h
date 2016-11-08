@@ -8,14 +8,30 @@
 using namespace std;
 using json = nlohmann::json;
 
-class mylog
+//operation:
+//0=add, 1=delete, 2=move, 3=resize, 4=modify, 5=modify text
+class mylog  
 {
-	static json ops;
+	list<json> ops;
+	void PushObject(DrawObj* d, json j);
+	json jmove;
+	json jredo;
 public:
 	mylog();
 	~mylog();
 	void Commit(json J);
-	void Revert();
+	void Undo();
 	void Redo();
-	void PushObject(DrawObj* d, json& j);
+	void ClearLogs();
+
+	void OP_add(DrawObj* d);
+	void OP_del(DrawObj* d, int pos);
+	void OP_moveStart(DrawObj* d, int pos);
+	void OP_moveEnd(DrawObj * d);
+	void OP_sizeStart(DrawObj* d, int pos);
+	void OP_sizeEnd(DrawObj* d);
+	void OP_textStart(DrawObj* d, int pos);
+	void OP_textEnd(DrawObj* d);
+	void OP_modifyStart(DrawObj* d, int pos);
+	void OP_modifyEnd(DrawObj* d);
 };
