@@ -76,20 +76,41 @@ LRESULT WM_CommandEvent(Parameter& param)
 		DialogBox(globals::var().hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), param.hWnd_, About);
 		break;
 	case IDM_EXIT:
-		if (globals::var().modifyState == 1)
-		{
-			if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
-				SaveToFile(globals::var().DrawObjList, globals::var().fileName);
-		}
+		SendMessage(param.hWnd_, WM_CLOSE, NULL, NULL);	
+		break;
+		//if (globals::var().modifyState == 1)
+		//{
+		//	if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
+		//	{
+		//		PushCurrentNewText(newText);
+		//		if (globals::var().lastFilePath.size() < 1)
+		//		{
+		//			SaveToFile(globals::var().DrawObjList, globals::var().fileName);
+		//			SetTitle(globals::var().fileName, param.hWnd_);
+		//			globals::var().modifyState = 2;
+		//		}
+		//		else
+		//		{
+		//			SaveToLastFilePath(globals::var().DrawObjList);
+		//			globals::var().modifyState = 2;
+		//		}
+		//	}
+		//}
 		DestroyWindow(param.hWnd_);
 		break;
 	case ID_COMMAND_1:  //清除
+	{
 		if (globals::var().modifyState == 1)
 		{
 			if (DisplayConfirmClearMessageBox(globals::var().fileName) == IDYES)
 				SaveToFile(globals::var().DrawObjList, globals::var().fileName);
 		}
-		globals::var().modifyState = 1;
+		bool oldState = globals::var().modifyState;
+		globals::var().mlog.ClearLogs();
+		if (globals::var().DrawObjList.size() > 0)
+			globals::var().modifyState = 1;
+		else
+			globals::var().modifyState = oldState;
 		newLine.clean();
 		newRect.clean();
 		newText.clean();
@@ -99,8 +120,8 @@ LRESULT WM_CommandEvent(Parameter& param)
 		currentCursorMode = 0;
 		globals::var().hasSelected = false;
 		CleanObjects(param.hWnd_);
-		globals::var().mlog.ClearLogs();
 		break;
+	}
 	case 120:
 		SetFocus(param.hWnd_);  //return the focus back to main window
 	case ID_LineTool:
@@ -402,6 +423,9 @@ LRESULT WM_CommandEvent(Parameter& param)
 	}
 	case ID_Paste:
 	{
+		if (globals::var().pastebinObjectPtr == nullptr)
+			break;
+
 		//adjust new paste position
 		POINT p = MovePastedObj();
 		AutoScroll(param.hWnd_, p.x- xCurrentScroll+1, p.y- yCurrentScroll+1, xCurrentScroll, yCurrentScroll, rect);
@@ -1103,6 +1127,8 @@ LRESULT WM_PaintEvent(Parameter& param)
 	TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
 	s2 = "currentDrawMode = " + to_string(globals::var().currentDrawMode);
 	TextOutA(memoryDC, 700 - xCurrentScroll, 660 - yCurrentScroll, s2.c_str(), s2.length());
+	s2 = "object count: " + to_string(globals::var().DrawObjList.size());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 680 - yCurrentScroll, s2.c_str(), s2.length());
 
 	/*for (int i = 0; i < 2000; )
 	{
@@ -1313,6 +1339,30 @@ LRESULT WM_VScrollEvent(Parameter& param)
 	si.fMask = SIF_POS;
 	si.nPos = yCurrentScroll;
 	SetScrollInfo(param.hWnd_, SB_VERT, &si, TRUE);
+	return 0;
+}
+
+LRESULT WM_CloseEvent(Parameter& param)
+{
+	if (globals::var().modifyState == 1)
+	{
+		if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
+		{
+			PushCurrentNewText(newText);
+			if (globals::var().lastFilePath.size() < 1)
+			{
+				SaveToFile(globals::var().DrawObjList, globals::var().fileName);
+				SetTitle(globals::var().fileName, param.hWnd_);
+				globals::var().modifyState = 2;
+			}
+			else
+			{
+				SaveToLastFilePath(globals::var().DrawObjList);
+				globals::var().modifyState = 2;
+			}
+		}
+	}
+	DestroyWindow(param.hWnd_);
 	return 0;
 }
 

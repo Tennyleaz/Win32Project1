@@ -47,6 +47,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	Listener::WinProcMsgListener().AddEvent(WM_SIZE, WM_SizeEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_HSCROLL, WM_HScrollEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_VSCROLL, WM_VScrollEvent);
+	Listener::WinProcMsgListener().AddEvent(WM_CLOSE, WM_CloseEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_DESTROY, WM_DestroyEvent);
 
 	// 執行應用程式初始設定: 
