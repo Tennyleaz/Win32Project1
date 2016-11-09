@@ -97,7 +97,7 @@ bool RectangularObj::CheckObjectCollision(int mouseX, int mouseY)
 	return false;
 }
 
-DrawObj * RectangularObj::clone() const
-{
-	return new RectangularObj(static_cast<const RectangularObj&>(*this));
-}
+//DrawObj * RectangularObj::clone() const
+//{
+//	return new RectangularObj(static_cast<const RectangularObj&>(*this));
+//}

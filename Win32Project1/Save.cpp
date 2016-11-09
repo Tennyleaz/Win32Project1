@@ -119,6 +119,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 			newText.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			vector<string> text = j5["text"];
 			newText.text = text;
+			newText.lineWidth = newText.ptEnd.x - newText.ptBeg.x;
 			readList.push_back(new TextObj(newText));
 			break;
 		}

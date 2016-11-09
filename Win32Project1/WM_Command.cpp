@@ -270,14 +270,15 @@ LRESULT WM_CommandEvent(Parameter& param)
 		PushCurrentNewText(newText);
 		SaveToLastFilePath(globals::var().DrawObjList);
 		globals::var().modifyState = 2;
+		SetTitle(globals::var().fileName, param.hWnd_);
 		break;
 	case ID_SAVE_AS:
 	{
 	SAVE_AS_NEW_FILE:
 		PushCurrentNewText(newText);
-		SaveToFile(globals::var().DrawObjList, globals::var().fileName);
-		SetTitle(globals::var().fileName, param.hWnd_);
+		SaveToFile(globals::var().DrawObjList, globals::var().fileName);		
 		globals::var().modifyState = 2;
+		SetTitle(globals::var().fileName, param.hWnd_);
 		break;
 	}
 	case ID_NEW_FILE:
@@ -316,13 +317,14 @@ LRESULT WM_CommandEvent(Parameter& param)
 		currentCursorMode = 0;
 		globals::var().mlog.ClearLogs();
 		ReadFromFile(globals::var().DrawObjList, globals::var().fileName);
+		//InvalidateRect(param.hWnd_, NULL, FALSE);
 		newLine.clean();
 		newRect.clean();
 		newText.clean();
 		newCircle.clean();
-		SetTitle(globals::var().fileName, param.hWnd_);
-		InvalidateRect(param.hWnd_, NULL, FALSE);
 		globals::var().modifyState = 2;
+		SetTitle(globals::var().fileName, param.hWnd_);		
+		InvalidateRect(param.hWnd_, NULL, TRUE);
 		break;
 	}
 	case ID_Copy:
@@ -505,10 +507,16 @@ LRESULT WM_CommandEvent(Parameter& param)
 
 			//doing delete
 			delete globals::var().selectedObjectPtr;
-			globals::var().hasSelected = false;
-			globals::var().selectedObjectPtr = nullptr;
-			currentCursorMode = 0;
 			globals::var().DrawObjList.erase(it);
+
+			//select the previous object
+			if (it != globals::var().DrawObjList.begin())
+				it--;
+			else
+				it = globals::var().DrawObjList.begin();
+			globals::var().selectedObjectPtr = *it;
+			currentCursorMode = 0;
+
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 		break;
@@ -1035,8 +1043,8 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			newText.CalculateCaretPosition();
 			x = newText.caretPos.x - xCurrentScroll;
 			y = newText.caretPos.y - yCurrentScroll;
-			mouseX = x;
-			mouseY = y;
+			mouseX = newText.caretPos.x;;
+			mouseY = newText.caretPos.y;;
 			AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 

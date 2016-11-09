@@ -17,7 +17,7 @@ public:
 	int modifyState;  //0=new file, 1=modified but not saved, 2=saved or opened
 	string fileName;
 	//auto lastStateObject;  //上一步用的物件
-	DrawObj* recoverObjectPtr;  //下一步用的
+	//DrawObj* recoverObjectPtr;  //下一步用的
 	DrawObj* pastebinObjectPtr ;  //剪貼簿用的
 	DrawObj* selectedObjectPtr;  //選取工具選中的
 	DrawObj* preSelectObject;

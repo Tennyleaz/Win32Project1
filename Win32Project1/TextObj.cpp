@@ -84,6 +84,9 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	HFONT hFont, hOldFont;
 	hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //目前寬8，高13
 
+	textWidth = ptEnd.x - ptBeg.x;
+	textHeight = ptEnd.y - ptBeg.y;
+
 	int lineSize = textWidth / 8;
 	if (lineSize <= 0)
 		lineSize = 1;
@@ -118,10 +121,10 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		/*SIZE size;
 		GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 		s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-		s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
-		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
-		s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
-		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
+		//s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
+		//TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
+		//s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
+		//TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
 
 		// Restore the original font.
 		SelectObject(hdc, hOldFont);
@@ -129,8 +132,9 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	SetTextColor(hdc, RGB(0, 0, 0));
 	DeleteObject(hFont);
 
-	textWidth = ptEnd.x - ptBeg.x;
-	textHeight = ptEnd.y - ptBeg.y;
+	//textWidth = ptEnd.x - ptBeg.x;
+	//textHeight = ptEnd.y - ptBeg.y;
+	//Rectangle(hdc, ptBeg.x, ptBeg.y, ptEnd.x, ptEnd.y);
 	CalculateCaretPosition();
 }
 
@@ -258,7 +262,7 @@ bool TextObj::backspace()
 		}
 	}
 
-	ENDING:
+//	ENDING:
 	if (text.size() == 0)  //size is 0, put a empty one
 	{
 		text.push_back("");
@@ -366,14 +370,24 @@ bool TextObj::KeyIn(int wParam)
 	}
 	else if (wParam == VK_UP)
 	{
-		if (inputPos.y > 0)
+		int w = textWidth / 8;
+		if (inputPos.x > w)
+			inputPos.x -= w;
+		else if (inputPos.y > 0)
+			inputPos.y--;
+		/*if (inputPos.y > 0)
 			inputPos.y--;
 		if (inputPos.x > text[inputPos.y].size())
-			inputPos.x = text[inputPos.y].size();
+			inputPos.x = text[inputPos.y].size();*/
 	}
 	else if (wParam == VK_DOWN)
 	{
-		if (inputPos.y < text.size()-1)
+		/*if (inputPos.y < text.size()-1)
+			inputPos.y++;*/
+		int w = textWidth / 8;
+		if (text[inputPos.y].size()> w && inputPos.x < text[inputPos.y].size()-w)
+			inputPos.x += w;
+		else if(inputPos.y < text.size() - 1)
 			inputPos.y++;
 		if (inputPos.x > text[inputPos.y].size())
 			inputPos.x = text[inputPos.y].size();
@@ -602,8 +616,8 @@ void TextObj::CalculateCaretPosition()
 		caretPos.x += lineSize*8;
 }
 
-DrawObj * TextObj::clone() const
-{
-	return new TextObj(static_cast<const TextObj&>(*this));
-}
+//DrawObj * TextObj::clone() const
+//{
+//	return new TextObj(static_cast<const TextObj&>(*this));
+//}
 

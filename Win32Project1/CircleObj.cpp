@@ -106,7 +106,7 @@ bool CircleObj::CheckObjectCollision(int mouseX, int mouseY)
 	return false;
 }
 
-DrawObj * CircleObj::clone() const
-{
-	return new CircleObj(static_cast<const CircleObj&>(*this));
-}
+//DrawObj * CircleObj::clone() const
+//{
+//	return new CircleObj(static_cast<const CircleObj&>(*this));
+//}

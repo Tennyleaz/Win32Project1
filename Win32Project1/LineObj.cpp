@@ -160,7 +160,7 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 	return false;
 }
 
-DrawObj * LineObj::clone() const
-{
-	return new LineObj(static_cast<const LineObj&>(*this));
-}
+//DrawObj * LineObj::clone() const
+//{
+//	return new LineObj(static_cast<const LineObj&>(*this));
+//}
