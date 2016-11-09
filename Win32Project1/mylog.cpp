@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "mylog.h"
 #include "globals.h"
 #include "WM_Command.h"

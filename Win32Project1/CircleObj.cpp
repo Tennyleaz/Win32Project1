@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "DrawObj.h"
 
 CircleObj::CircleObj() { objectType = 3; }
@@ -54,21 +54,21 @@ void CircleObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
-		//•™§W
+		//Â∑¶‰∏ä
 		Rectangle(hdc, left - 4, top - 4, left + 1, top + 1);
-		//•k§W
+		//Âè≥‰∏ä
 		Rectangle(hdc, right - 1, top - 4, right + 4, top + 1);
-		//•™§U
+		//Â∑¶‰∏ã
 		Rectangle(hdc, left - 4, buttom - 1, left + 1, buttom + 4);
-		//•k§U
+		//Âè≥‰∏ã
 		Rectangle(hdc, right - 1, buttom - 1, right + 4, buttom + 4);
-		//•™§§
+		//Â∑¶‰∏≠
 		Rectangle(hdc, left - 4, (buttom + top) / 2 - 3, left + 1, (buttom + top) / 2 + 2);
-		//•k§§
+		//Âè≥‰∏≠
 		Rectangle(hdc, right - 1, (buttom + top) / 2 - 3, right + 4, (buttom + top) / 2 + 2);
-		//§W§§
+		//‰∏ä‰∏≠
 		Rectangle(hdc, (right + left) / 2 - 3, top - 4, (right + left) / 2 + 2, top + 1);
-		//§U§§
+		//‰∏ã‰∏≠
 		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
 	}
 	SelectObject(hdc, oldBrush);

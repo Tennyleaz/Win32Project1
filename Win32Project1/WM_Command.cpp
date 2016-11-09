@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "Windowsx.h "
 #include "WM_Command.h"
 #include "Resource.h"
@@ -17,7 +17,7 @@ static bool mouseHasDown = false;
 static RECT rect;
 static TCHAR szBuffer[50];
 static int cxChar, cyChar;
-static int xPasteDir, yPasteDir;  //0=­t 1=¥¿
+static int xPasteDir, yPasteDir;  //0=è²  1=æ­£
 //static bool canRedo;
 //int i;
 
@@ -49,9 +49,9 @@ static HBITMAP hBmp;          //bitmap for memory DC
 static int currentColor;        //0=black, 0~7 kinds of color
 static int currentBgColor;      //0=transparent, 0~7 kinds of color
 static int currentLineWidth;    //width 1~5
-static int currentCursorMode;   //0=original 1=¥ª¤W 2=¥k¤U 3=¥k¤W 4=¥ª¤U 5=¥ª 6=¥k 7=¤W 8=¤U 9=¥|¦V
+static int currentCursorMode;   //0=original 1=å·¦ä¸Š 2=å³ä¸‹ 3=å³ä¸Š 4=å·¦ä¸‹ 5=å·¦ 6=å³ 7=ä¸Š 8=ä¸‹ 9=å››å‘
 //static bool hasSelected;
-static HCURSOR cursors[6];      //0=original 1=¥ª¤W¥k¤U 2=¥k¤W¥ª¤U 3=¥ª¥k 4=¤W¤U 5=¥|¦V
+static HCURSOR cursors[6];      //0=original 1=å·¦ä¸Šå³ä¸‹ 2=å³ä¸Šå·¦ä¸‹ 3=å·¦å³ 4=ä¸Šä¸‹ 5=å››å‘
 static bool isMoving, isResizing;
 //string debugmessage = "cursorX=";
 
@@ -69,7 +69,7 @@ LRESULT DefaultEvnetHandler(Parameter& param)
 LRESULT WM_CommandEvent(Parameter& param)
 {
 	int wmId = LOWORD(param.wParam_);
-	// ­åªR¥\¯àªí¿ï¨ú¶µ¥Ø: 
+	// å‰–æåŠŸèƒ½è¡¨é¸å–é …ç›®: 
 	switch (wmId)
 	{
 	case IDM_ABOUT:
@@ -83,7 +83,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		}
 		DestroyWindow(param.hWnd_);
 		break;
-	case ID_COMMAND_1:  //²M°£
+	case ID_COMMAND_1:  //æ¸…é™¤
 		if (globals::var().modifyState == 1)
 		{
 			if (DisplayConfirmClearMessageBox(globals::var().fileName) == IDYES)
@@ -450,20 +450,26 @@ LRESULT WM_CommandEvent(Parameter& param)
 	}
 	case ID_Delete:
 	{
+		//do nothing wheh mode = 0~2
+		if (globals::var().currentDrawMode < 3)
+			break;
+
 		//if editing, goto WM_KeyDownEvent
 		if (globals::var().currentDrawMode == 3)
 		{
-			WPARAM wParam;
-			wParam = MAKEWPARAM(NULL, VK_DELETE);
-			SendMessage(globals::var().hWndFather, WM_KEYDOWN, wParam, 0);
+			LPARAM lparam = 0x00000001;
+			//WPARAM wParam;
+			//wParam = MAKEWPARAM(VK_DELETE, VK_DELETE);
+			SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
 			break;
 		}
 
-		//if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4 && globals::var().hasSelected)
-		//{
-		//	SendMessage(globals::var().hWndFather, WM_KEYDOWN, BN_PUSHED, 0);
-		//	break;
-		//}
+		if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4 && globals::var().hasSelected)
+		{
+			LPARAM lparam = 0x00000001;
+			SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
+			break;
+		}
 
 		//find the position of the selected object in list
 		auto it = std::find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
@@ -522,10 +528,10 @@ LRESULT WM_CreateEvent(Parameter& param)
 	if (hMenu)
 	{
 		//ModifyMenu(hMenu, ID_COMMAND_1, MF_BYCOMMAND | MF_STRING, ID_COMMAND_1, (PCTSTR)(LONG)bmpIcon1);
-		HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = ¤u¨ã
-		HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = ÃC¦â
-		HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = ½u¼e
-		HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = ©³¦â
+		HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = å·¥å…·
+		HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = é¡è‰²
+		HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = ç·šå¯¬
+		HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = åº•è‰²
 
 		ModifyMenu(hMenu3, 0, MF_BYPOSITION | MF_BITMAP, ID_BLACK, (LPCTSTR)bmpIcon1);
 		ModifyMenu(hMenu3, 1, MF_BYPOSITION | MF_BITMAP, ID_GRAY, (LPCTSTR)bmpIcon2);
@@ -577,10 +583,10 @@ LRESULT WM_CreateEvent(Parameter& param)
 		MessageBox(param.hWnd_, 0, TEXT("NO MENU"), MB_OK);
 
 	cursors[0] = LoadCursor(NULL, IDC_ARROW);  // 0 = default mouse
-	cursors[1] = LoadCursor(NULL, IDC_SIZENWSE);  //1~2 = ¥|¨¤ªº´å¼Ğ 1=¥ª¤W¥k¤U
-	cursors[2] = LoadCursor(NULL, IDC_SIZENESW);  //2=¥k¤W¥ª¤U
-	cursors[3] = LoadCursor(NULL, IDC_SIZEWE);  //3~4 = Ãä¤Wªº´å¼Ğ 3=¥ª¥k
-	cursors[4] = LoadCursor(NULL, IDC_SIZENS);  //4=¤W¤U
+	cursors[1] = LoadCursor(NULL, IDC_SIZENWSE);  //1~2 = å››è§’çš„æ¸¸æ¨™ 1=å·¦ä¸Šå³ä¸‹
+	cursors[2] = LoadCursor(NULL, IDC_SIZENESW);  //2=å³ä¸Šå·¦ä¸‹
+	cursors[3] = LoadCursor(NULL, IDC_SIZEWE);  //3~4 = é‚Šä¸Šçš„æ¸¸æ¨™ 3=å·¦å³
+	cursors[4] = LoadCursor(NULL, IDC_SIZENS);  //4=ä¸Šä¸‹
 	cursors[5] = LoadCursor(NULL, IDC_SIZEALL);
 
 	// Create a normal DC and a memory DC for the entire 
@@ -1048,7 +1054,7 @@ LRESULT WM_PaintEvent(Parameter& param)
 		SetTitle(globals::var().fileName, param.hWnd_);
 	}
 
-	// TODO: ¦b¦¹¥[¤J¥ô¦ó¨Ï¥Î hdc ªºÃ¸¹Ïµ{¦¡½X...
+	// TODO: åœ¨æ­¤åŠ å…¥ä»»ä½•ä½¿ç”¨ hdc çš„ç¹ªåœ–ç¨‹å¼ç¢¼...
 	//---------------------------------------------------------------
 
 	//TextOut(memoryDC, 10 - xCurrentScroll, 30 - yCurrentScroll, TEXT("123456"), 6);
@@ -1316,7 +1322,7 @@ LRESULT WM_DestroyEvent(Parameter& param)
 	return 0;
 }
 
-// [Ãö©ó] ¤è¶ôªº°T®§³B²z±`¦¡¡C
+// [é—œæ–¼] æ–¹å¡Šçš„è¨Šæ¯è™•ç†å¸¸å¼ã€‚
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);

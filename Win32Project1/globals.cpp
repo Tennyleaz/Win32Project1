@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "globals.h"
 
 globals::globals()
@@ -14,7 +14,7 @@ globals::globals()
 
 globals & globals::var()
 {
-	// TODO: ©ó¦¹³B´¡¤J¶Ç¦^³¯­z¦¡
+	// TODO: æ–¼æ­¤è™•æ’å…¥å‚³å›é™³è¿°å¼
 	static globals g;
 	return g;
 }

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "DrawObj.h"
 
 DrawObj::DrawObj()
@@ -76,21 +76,21 @@ int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)
 	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
 	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
 
-	if (mouseY >= top - 4 && mouseY <= top + 1 && mouseX >= left - 4 && mouseX <= left + 1)  //¥ª¤W
+	if (mouseY >= top - 4 && mouseY <= top + 1 && mouseX >= left - 4 && mouseX <= left + 1)  //å·¦ä¸Š
 		return 1;
-	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //¥k¤U
+	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //å³ä¸‹
 		return 2;
-	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //¥ª¤U
+	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //å·¦ä¸‹
 		return 4;
-	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= top - 4 && mouseY <= top + 1) //¥k¤W
+	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= top - 4 && mouseY <= top + 1) //å³ä¸Š
 		return 3;
-	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //¥ª
+	else if (mouseX >= left - 4 && mouseX <= left + 1 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //å·¦
 		return 5;
-	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //¥k
+	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= (buttom + top) / 2 - 3 && mouseY <= (buttom + top) / 2 + 2)  //å³
 		return 6;
-	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= top - 4 && mouseY <= top + 1) //¤W
+	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= top - 4 && mouseY <= top + 1) //ä¸Š
 		return 7;
-	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= buttom - 1 && mouseY <= buttom + 4) //¤U
+	else if (mouseX >= (right + left) / 2 - 3 && mouseX <= (right + left) / 2 + 2 && mouseY >= buttom - 1 && mouseY <= buttom + 4) //ä¸‹
 		return 8;
 
 	return 0;
@@ -140,24 +140,24 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 		endDeltaX = deltaX;
 		endDeltaY = deltaY;
 		break;
-	case 3:  //¥k¤W
+	case 3:  //å³ä¸Š
 		endDeltaX = deltaX;
 		beginDeltaY = deltaY;		
 		break;
-	case 4:  //¥ª¤U
+	case 4:  //å·¦ä¸‹
 		beginDeltaX = deltaX;
 		endDeltaY = deltaY;
 		break;
-	case 5:  //¥ª
+	case 5:  //å·¦
 		beginDeltaX = deltaX;
 		break;
-	case 6:  //¥k
+	case 6:  //å³
 		endDeltaX = deltaX;
 		break;
-	case 7:  //¤W
+	case 7:  //ä¸Š
 		beginDeltaY = deltaY;
 		break;
-	case 8:  //¤U
+	case 8:  //ä¸‹
 		endDeltaY = deltaY;
 		break;
 	default:
@@ -166,7 +166,7 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 	}
 
 	//find which point is upper right
-	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg ¦b¥ª¤W
+	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg åœ¨å·¦ä¸Š
 	{
 		ptBeg.x = originalBegin.x + beginDeltaX;
 		ptBeg.y = originalBegin.y + beginDeltaY;
@@ -177,21 +177,21 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 		if (ptBeg.y > ptEnd.y - 2)
 			ptBeg.y = ptEnd.y + 2;*/
 	}
-	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg ¦b¥ª¤U
+	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg åœ¨å·¦ä¸‹
 	{
 		ptBeg.x = originalBegin.x + beginDeltaX;
 		ptBeg.y = originalBegin.y + endDeltaY;
 		ptEnd.x = originalEnd.x + endDeltaX;
 		ptEnd.y = originalEnd.y + beginDeltaY;
 	}
-	else if (originalBegin.x >= originalEnd.x && originalBegin.y < originalEnd.y) //ptBeg ¦b¥k¤W
+	else if (originalBegin.x >= originalEnd.x && originalBegin.y < originalEnd.y) //ptBeg åœ¨å³ä¸Š
 	{
 		ptBeg.x = originalBegin.x + endDeltaX;
 		ptBeg.y = originalBegin.y + beginDeltaY;
 		ptEnd.x = originalEnd.x + beginDeltaX;
 		ptEnd.y = originalEnd.y + endDeltaY;
 	}
-	else  //ptBeg¦b¥k¤U
+	else  //ptBegåœ¨å³ä¸‹
 	{
 		ptBeg.x = originalBegin.x + endDeltaX;
 		ptBeg.y = originalBegin.y + endDeltaY;

@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 #include "Resource.h"
 #include <string>
 #include "DrawObj.h"
 
-// ³o­Óµ{¦¡½X¼Ò²Õ¤¤©Ò¥]§t¤§¨ç¦¡ªº¦V«e«Å§i:
+// é€™å€‹ç¨‹å¼ç¢¼æ¨¡çµ„ä¸­æ‰€åŒ…å«ä¹‹å‡½å¼çš„å‘å‰å®£å‘Š:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);

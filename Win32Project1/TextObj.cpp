@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "DrawObj.h"
 #include "globals.h"
 
@@ -82,7 +82,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 
 	// Retrieve a handle to the variable stock font. 
 	HFONT hFont, hOldFont;
-	hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //¥Ø«e¼e8¡A°ª13
+	hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //ç›®å‰å¯¬8ï¼Œé«˜13
 
 	int lineSize = textWidth / 8;
 	if (lineSize <= 0)
@@ -159,21 +159,21 @@ void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
-		//¥ª¤W
+		//å·¦ä¸Š
 		Rectangle(hdc, left - 4, top - 4, left + 1, top + 1);
-		//¥k¤W
+		//å³ä¸Š
 		Rectangle(hdc, right - 1, top - 4, right + 4, top + 1);
-		//¥ª¤U
+		//å·¦ä¸‹
 		Rectangle(hdc, left - 4, buttom - 1, left + 1, buttom + 4);
-		//¥k¤U
+		//å³ä¸‹
 		Rectangle(hdc, right - 1, buttom - 1, right + 4, buttom + 4);
-		//¥ª¤¤
+		//å·¦ä¸­
 		Rectangle(hdc, left - 4, (buttom + top) / 2 - 3, left + 1, (buttom + top) / 2 + 2);
-		//¥k¤¤
+		//å³ä¸­
 		Rectangle(hdc, right - 1, (buttom + top) / 2 - 3, right + 4, (buttom + top) / 2 + 2);
-		//¤W¤¤
+		//ä¸Šä¸­
 		Rectangle(hdc, (right + left) / 2 - 3, top - 4, (right + left) / 2 + 2, top + 1);
-		//¤U¤¤
+		//ä¸‹ä¸­
 		Rectangle(hdc, (right + left) / 2 - 3, buttom - 1, (right + left) / 2 + 2, buttom + 4);
 	}
 	SelectObject(hdc, oldBrush);
@@ -452,24 +452,24 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		endDeltaX = deltaX;
 		endDeltaY = deltaY;
 		break;
-	case 3:  //¥k¤W
+	case 3:  //å³ä¸Š
 		endDeltaX = deltaX;
 		beginDeltaY = deltaY;
 		break;
-	case 4:  //¥ª¤U
+	case 4:  //å·¦ä¸‹
 		beginDeltaX = deltaX;
 		endDeltaY = deltaY;
 		break;
-	case 5:  //¥ª
+	case 5:  //å·¦
 		beginDeltaX = deltaX;
 		break;
-	case 6:  //¥k
+	case 6:  //å³
 		endDeltaX = deltaX;
 		break;
-	case 7:  //¤W
+	case 7:  //ä¸Š
 		beginDeltaY = deltaY;
 		break;
-	case 8:  //¤U
+	case 8:  //ä¸‹
 		endDeltaY = deltaY;
 		break;
 	default:
@@ -478,7 +478,7 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 	}
 
 	//find which point is upper right
-	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg ¦b¥ª¤W
+	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg åœ¨å·¦ä¸Š
 	{
 		ptBeg.x = originalBegin.x + beginDeltaX;
 		ptBeg.y = originalBegin.y + beginDeltaY;
@@ -489,21 +489,21 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		if (ptBeg.y > ptEnd.y - 2)
 		ptBeg.y = ptEnd.y + 2;*/
 	}
-	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg ¦b¥ª¤U
+	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg åœ¨å·¦ä¸‹
 	{
 		ptBeg.x = originalBegin.x + beginDeltaX;
 		ptBeg.y = originalBegin.y + endDeltaY;
 		ptEnd.x = originalEnd.x + endDeltaX;
 		ptEnd.y = originalEnd.y + beginDeltaY;
 	}
-	else if (originalBegin.x >= originalEnd.x && originalBegin.y < originalEnd.y) //ptBeg ¦b¥k¤W
+	else if (originalBegin.x >= originalEnd.x && originalBegin.y < originalEnd.y) //ptBeg åœ¨å³ä¸Š
 	{
 		ptBeg.x = originalBegin.x + endDeltaX;
 		ptBeg.y = originalBegin.y + beginDeltaY;
 		ptEnd.x = originalEnd.x + beginDeltaX;
 		ptEnd.y = originalEnd.y + endDeltaY;
 	}
-	else  //ptBeg¦b¥k¤U
+	else  //ptBegåœ¨å³ä¸‹
 	{
 		ptBeg.x = originalBegin.x + endDeltaX;
 		ptBeg.y = originalBegin.y + endDeltaY;

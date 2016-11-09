@@ -1,25 +1,25 @@
-#pragma once
+ï»¿#pragma once
 #include "DrawObj.h"
 #include "mylog.h"
 #define MAX_LOADSTRING 100
 
-// ¥ş°ìÅÜ¼Æ: 
+// å…¨åŸŸè®Šæ•¸: 
 class globals 
 {
 public:
-	HINSTANCE hInst;                                // ¥Ø«e°õ¦æ­ÓÅé
-	WCHAR szTitle[MAX_LOADSTRING];                  // ¼ĞÃD¦C¤å¦r
-	WCHAR szWindowClass[MAX_LOADSTRING];            // ¥Dµøµ¡Ãş§O¦WºÙ
+	HINSTANCE hInst;                                // ç›®å‰åŸ·è¡Œå€‹é«”
+	WCHAR szTitle[MAX_LOADSTRING];                  // æ¨™é¡Œåˆ—æ–‡å­—
+	WCHAR szWindowClass[MAX_LOADSTRING];            // ä¸»è¦–çª—é¡åˆ¥åç¨±
 	WCHAR szChildClass[MAX_LOADSTRING];
 	HWND hWndFather, myChildWindow;
 	HWND myButton[5];
 	int currentDrawMode;     //0=line, 1=rect, 2=circle, 3=text, 4=select 
 	int modifyState;  //0=new file, 1=modified but not saved, 2=saved or opened
 	string fileName;
-	//auto lastStateObject;  //¤W¤@¨B¥Îªºª«¥ó
-	DrawObj* recoverObjectPtr;  //¤U¤@¨B¥Îªº
-	DrawObj* pastebinObjectPtr ;  //°Å¶KÃ¯¥Îªº
-	DrawObj* selectedObjectPtr;  //¿ï¨ú¤u¨ã¿ï¤¤ªº
+	//auto lastStateObject;  //ä¸Šä¸€æ­¥ç”¨çš„ç‰©ä»¶
+	DrawObj* recoverObjectPtr;  //ä¸‹ä¸€æ­¥ç”¨çš„
+	DrawObj* pastebinObjectPtr ;  //å‰ªè²¼ç°¿ç”¨çš„
+	DrawObj* selectedObjectPtr;  //é¸å–å·¥å…·é¸ä¸­çš„
 	DrawObj* preSelectObject;
 	wstring lastFilePath;
 

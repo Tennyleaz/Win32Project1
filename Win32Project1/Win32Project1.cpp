@@ -1,4 +1,4 @@
-// Win32Project1.cpp : ©w¸qÀ³¥Îµ{¦¡ªº¶i¤JÂI¡C
+ï»¿// Win32Project1.cpp : å®šç¾©æ‡‰ç”¨ç¨‹å¼çš„é€²å…¥é»ã€‚
 //
 
 #include "stdafx.h"
@@ -27,11 +27,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// TODO: ¦b¦¹¸m¤Jµ{¦¡½X¡C	
+	// TODO: åœ¨æ­¤ç½®å…¥ç¨‹å¼ç¢¼ã€‚	
 	globals::var().hInst = hInstance;
 	Listener::WinProcMsgListener().hInst = hInstance;
 
-	// ªì©l¤Æ¥ş°ì¦r¦ê
+	// åˆå§‹åŒ–å…¨åŸŸå­—ä¸²
 	LoadStringW(hInstance, IDS_APP_TITLE, globals::var().szTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_WIN32PROJECT1, globals::var().szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
@@ -49,7 +49,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	Listener::WinProcMsgListener().AddEvent(WM_VSCROLL, WM_VScrollEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_DESTROY, WM_DestroyEvent);
 
-	// °õ¦æÀ³¥Îµ{¦¡ªì©l³]©w: 
+	// åŸ·è¡Œæ‡‰ç”¨ç¨‹å¼åˆå§‹è¨­å®š: 
 	if (!InitInstance(hInstance, SW_MAXIMIZE))
 	{
 		return FALSE;
@@ -71,7 +71,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	childClass.hIconSm = LoadIcon(childClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&childClass);
 
-	globals::var().myChildWindow = CreateWindow(globals::var().szChildClass, L"¤u¨ã", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 320, globals::var().hWndFather, (HMENU)103, globals::var().hInst, NULL);
+	globals::var().myChildWindow = CreateWindow(globals::var().szChildClass, L"å·¥å…·", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 320, globals::var().hWndFather, (HMENU)103, globals::var().hInst, NULL);
 
 	globals::var().myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, globals::var().myChildWindow, (HMENU)120, globals::var().hInst, NULL);
 	globals::var().myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, globals::var().myChildWindow, (HMENU)121, globals::var().hInst, NULL);
@@ -83,7 +83,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	MSG msg;
 
-	// ¥D°T®§°j°é: 
+	// ä¸»è¨Šæ¯è¿´åœˆ: 
 	while (GetMessage(&msg, nullptr, 0, 0))
 	{
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
@@ -99,9 +99,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 
 //
-//  ¨ç¦¡: MyRegisterClass()
+//  å‡½å¼: MyRegisterClass()
 //
-//  ¥Î³~: µù¥Uµøµ¡Ãş§O¡C
+//  ç”¨é€”: è¨»å†Šè¦–çª—é¡åˆ¥ã€‚
 //
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
@@ -125,18 +125,18 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 //
-//   ¨ç¦¡: InitInstance(HINSTANCE, int)
+//   å‡½å¼: InitInstance(HINSTANCE, int)
 //
-//   ¥Î³~: Àx¦s°õ¦æ­ÓÅé±±¨î¥N½X¨Ã¥B«Ø¥ß¥Dµøµ¡
+//   ç”¨é€”: å„²å­˜åŸ·è¡Œå€‹é«”æ§åˆ¶ä»£ç¢¼ä¸¦ä¸”å»ºç«‹ä¸»è¦–çª—
 //
-//   µù¸Ñ: 
+//   è¨»è§£: 
 //
-//        ¦b³o­Ó¨ç¦¡¤¤¡A§Ú­Ì·|±N°õ¦æ­ÓÅé±±¨î¥N½XÀx¦s¦b¥ş°ìÅÜ¼Æ¤¤¡A
-//        ¨Ã¥B«Ø¥ß©MÅã¥Ü¥Dµ{¦¡µøµ¡¡C
+//        åœ¨é€™å€‹å‡½å¼ä¸­ï¼Œæˆ‘å€‘æœƒå°‡åŸ·è¡Œå€‹é«”æ§åˆ¶ä»£ç¢¼å„²å­˜åœ¨å…¨åŸŸè®Šæ•¸ä¸­ï¼Œ
+//        ä¸¦ä¸”å»ºç«‹å’Œé¡¯ç¤ºä¸»ç¨‹å¼è¦–çª—ã€‚
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-	globals::var().hInst = hInstance; // ±N°õ¦æ­ÓÅé±±¨î¥N½XÀx¦s¦b¥ş°ìÅÜ¼Æ¤¤
+	globals::var().hInst = hInstance; // å°‡åŸ·è¡Œå€‹é«”æ§åˆ¶ä»£ç¢¼å„²å­˜åœ¨å…¨åŸŸè®Šæ•¸ä¸­
 
  	globals::var().hWndFather = CreateWindowW(globals::var().szWindowClass, globals::var().szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL | WS_CLIPCHILDREN |WS_CLIPSIBLINGS,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
@@ -153,13 +153,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 }
 
 //
-//  ¨ç¦¡: WndProc(HWND, UINT, WPARAM, LPARAM)
+//  å‡½å¼: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
-//  ¥Î³~:     ³B²z¥Dµøµ¡ªº°T®§¡C
+//  ç”¨é€”:     è™•ç†ä¸»è¦–çª—çš„è¨Šæ¯ã€‚
 //
-//  WM_COMMAND  - ³B²zÀ³¥Îµ{¦¡¥\¯àªí
-//  WM_PAINT    - Ã¸»s¥Dµøµ¡
-//  WM_DESTROY  - Åã¥Üµ²§ô°T®§µM«áªğ¦^
+//  WM_COMMAND  - è™•ç†æ‡‰ç”¨ç¨‹å¼åŠŸèƒ½è¡¨
+//  WM_PAINT    - ç¹ªè£½ä¸»è¦–çª—
+//  WM_DESTROY  - é¡¯ç¤ºçµæŸè¨Šæ¯ç„¶å¾Œè¿”å›
 //
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -190,7 +190,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		break;
 	case WM_COMMAND:
 		wmId = LOWORD(wParam);
-		// ­åªR¥\¯àªí¿ï¨ú¶µ¥Ø: 
+		// å‰–æåŠŸèƒ½è¡¨é¸å–é …ç›®: 
 		SendMessage(globals::var().hWndFather, WM_COMMAND, wmId, 0);	
 		break;
 	case WM_PAINT:
@@ -260,7 +260,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	{		
 		WPARAM wParam;
 		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus-8) < 0 ? 0 : xCurrentScroll + Xfocus - 8);  //¯d­ÓªÅ¦ìµ¹·s¿é¤J¤å¦r
+			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus-8) < 0 ? 0 : xCurrentScroll + Xfocus - 8);  //ç•™å€‹ç©ºä½çµ¦æ–°è¼¸å…¥æ–‡å­—
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) <= 5 ? 0 : xCurrentScroll + Xfocus - 5);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
@@ -321,7 +321,7 @@ void ChangeToolsSelectionState(int position, HMENU hMenu)
 {
 	if (globals::var().selectedObjectPtr != nullptr && position!=4)
 		globals::var().selectedObjectPtr = nullptr;
-	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = ¤u¨ã
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = å·¥å…·
 	for (int i = 0; i < 5; i++)
 	{
 		if (i == position)
@@ -351,8 +351,8 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
 		}
 	}
-	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = ¤u¨ã
-	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = ÃC¦â
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = å·¥å…·
+	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = é¡è‰²
 	for (int i = 0; i < 8; i++)
 	{
 		if (i == position)
@@ -380,8 +380,8 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
 		}
 	}
-	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = ¤u¨ã
-	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = ©³¦â
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = å·¥å…·
+	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = åº•è‰²
 	for (int i = 0; i < 8; i++)
 	{
 		if (i == position)
@@ -408,8 +408,8 @@ void ChangeLineSelectionState(int position, HMENU hMenu)
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
 		}
 	}
-	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = ¤u¨ã
-	HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = ½u¼e
+	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = å·¥å…·
+	HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = ç·šå¯¬
 	for (int i = 0; i < 5; i++)
 	{
 		if (i == position-1)

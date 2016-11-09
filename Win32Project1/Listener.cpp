@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Listener.h"
 
 LRESULT Listener::Trig(UINT msg, Parameter& param)
