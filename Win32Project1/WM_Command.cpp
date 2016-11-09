@@ -433,8 +433,8 @@ LRESULT WM_CommandEvent(Parameter& param)
 		AutoScroll(param.hWnd_, p.x- xCurrentScroll+1, p.y- yCurrentScroll+1, xCurrentScroll, yCurrentScroll, rect);
 
 		//insert the pastbin object into list
-			switch (globals::var().pastebinObjectPtr->objectType)
-			{
+		switch (globals::var().pastebinObjectPtr->objectType)
+		{
 			case 1:
 			{
 				globals::var().DrawObjList.push_back(new LineObj(*(LineObj*)globals::var().pastebinObjectPtr));
@@ -457,7 +457,11 @@ LRESULT WM_CommandEvent(Parameter& param)
 			}
 			default:
 				break;
-			}
+		}
+
+		//select the new object
+		globals::var().selectedObjectPtr = globals::var().DrawObjList.back();
+		globals::var().hasSelected = true;
 
 		InvalidateRect(param.hWnd_, NULL, FALSE);  //why need true here? I don't know...
 		break;
@@ -510,11 +514,18 @@ LRESULT WM_CommandEvent(Parameter& param)
 			globals::var().DrawObjList.erase(it);
 
 			//select the previous object
-			if (it != globals::var().DrawObjList.begin())
-				it--;
+			it = globals::var().DrawObjList.begin();
+			if (globals::var().DrawObjList.size() > 0 && *it != NULL)
+			{
+				if (pos > 0)
+					advance(it, pos - 1);
+				globals::var().selectedObjectPtr = *it;
+			}
 			else
-				it = globals::var().DrawObjList.begin();
-			globals::var().selectedObjectPtr = *it;
+			{
+				globals::var().selectedObjectPtr = NULL;
+				globals::var().hasSelected = false;
+			}
 			currentCursorMode = 0;
 
 			InvalidateRect(param.hWnd_, NULL, FALSE);
