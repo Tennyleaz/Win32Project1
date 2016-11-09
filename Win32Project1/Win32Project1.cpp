@@ -300,7 +300,8 @@ void CleanObjects(HWND hWnd)
 
 void SetTitle(string name, HWND hWnd)
 {
-	wstring stemp = wstring(name.begin(), name.end());
+	string s = "Painter - [" + name + "]";
+	wstring stemp = wstring(s.begin(), s.end());
 	LPCWSTR sw = stemp.c_str();
 	SetWindowText(hWnd, sw);
 }

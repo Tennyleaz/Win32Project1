@@ -450,6 +450,21 @@ LRESULT WM_CommandEvent(Parameter& param)
 	}
 	case ID_Delete:
 	{
+		//if editing, goto WM_KeyDownEvent
+		if (globals::var().currentDrawMode == 3)
+		{
+			WPARAM wParam;
+			wParam = MAKEWPARAM(NULL, VK_DELETE);
+			SendMessage(globals::var().hWndFather, WM_KEYDOWN, wParam, 0);
+			break;
+		}
+
+		//if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4 && globals::var().hasSelected)
+		//{
+		//	SendMessage(globals::var().hWndFather, WM_KEYDOWN, BN_PUSHED, 0);
+		//	break;
+		//}
+
 		//find the position of the selected object in list
 		auto it = std::find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
 		if (it != globals::var().DrawObjList.end())
@@ -1482,4 +1497,5 @@ void ToggleUndoButton()
 	HMENU hMenu2 = GetSubMenu(hMenu, 1);
 	EnableMenuItem(hMenu2, ID_Redo, MF_BYCOMMAND | MF_GRAYED);
 	EnableMenuItem(hMenu2, ID_Undo, MF_BYCOMMAND | MF_ENABLED);
+	globals::var().modifyState = 1;
 }

@@ -592,12 +592,14 @@ void TextObj::CalculateCaretPosition()
 		int s = text[i].size();
 		if (i == inputPos.y)
 			s = inputPos.x;
-		y += (s) / lineSize;
+		y += (s-1) / lineSize;
 		//if((s+1)%lineSize != 0)
 		//	y++;
 	}
 	caretPos.y = ptBeg.y + y * 13;
 	caretPos.x = ptBeg.x + ((inputPos.x) % lineSize) * 8;
+	if (inputPos.x > 0 && inputPos.x% lineSize == 0)
+		caretPos.x += lineSize*8;
 }
 
 DrawObj * TextObj::clone() const

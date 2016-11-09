@@ -292,11 +292,12 @@ void mylog::Redo()
 	}
 	case 5:  //modify text
 	{
+		string test = J.dump();
 		int pos = J["which"];
 		vector<string> vs = J["newText"];
 		POINT in;
 		in.x = J["newInput"][0];
-		in.x = J["newInput"][1];
+		in.y = J["newInput"][1];
 
 		if (pos != -1)
 		{
@@ -423,6 +424,7 @@ void mylog::OP_textEnd(DrawObj * d)
 	jmove["newInput"] = { t->inputPos.x, t->inputPos.y };
 	ops.push_back(jmove);
 	ToggleUndoButton();
+	string test = jmove.dump();
 }
 
 void mylog::OP_modifyStart(DrawObj * d, int pos)
