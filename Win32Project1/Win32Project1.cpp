@@ -350,6 +350,7 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 			globals::var().selectedObjectPtr->color = position;
 			globals::var().modifyState = 1;
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
+			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
@@ -379,6 +380,7 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 			globals::var().selectedObjectPtr->backgroundColor = position;
 			globals::var().modifyState = 1;
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
+			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
@@ -407,6 +409,7 @@ void ChangeLineSelectionState(int position, HMENU hMenu)
 			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
 			globals::var().selectedObjectPtr->lineWidth = position;
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
+			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具

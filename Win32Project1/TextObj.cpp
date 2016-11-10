@@ -184,10 +184,13 @@ void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(oldBrush);
 }
 
-void TextObj::addChar(int c)
+bool TextObj::addChar(int c)
 {
 	if (text.size() == 0)
 		text.push_back("");
+
+	vector<string> vs = text;  //make a backup
+	POINT inputPosBackup = inputPos;
 
 	//do oversize checking
 	if (text.size() < inputPos.y + 1)
@@ -206,12 +209,53 @@ void TextObj::addChar(int c)
 		text[inputPos.y].insert(inputPos.x, 1, ' '); //text.back().push_back(' ');
 
 	inputPos.x ++;
+
+	//check for Y borders
+	int lineSize = (ptEnd.x - ptBeg.x) / 8;
+	if (lineSize <= 0)
+		lineSize = 1;
+
+	//POINT t;
+	int y = 0;
+	//t.x = 0;
+	//t.y = 0;
+
+	for (auto it : text)
+	{
+		//add all the strings to one and print it
+		int i = 0;
+		//t.x = 0;
+		for (auto it2 : it)
+		{
+			if (i > 0 && i%lineSize == 0)
+			{
+				y += 1;
+				//t.x = 0;
+			}
+			i++;
+			//t.x += 1;
+		}
+		y += 1;
+	}
+	if (y * 13 + ptBeg.y > 1993)  //revert old values
+	{
+		text = vs;
+		inputPos = inputPosBackup;
+		return false;
+	}
+	else
+		return true;
 }
 
-void TextObj::addNewLine()
+bool TextObj::addNewLine()
 {
 	if (text.size() == 0)
 		text.push_back("");
+
+	//check if new y goes over border
+	int y = ptEnd.y + 13;
+	if (y > 1990)
+		return false;
 
 	//do oversize checking
 	if (text.size() < inputPos.y + 1)
@@ -232,6 +276,7 @@ void TextObj::addNewLine()
 
 	//put everything after X into new line
 	text[inputPos.y].append(tail);
+	return true;
 }
 
 bool TextObj::backspace()
@@ -313,15 +358,15 @@ bool TextObj::KeyIn(int wParam)
 			else
 				return false;  //do nothing
 		}
-		addChar(wParam);
-		returnValue = true;
+		returnValue = addChar(wParam);
+		//returnValue = true;
 	}
 	else if (wParam == 0x0D)  //enter
 	{
 		if (ptBeg.y + (text.size() + 1) * 13 < 1988)
 		{
-			addNewLine();  //insert a "" string to back
-			returnValue = true;
+			returnValue = addNewLine();  //insert a "" string to back
+			//returnValue = true;
 		}
 	}
 	else if (wParam == 0x08)  //backspace <-
@@ -354,10 +399,10 @@ bool TextObj::KeyIn(int wParam)
 			inputPos.x = text[inputPos.y].size();
 		}
 	}
-	else if (wParam == VK_DELETE) //Delete
-	{
-		returnValue = del();
-	}
+	//else if (wParam == VK_DELETE) //Delete
+	//{
+	//	returnValue = del();
+	//}
 	else if (wParam == VK_LEFT) //4 arrow keys
 	{
 		if (inputPos.x > 0)
@@ -614,6 +659,47 @@ void TextObj::CalculateCaretPosition()
 	caretPos.x = ptBeg.x + ((inputPos.x) % lineSize) * 8;
 	if (inputPos.x > 0 && inputPos.x% lineSize == 0)
 		caretPos.x += lineSize*8;
+}
+
+void TextObj::Moving(int mouseX, int mouseY)
+{
+	int deltaX, deltaY;
+	deltaX = mouseX - originalMouseX;
+	deltaY = mouseY - originalMouseY;
+
+	ptBeg.x = originalBegin.x + deltaX;
+	ptBeg.y = originalBegin.y + deltaY;
+	ptEnd.x = originalEnd.x + deltaX;
+	ptEnd.y = originalEnd.y + deltaY;
+
+	//check for x, y bondaries
+	if (ptBeg.x < 1)
+	{
+		int delta = 1 - ptBeg.x;
+		ptBeg.x = 1;
+		ptEnd.x += delta;
+	}
+	else if (ptEnd.x > 1994)
+	{
+		int delta = 1994 - ptEnd.x;
+		ptEnd.x = 1994;
+		ptBeg.x += delta;
+	}
+
+	if (ptBeg.y < 1)
+	{
+		int delta = 1 - ptBeg.y;
+		ptBeg.y = 1;
+		ptEnd.y += delta;
+	}
+	else if (ptEnd.y > 1993)
+	{
+		int delta = 1993 - ptEnd.y;
+		ptEnd.y = 1993;
+		ptBeg.y += delta;
+	}
+
+	return;
 }
 
 //DrawObj * TextObj::clone() const

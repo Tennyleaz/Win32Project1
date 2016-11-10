@@ -336,7 +336,7 @@ int DisplayConfirmNewFileMessageBox(const string fileName)
 	int msgboxID = MessageBox(
 		NULL,
 		ws.c_str(),
-		L"Confirm New File",
+		L"Confirm Save",
 		MB_ICONEXCLAMATION | MB_YESNO
 	);
 

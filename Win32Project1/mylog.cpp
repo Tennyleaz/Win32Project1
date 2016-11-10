@@ -21,7 +21,7 @@ void mylog::Undo()
 {
 	if (ops.empty())
 	{
-		MessageBox(NULL, L"JSON list is empty!", L"ERROR", MB_OK);
+		//MessageBox(NULL, L"JSON list is empty!", L"ERROR", MB_OK);
 		return;
 	}
 
@@ -170,8 +170,7 @@ void mylog::Undo()
 
 void mylog::Redo()
 {
-	json J = jredo;
-	jredo.clear();
+	json J = jredo;	
 
 	if (J.empty())
 	{
@@ -315,6 +314,9 @@ void mylog::Redo()
 	default:
 		break;
 	}
+
+	ops.push_back(jredo);  //put the redo operation back to logs !
+	jredo.clear();
 }
 
 void mylog::ClearLogs()

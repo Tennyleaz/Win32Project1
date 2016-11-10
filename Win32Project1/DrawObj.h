@@ -28,7 +28,7 @@ public:
 	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
 	int CheckMouseIsOnSizingOpint(int mouseX, int mouseY);	//return 0~4, 0 is normal mouse
 	void StartToMove(int mouseX, int mouseY);  //prepare to move or resize the object. x and y is absolute position on background
-	void Moving(int mouseX, int mouseY);
+	virtual void Moving(int mouseX, int mouseY);
 	void Resizing(int mouseX, int mouseY, int mode);
 protected:
 	int originalMouseX, originalMouseY;
@@ -53,8 +53,8 @@ class TextObj : public DrawObj
 {
 private:
 	int textWidth, textHeight, maxTextWidth;
-	void addChar(int c);
-	void addNewLine();
+	bool addChar(int c);
+	bool addNewLine();
 	bool backspace();
 	bool del();
 public:
@@ -73,6 +73,7 @@ public:
 	void ResizingText(int mouseX, int mouseY, int mode);
 	bool CheckTextBoxBigEnough(int X, int Y);
 	void CalculateCaretPosition();
+	void Moving(int mouseX, int mouseY);
 	//virtual DrawObj* clone() const;
 };
 
