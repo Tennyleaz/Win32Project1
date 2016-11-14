@@ -237,7 +237,7 @@ bool TextObj::addChar(int c)
 		}
 		y += 1;
 	}
-	if (y * 13 + ptBeg.y > 1993)  //revert old values
+	if (y * 13 + ptBeg.y > 1995)  //revert old values
 	{
 		text = vs;
 		inputPos = inputPosBackup;
@@ -254,7 +254,7 @@ bool TextObj::addNewLine()
 
 	//check if new y goes over border
 	int y = ptEnd.y + 13;
-	if (y > 1990)
+	if (y > 1995)
 		return false;
 
 	//do oversize checking
@@ -692,10 +692,10 @@ void TextObj::Moving(int mouseX, int mouseY)
 		ptBeg.y = 1;
 		ptEnd.y += delta;
 	}
-	else if (ptEnd.y > 1993)
+	else if (ptEnd.y > 1995)
 	{
-		int delta = 1993 - ptEnd.y;
-		ptEnd.y = 1993;
+		int delta = 1995 - ptEnd.y;
+		ptEnd.y = 1995;
 		ptBeg.y += delta;
 	}
 

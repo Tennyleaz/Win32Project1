@@ -95,8 +95,17 @@ int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)
 
 	//check mouse is on the selecting rectangle. only apply for line/circle
 	if (objectType == 1 || objectType == 3)
-		if (abs(mouseX - ptBeg.x) <= lineWidth + 1 || abs(mouseX - ptEnd.x) <= lineWidth + 1 || abs(mouseY - ptBeg.y) <= lineWidth + 1 || abs(mouseY - ptEnd.y) <= lineWidth + 1)
+	{
+		if ((abs(mouseX - left) <= 1 || abs(mouseX - right) <= 1) && (mouseY > top && mouseY < buttom))
+		{
 			return 9;
+		}
+		if ((abs(mouseY - top) <= 1 || abs(mouseY - buttom) <= 1) && (mouseX > left && mouseX < right))
+		{
+			//MessageBox(NULL, L"aaaaa", L"Titile", MB_OK);
+			return 9;			
+		}
+	}
 
 	return 0;
 }
@@ -140,10 +149,10 @@ void DrawObj::Moving(int mouseX, int mouseY)
 		ptBeg.y = 1;
 		ptEnd.y += delta;
 	}
-	else if (ptEnd.y > 1990)
+	else if (ptEnd.y > 1995)
 	{
-		int delta = 1990 - ptEnd.y;
-		ptEnd.y = 1990;
+		int delta = 1995 - ptEnd.y;
+		ptEnd.y = 1995;
 		ptBeg.y += delta;
 	}
 

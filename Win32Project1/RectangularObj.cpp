@@ -80,19 +80,26 @@ void RectangularObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 
 bool RectangularObj::CheckObjectCollision(int mouseX, int mouseY)
 {
+	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
+	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
+	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
+	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
 	if (backgroundColor != 0)
 	{
-		int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
-		int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
-		int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
-		int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
 		if (mouseY >= top && mouseY <= buttom && mouseX >= left && mouseX <= right)
 			return true;
 	}
-	else if (abs(mouseX - ptBeg.x) <= lineWidth+1 || abs(mouseX - ptEnd.x) <= lineWidth+1 || abs(mouseY - ptBeg.y) <= lineWidth+1 || abs(mouseY - ptEnd.y) <= lineWidth+1)
+	else
 	{
-		//MessageBox(NULL, L"Yes!\nGiven point lies in the RectangularObj", L"Detection", MB_OK);
-		return true;
+		if ((abs(mouseX - left) <= lineWidth+1 || abs(mouseX - right) <= lineWidth+1) && (mouseY > top && mouseY < buttom))
+		{
+			return true;
+		}
+		else if ((abs(mouseY - top) <= lineWidth+1 || abs(mouseY - buttom) <= lineWidth+1) && (mouseX > left && mouseX < right))
+		{
+			//MessageBox(NULL, L"aaaaa", L"Titile", MB_OK);
+			return true;
+		}
 	}
 	return false;
 }

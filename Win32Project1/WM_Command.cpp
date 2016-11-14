@@ -54,6 +54,7 @@ static int currentCursorMode;   //0=original 1=左上 2=右下 3=右上 4=左下
 static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 static bool isMoving, isResizing;
 //string debugmessage = "cursorX=";
+static int hScrollResize = 0;
 
 using json = nlohmann::json;
 
@@ -103,7 +104,20 @@ LRESULT WM_CommandEvent(Parameter& param)
 		if (globals::var().modifyState == 1)
 		{
 			if (DisplayConfirmClearMessageBox(globals::var().fileName) == IDYES)
-				SaveToFile(globals::var().DrawObjList, globals::var().fileName);
+			{
+				PushCurrentNewText(newText);
+				if (globals::var().lastFilePath.size() < 1)
+				{
+					SaveToFile(globals::var().DrawObjList, globals::var().fileName);
+					SetTitle(globals::var().fileName, param.hWnd_);
+					globals::var().modifyState = 2;
+				}
+				else
+				{
+					SaveToLastFilePath(globals::var().DrawObjList);
+					globals::var().modifyState = 2;
+				}
+			}
 		}
 		bool oldState = globals::var().modifyState;
 		globals::var().mlog.ClearLogs();
@@ -1205,13 +1219,13 @@ LRESULT WM_PaintEvent(Parameter& param)
 		DestroyCaret();//HideCaret(param.hWnd_);
 
 	s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 640, s2.c_str(), s2.length());
 	s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 620, s2.c_str(), s2.length());
 	s2 = "currentDrawMode = " + to_string(globals::var().currentDrawMode);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 660 - yCurrentScroll, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 660, s2.c_str(), s2.length());
 	s2 = "object count: " + to_string(globals::var().DrawObjList.size());
-	TextOutA(memoryDC, 700 - xCurrentScroll, 680 - yCurrentScroll, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 680, s2.c_str(), s2.length());
 
 	/*for (int i = 0; i < 2000; )
 	{
@@ -1241,8 +1255,8 @@ LRESULT WM_SizeEvent(Parameter& param)
 {
 	rect.left = 0;
 	rect.top = 0;
-	rect.right = LOWORD(param.lParam_) - 10;
-	rect.bottom = HIWORD(param.lParam_) - 10;
+	rect.right = LOWORD(param.lParam_);
+	rect.bottom = HIWORD(param.lParam_);
 
 	int xNewSize;
 	int yNewSize;
@@ -1268,7 +1282,12 @@ LRESULT WM_SizeEvent(Parameter& param)
 	// The vertical scrolling range is defined by 
 	// (bitmap_height) - (client_height). The current vertical 
 	// scroll value remains within the vertical scrolling range. 
-	yMaxScroll = max(bmp.bmHeight - yNewSize, 0);
+	if (hScrollResize < 5)
+		hScrollResize++;
+	if (hScrollResize != 2) //ignore for 2nd time. still don't know why??
+	{
+		yMaxScroll = max(bmp.bmHeight - yNewSize, 0);
+	}
 	yCurrentScroll = min(yCurrentScroll, yMaxScroll);
 	si.cbSize = sizeof(si);
 	si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
