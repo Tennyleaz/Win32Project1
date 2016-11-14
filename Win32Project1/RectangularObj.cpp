@@ -84,6 +84,10 @@ bool RectangularObj::CheckObjectCollision(int mouseX, int mouseY)
 	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
 	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
 	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
+
+	if (mouseY < top || mouseY> buttom || mouseX < left || mouseX > right)  //first if mouse out of range, just return false
+		return false;
+
 	if (backgroundColor != 0)
 	{
 		if (mouseY >= top && mouseY <= buttom && mouseX >= left && mouseX <= right)

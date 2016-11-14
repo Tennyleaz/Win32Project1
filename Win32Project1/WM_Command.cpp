@@ -776,7 +776,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 				{
 					globals::var().preSelectObject = (*it);
 					//MessageBox(NULL, L"Mouse Is On An Obj!", L"Yes", MB_OK);
-					InvalidateRect(param.hWnd_, NULL, FALSE);
+					//InvalidateRect(param.hWnd_, NULL, FALSE);
 					break;
 					//globals::var().hasSelected = true;
 					//break;
@@ -906,8 +906,11 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 				newText.ptEnd.x = newText.ptBeg.x + 8 * 5 + 1;
 				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
 			}
-			if (newText.ptBeg.y > 1987)
-				newText.ptBeg.y = 1987;
+			if (newText.ptBeg.y > 1982)
+			{
+				newText.ptBeg.y = 1982;
+				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
+			}
 			globals::var().modifyState = 1;
 			globals::var().selectedObjectPtr = &newText;
 			globals::var().hasSelected = true;
@@ -1405,6 +1408,8 @@ LRESULT WM_VScrollEvent(Parameter& param)
 		// User dragged the scroll box. 
 	case SB_THUMBTRACK:
 		yNewPos = HIWORD(param.wParam_);
+		if (yNewPos >= 1004)
+			yNewPos = yMaxScroll;  //workaround for Y scroll to bottom
 		break;
 
 	default:

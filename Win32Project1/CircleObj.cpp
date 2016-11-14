@@ -83,6 +83,9 @@ bool CircleObj::CheckObjectCollision(int mouseX, int mouseY)
 	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
 	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
 
+	if (mouseY < top || mouseY> buttom || mouseX < left || mouseX > right)  //first if mouse out of range, just return false
+		return false;
+
 	float a = (float)(right - left) / 2.0;
 	float b = (float)(buttom - top) / 2.0;
 

@@ -121,10 +121,10 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		/*SIZE size;
 		GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 		s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-		//s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
-		//TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
-		//s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
-		//TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
+		s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
+		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
+		s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
+		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
 
 		// Restore the original font.
 		SelectObject(hdc, hOldFont);
@@ -237,7 +237,7 @@ bool TextObj::addChar(int c)
 		}
 		y += 1;
 	}
-	if (y * 13 + ptBeg.y > 1995)  //revert old values
+	if (y * 13 + ptBeg.y > 1996)  //revert old values
 	{
 		text = vs;
 		inputPos = inputPosBackup;
@@ -253,7 +253,7 @@ bool TextObj::addNewLine()
 		text.push_back("");
 
 	//check if new y goes over border
-	int y = ptEnd.y + 13;
+	int y = ptBeg.y + tailPos.y + 13*2;
 	if (y > 1995)
 		return false;
 
@@ -351,7 +351,7 @@ bool TextObj::KeyIn(int wParam)
 		if ((text.back().size()+1) * 8 > ptEnd.x - ptBeg.x) //if x > 2000 add new line and add new char
 		{
 			int newy = ptBeg.y + (text.size() + 1) * 13;
-			if (newy < 1990)  //if y < 2000 add new line
+			if (newy < 1996)  //if y < 2000 add new line
 			{
 				//addNewLine();
 			}
@@ -363,7 +363,7 @@ bool TextObj::KeyIn(int wParam)
 	}
 	else if (wParam == 0x0D)  //enter
 	{
-		if (ptBeg.y + (text.size() + 1) * 13 < 1988)
+		if (ptBeg.y + (text.size() + 1) * 13 < 1996)
 		{
 			returnValue = addNewLine();  //insert a "" string to back
 			//returnValue = true;
@@ -419,23 +419,65 @@ bool TextObj::KeyIn(int wParam)
 		if (inputPos.x > w)
 			inputPos.x -= w;
 		else if (inputPos.y > 0)
+		{
 			inputPos.y--;
-		/*if (inputPos.y > 0)
-			inputPos.y--;
-		if (inputPos.x > text[inputPos.y].size())
-			inputPos.x = text[inputPos.y].size();*/
+			//check if x is larger than previous line size
+			//if previous line has only one line, compare tha tail position
+			if (text[inputPos.y].size() <= w && inputPos.x > text[inputPos.y].size())
+				inputPos.x = text[inputPos.y].size();
+			else if (text[inputPos.y].size() > w)  //else, compare x with last line's length
+			{
+				if (inputPos.x > text[inputPos.y].size() % w)
+					inputPos.x = text[inputPos.y].size();
+				else
+					inputPos.x = text[inputPos.y].size() - (text[inputPos.y].size() % w - inputPos.x);
+			}
+		}
 	}
 	else if (wParam == VK_DOWN)
 	{
 		/*if (inputPos.y < text.size()-1)
 			inputPos.y++;*/
 		int w = textWidth / 8;
-		if (text[inputPos.y].size()> w && inputPos.x < text[inputPos.y].size()-w)
-			inputPos.x += w;
-		else if(inputPos.y < text.size() - 1)
+		int linesize = text[inputPos.y].size() / w + 1;
+		if (text[inputPos.y].size() > 0 && text[inputPos.y].size() % w == 0)
+			linesize--;
+		if (text[inputPos.y].size() > w && (inputPos.x-1) / w < linesize - 1)  //just move in this line
+		{	
+			//if(inputPos.x == 0)
+			//	inputPos.x += w+1;
+			if (inputPos.x <= text[inputPos.y].size() - w)
+				inputPos.x += w;
+			else
+				inputPos.x = text[inputPos.y].size();
+		}
+		else if (inputPos.y < text.size() - 1)
+		{
 			inputPos.y++;
-		if (inputPos.x > text[inputPos.y].size())
-			inputPos.x = text[inputPos.y].size();
+			//if next line is smaller than w (single line), compare x with size
+			if (text[inputPos.y].size() <= w)
+			{
+				if (inputPos.x % w > text[inputPos.y].size())
+					inputPos.x = text[inputPos.y].size();
+				else if (inputPos.x >0 && inputPos.x % w == 0)
+					inputPos.x = text[inputPos.y].size();
+				else
+					inputPos.x = inputPos.x % w;
+			}
+			else  //if have multiple line, x must > w, get the x position of previous line first.
+			{
+				if (inputPos.x > 0 && inputPos.x % w == 0)
+				{
+					//rightmost position
+					inputPos.x = w;
+				}
+				else
+				{
+					int x = inputPos.x % w;
+					inputPos.x = x;
+				}
+			}
+		}
 	}
 	
 	/*//calculate text box

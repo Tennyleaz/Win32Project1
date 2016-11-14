@@ -108,14 +108,6 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 
 	}
 
-	slope = dy / dx;
-
-	// y = mx + c
-	// intercept c = y - mx
-
-	intercept = y1 - slope * x1; // which is same as y2 - slope * x2
-
-								 // For Bounding Box
 	if (x1 < x2)
 	{
 		left = x1;
@@ -137,6 +129,19 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 		top = y2;
 		bottom = y1;
 	}
+
+	if (mouseY < top || mouseY> bottom || mouseX < left || mouseX > right)  //first if mouse out of range, just return false
+		return false;
+
+	slope = dy / dx;
+
+	// y = mx + c
+	// intercept c = y - mx
+
+	intercept = y1 - slope * x1; // which is same as y2 - slope * x2
+
+								 // For Bounding Box
+
 
 	//std::cout << "Equation of the line: ";
 	//std::cout << slope << "X " << ((intercept < 0) ? ' ' : '+') << intercept << "\n";

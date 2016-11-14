@@ -76,6 +76,9 @@ int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)
 	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
 	int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
 
+	if (mouseY < top-4 || mouseY> buttom+4 || mouseX < left-4 || mouseX > right+4)  //first if mouse out of range, just return false
+		return 0;
+
 	if (mouseY >= top - 4 && mouseY <= top + 1 && mouseX >= left - 4 && mouseX <= left + 1)  //左上
 		return 1;
 	else if (mouseX >= right - 1 && mouseX <= right + 4 && mouseY >= buttom - 1 && mouseY <= buttom + 4)  //右下
