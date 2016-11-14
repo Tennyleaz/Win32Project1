@@ -80,6 +80,21 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		SetTextColor(hdc, RGB(0, 0, 0));
 	}
 
+	//draw the background rect
+	HPEN hPen = switchTextBoxLineColor();
+	HBRUSH hBrush = switchBackgroundColor();
+	HPEN oldPen = (HPEN)SelectObject(hdc, hPen);
+	if (hBrush != NULL)
+		SelectObject(hdc, hBrush);
+	else
+		SelectObject(hdc, GetStockObject(NULL_BRUSH));
+	Rectangle(hdc, ptBeg.x, ptBeg.y, ptEnd.x, ptEnd.y);
+	if (hBrush != NULL)
+		DeleteObject(hBrush);
+	SelectObject(hdc, oldPen);
+	DeleteObject(hPen);
+	DeleteObject(oldPen);
+
 	// Retrieve a handle to the variable stock font. 
 	HFONT hFont, hOldFont;
 	hFont = (HFONT)GetStockObject(ANSI_FIXED_FONT);  //目前寬8，高13
@@ -116,6 +131,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 			s += '\n';
 			tailPos.y += 13;	
 		}
+		SetBkMode(hdc, TRANSPARENT);
 		DrawTextA(hdc, s.c_str(), s.length(), &rc, DT_LEFT | DT_NOCLIP);
 
 		/*SIZE size;
@@ -332,6 +348,41 @@ bool TextObj::del()
 		returnValue = true;
 	}
 	return returnValue;
+}
+
+HPEN TextObj::switchTextBoxLineColor()
+{
+	HPEN hPen;
+	switch (backgroundColor)
+	{
+	case 0:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 255, 255));
+		break;
+	case 1:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(180, 180, 180));
+		break;
+	case 2:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 0, 0));
+		break;
+	case 3:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 255, 0));
+		break;
+	case 4:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 255));
+		break;
+	case 5:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 255, 255));
+		break;
+	case 6:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 255, 0));
+		break;
+	case 7:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 0, 255));
+		break;
+	default:
+		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 0));
+	}
+	return hPen;
 }
 
 bool TextObj::CheckObjectCollision(int mouseX, int mouseY)

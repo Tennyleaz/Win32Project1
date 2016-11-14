@@ -133,6 +133,11 @@ void DrawObj::Moving(int mouseX, int mouseY)
 	ptEnd.y = originalEnd.y + deltaY;
 
 	//check for x, y bondaries
+	//int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
+	//int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
+	//int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
+	//int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
+
 	if (ptBeg.x < 1)
 	{
 		int delta = 1 - ptBeg.x;
@@ -242,6 +247,28 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 		ptEnd.x = originalEnd.x + beginDeltaX;
 		ptEnd.y = originalEnd.y + beginDeltaY;
 	}
+
+	//check borders
+	if (ptEnd.x > 1990)
+		ptEnd.x = 1990;
+	if (ptEnd.y > 1990)
+		ptEnd.y = 1990;
+
+	if (ptBeg.x < 1)
+		ptBeg.x = 1;
+	if (ptBeg.y < 1)
+		ptBeg.y = 1;
+
+	//the other side borders
+	if (ptBeg.x > 1990)
+		ptBeg.x = 1990;
+	if (ptBeg.y > 1990)
+		ptBeg.y = 1990;
+
+	if (ptEnd.x < 1)
+		ptEnd.x = 1;
+	if (ptEnd.y < 1)
+		ptEnd.y = 1;
 }
 
 HPEN DrawObj::switchColor()

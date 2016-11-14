@@ -96,6 +96,19 @@ void mylog::Undo()
 	{
 		//move back the ptBeg/End
 		int pos = J["which"];
+
+		if (pos == -1)  //for newText
+		{
+			int deltaX, deltaY;
+			deltaX = J["deltax"];
+			deltaY = J["deltay"];
+			globals::var().newText.ptBeg.x = J["start"][0];
+			globals::var().newText.ptBeg.y = J["start"][1];
+			globals::var().newText.ptEnd.x += deltaX;
+			globals::var().newText.ptEnd.y += deltaY;
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 
@@ -112,6 +125,16 @@ void mylog::Undo()
 	{
 		//roll back to old points
 		int pos = J["which"];
+
+		if (pos == -1)  //for newText
+		{
+			globals::var().newText.ptBeg.x = J["oldBegin"][0];
+			globals::var().newText.ptBeg.y = J["oldBegin"][1];
+			globals::var().newText.ptEnd.x = J["oldEnd"][0];
+			globals::var().newText.ptEnd.y = J["oldEnd"][1];
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 
@@ -245,6 +268,18 @@ void mylog::Redo()
 	{
 		//move back the ptBeg/End
 		int pos = J["which"];
+		if (pos == -1)  //for newText
+		{
+			int deltaX, deltaY;
+			deltaX = J["deltax"];
+			deltaY = J["deltay"];
+			globals::var().newText.ptBeg.x -= deltaX;
+			globals::var().newText.ptBeg.y -= deltaY;
+			globals::var().newText.ptEnd.x -= deltaX;
+			globals::var().newText.ptEnd.y -= deltaY;
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 
@@ -261,6 +296,16 @@ void mylog::Redo()
 	{
 		//redo new points
 		int pos = J["which"];
+
+		if (pos == -1)  //for newText
+		{
+			globals::var().newText.ptBeg.x = J["newBegin"][0];
+			globals::var().newText.ptBeg.y = J["newBegin"][1];
+			globals::var().newText.ptEnd.x = J["newEnd"][0];
+			globals::var().newText.ptEnd.y = J["newEnd"][1];
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 
@@ -363,7 +408,7 @@ void mylog::OP_del(DrawObj * it, int pos)
 	PushObject(it, jit);
 }
 
-void mylog::OP_moveStart(DrawObj * d, int pos)
+void mylog::OP_moveStart(DrawObj * d, int pos)  //pos = -1 means it is the newText
 {
 	jmove.clear();
 	//know new position of old ptBeg

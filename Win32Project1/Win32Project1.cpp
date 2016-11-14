@@ -49,6 +49,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	Listener::WinProcMsgListener().AddEvent(WM_VSCROLL, WM_VScrollEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_CLOSE, WM_CloseEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_DESTROY, WM_DestroyEvent);
+	Listener::WinProcMsgListener().AddEvent(WM_SETCURSOR, WM_SetCursorEvent);
 
 	// 執行應用程式初始設定: 
 	if (!InitInstance(hInstance, SW_MAXIMIZE))
@@ -353,6 +354,14 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
 	}
+	if (globals::var().currentDrawMode == 3)
+	{
+		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
+		globals::var().newText.color = position;
+		globals::var().modifyState = 1;
+		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
+		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
 	for (int i = 0; i < 8; i++)
@@ -382,6 +391,14 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
 			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
+	}
+	if (globals::var().currentDrawMode == 3)
+	{
+		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
+		globals::var().newText.backgroundColor = position;
+		globals::var().modifyState = 1;
+		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
+		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = 底色

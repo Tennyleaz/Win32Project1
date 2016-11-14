@@ -17,6 +17,7 @@ LRESULT WM_HScrollEvent(Parameter& param);
 LRESULT WM_VScrollEvent(Parameter& param);
 LRESULT WM_CloseEvent(Parameter& param);
 LRESULT WM_DestroyEvent(Parameter& param);
+LRESULT WM_SetCursorEvent(Parameter& param);
 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 

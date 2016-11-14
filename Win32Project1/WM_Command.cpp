@@ -10,7 +10,7 @@
 static int mouseX, mouseY;
 static LineObj  newLine;
 static RectangularObj newRect;
-static TextObj newText;
+//static TextObj newText;  //only newText needs to be global now
 static CircleObj newCircle;
 static bool mouseHasDown = false;
 
@@ -55,6 +55,7 @@ static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左
 static bool isMoving, isResizing;
 //string debugmessage = "cursorX=";
 static int hScrollResize = 0;
+static HCURSOR * currentCursor;
 
 using json = nlohmann::json;
 
@@ -83,7 +84,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		//{
 		//	if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
 		//	{
-		//		PushCurrentNewText(newText);
+		//		PushCurrentNewText(globals::var().newText);
 		//		if (globals::var().lastFilePath.size() < 1)
 		//		{
 		//			SaveToFile(globals::var().DrawObjList, globals::var().fileName);
@@ -105,7 +106,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		{
 			if (DisplayConfirmClearMessageBox(globals::var().fileName) == IDYES)
 			{
-				PushCurrentNewText(newText);
+				PushCurrentNewText(globals::var().newText);
 				if (globals::var().lastFilePath.size() < 1)
 				{
 					SaveToFile(globals::var().DrawObjList, globals::var().fileName);
@@ -119,7 +120,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 				}
 			}
 		}
-		bool oldState = globals::var().modifyState;
+		int oldState = globals::var().modifyState;
 		globals::var().mlog.ClearLogs();
 		if (globals::var().DrawObjList.size() > 0)
 			globals::var().modifyState = 1;
@@ -127,7 +128,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 			globals::var().modifyState = oldState;
 		newLine.clean();
 		newRect.clean();
-		newText.clean();
+		globals::var().newText.clean();
 		newCircle.clean();
 		globals::var().selectedObjectPtr = NULL;
 		//globals::var().currentDrawMode = 0;
@@ -141,7 +142,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 	case ID_LineTool:
 		globals::var().currentDrawMode = 0;
 		ChangeToolsSelectionState(globals::var().currentDrawMode, hMenu);
-		PushCurrentNewText(newText);
+		PushCurrentNewText(globals::var().newText);
 		globals::var().hasSelected = false;
 		InvalidateRect(param.hWnd_, NULL, FALSE);
 		break;
@@ -150,7 +151,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 	case ID_RectTool:
 		globals::var().currentDrawMode = 1;
 		ChangeToolsSelectionState(globals::var().currentDrawMode, hMenu);
-		PushCurrentNewText(newText);
+		PushCurrentNewText(globals::var().newText);
 		globals::var().hasSelected = false;
 		InvalidateRect(param.hWnd_, NULL, FALSE);
 		break;
@@ -159,7 +160,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 	case ID_CircleTool:
 		globals::var().currentDrawMode = 2;
 		ChangeToolsSelectionState(globals::var().currentDrawMode, hMenu);
-		PushCurrentNewText(newText);
+		PushCurrentNewText(globals::var().newText);
 		globals::var().hasSelected = false;
 		InvalidateRect(param.hWnd_, NULL, FALSE);
 		break;
@@ -174,48 +175,48 @@ LRESULT WM_CommandEvent(Parameter& param)
 		SetFocus(param.hWnd_);
 	case ID_SelectTool:
 		globals::var().currentDrawMode = 4;
-		PushCurrentNewText(newText);
+		PushCurrentNewText(globals::var().newText);
 		ChangeToolsSelectionState(globals::var().currentDrawMode, hMenu);
 		InvalidateRect(param.hWnd_, NULL, FALSE);
 		break;
 	case ID_BLACK:
 		currentColor = 0;		
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_GRAY:
 		currentColor = 1;		
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_RED:
 		currentColor = 2;
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_GREEN:
 		currentColor = 3;
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_BLU:
 		currentColor = 4;
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_CYAN:
 		currentColor = 5;
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_YELLOW:
 		currentColor = 6;
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_Magenta:
 		currentColor = 7;
-		newText.color = currentColor;
+		globals::var().newText.color = currentColor;
 		ChangeColorsSelectionState(currentColor, hMenu);
 		break;
 	case ID_BG_Transparent:
@@ -273,7 +274,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 	case ID_SAVE:
 		if (globals::var().modifyState == 0 || globals::var().lastFilePath.size() <1)
 			goto SAVE_AS_NEW_FILE;
-		PushCurrentNewText(newText);
+		PushCurrentNewText(globals::var().newText);
 		SaveToLastFilePath(globals::var().DrawObjList);
 		globals::var().modifyState = 2;
 		SetTitle(globals::var().fileName, param.hWnd_);
@@ -281,7 +282,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 	case ID_SAVE_AS:
 	{
 	SAVE_AS_NEW_FILE:
-		PushCurrentNewText(newText);
+		PushCurrentNewText(globals::var().newText);
 		SaveToFile(globals::var().DrawObjList, globals::var().fileName);		
 		globals::var().modifyState = 2;
 		SetTitle(globals::var().fileName, param.hWnd_);
@@ -292,7 +293,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		{
 			if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
 			{
-				PushCurrentNewText(newText);
+				PushCurrentNewText(globals::var().newText);
 				if (globals::var().modifyState == 0 || globals::var().lastFilePath.size() < 1)
 					SaveToFile(globals::var().DrawObjList, globals::var().fileName);  //do not have last opened file					
 				else
@@ -305,7 +306,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		SetTitle(globals::var().fileName, param.hWnd_);
 		newLine.clean();
 		newRect.clean();
-		newText.clean();
+		globals::var().newText.clean();
 		newCircle.clean();
 		globals::var().selectedObjectPtr = NULL;
 		//globals::var().currentDrawMode = 0;
@@ -326,7 +327,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		//InvalidateRect(param.hWnd_, NULL, FALSE);
 		newLine.clean();
 		newRect.clean();
-		newText.clean();
+		globals::var().newText.clean();
 		newCircle.clean();
 		globals::var().modifyState = 2;
 		SetTitle(globals::var().fileName, param.hWnd_);		
@@ -469,7 +470,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		globals::var().selectedObjectPtr = globals::var().DrawObjList.back();
 		globals::var().hasSelected = true;
 
-		InvalidateRect(param.hWnd_, NULL, FALSE);  //why need true here? I don't know...
+		InvalidateRect(param.hWnd_, NULL, FALSE);  
 		break;
 	}
 	case ID_Undo:
@@ -640,6 +641,7 @@ LRESULT WM_CreateEvent(Parameter& param)
 	cursors[3] = LoadCursor(NULL, IDC_SIZEWE);  //3~4 = 邊上的游標 3=左右
 	cursors[4] = LoadCursor(NULL, IDC_SIZENS);  //4=上下
 	cursors[5] = LoadCursor(NULL, IDC_SIZEALL);
+	currentCursor = &cursors[0];
 
 	// Create a normal DC and a memory DC for the entire 
 	// screen. The normal DC provides a snapshot of the 
@@ -689,6 +691,7 @@ LRESULT WM_CreateEvent(Parameter& param)
 
 LRESULT WM_MouseMoveEvent(Parameter& param)
 {
+
 	if (globals::var().currentDrawMode != 4 && mouseHasDown)  //scroll the scrollbars when mouse out of range
 	{
 		mouseX = GET_X_LPARAM(param.lParam_);
@@ -733,25 +736,40 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 			//draw a double arrow mouse if mouse is on the 8-points
 			currentCursorMode = globals::var().selectedObjectPtr->CheckMouseIsOnSizingOpint(mouseX, mouseY);
 			//if(currentCursorMode == 0)
-			SetCursor(cursors[(currentCursorMode + 1) / 2]);
+			//SetCursor(cursors[(currentCursorMode + 1) / 2]);			
 			//else if(currentCursorMode == 1 || currentCursorMode == 2)
 
 			//draw a moving arrow if mouse is on the object
 			if (currentCursorMode == 0 && globals::var().selectedObjectPtr->CheckObjectCollision(mouseX, mouseY))
 			{
-				SetCursor(cursors[5]);
+				//SetCursor(cursors[5]);
+				currentCursor = &cursors[5];
 				currentCursorMode = 9;
 			}
+			else
+				currentCursor = &cursors[(currentCursorMode + 1) / 2];
 		}
 		else if (globals::var().hasSelected && mouseHasDown)  //if mouse is down on object, then perform move/resize
 		{
 			if (currentCursorMode == 9)  //perform move
 			{
+				if (!isMoving)
+				{
+					//store the old position of ptBeg
+					isMoving = true;
+					globals::var().mlog.OP_moveStart(&globals::var().newText, -1);  //log the movement of newText
+				}
 				globals::var().selectedObjectPtr->Moving(mouseX, mouseY);
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
 			{
+				if (!isResizing)  //log the old size values
+				{
+					isResizing = true;
+					globals::var().mlog.OP_sizeStart(&globals::var().newText, -1);  //log the resize of newText
+				}
+
 				if (globals::var().selectedObjectPtr->objectType == 4)
 				{
 					TextObj * temp;
@@ -792,16 +810,18 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			//draw a double arrow mouse if mouse is on the 8-points
 			currentCursorMode = globals::var().selectedObjectPtr->CheckMouseIsOnSizingOpint(mouseX, mouseY);
-			//if(currentCursorMode == 0)
-			SetCursor(cursors[(currentCursorMode + 1) / 2]);
-			//else if(currentCursorMode == 1 || currentCursorMode == 2)
+			//SetCursor(cursors[(currentCursorMode + 1) / 2]);
+			
 
 			//draw a moving arrow if mouse is on the object
 			if (currentCursorMode == 0 && globals::var().selectedObjectPtr->CheckObjectCollision(mouseX, mouseY))
 			{
-				SetCursor(cursors[5]);
+				//SetCursor(cursors[5]);
+				currentCursor = &cursors[5];
 				currentCursorMode = 9;
 			}
+			else
+				currentCursor = &cursors[(currentCursorMode + 1) / 2];
 		}
 		else if (globals::var().hasSelected && mouseHasDown)  //if mouse is down on object, then perform move/resize
 		{
@@ -826,7 +846,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 			}
 			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
 			{
-				if (!isResizing)
+				if (!isResizing)  //log the old size values
 				{
 					isResizing = true;
 					auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
@@ -858,6 +878,8 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		}
 	}
 	//break;
+	SetCursor(*currentCursor);
+	//SetClassLong(param.hWnd_, -12, (DWORD)*currentCursor);
 	return 0;
 }
 
@@ -893,26 +915,26 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 				return 0;
 			}
 
-			if (!newText.startFinished) //click to a new text position without previous start
+			if (!globals::var().newText.startFinished) //click to a new text position without previous start
 			{
-				newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
-				newText.ptEnd.x = newText.ptBeg.x + 8 * 5 + 1;
-				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
+				globals::var().newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
+				globals::var().newText.ptEnd.x = globals::var().newText.ptBeg.x + 8 * 5 + 1;
+				globals::var().newText.ptEnd.y = globals::var().newText.ptBeg.y + 1 * 13 + 1;
 			}
-			else if (newText.startFinished && !newText.endFinished)  //push old text to drawObj list
+			else if (globals::var().newText.startFinished && !globals::var().newText.endFinished)  //push old text to drawObj list
 			{
-				PushCurrentNewText(newText);
-				newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
-				newText.ptEnd.x = newText.ptBeg.x + 8 * 5 + 1;
-				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
+				PushCurrentNewText(globals::var().newText);
+				globals::var().newText.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
+				globals::var().newText.ptEnd.x = globals::var().newText.ptBeg.x + 8 * 5 + 1;
+				globals::var().newText.ptEnd.y = globals::var().newText.ptBeg.y + 1 * 13 + 1;
 			}
-			if (newText.ptBeg.y > 1982)
+			if (globals::var().newText.ptBeg.y > 1982)
 			{
-				newText.ptBeg.y = 1982;
-				newText.ptEnd.y = newText.ptBeg.y + 1 * 13 + 1;
+				globals::var().newText.ptBeg.y = 1982;
+				globals::var().newText.ptEnd.y = globals::var().newText.ptBeg.y + 1 * 13 + 1;
 			}
 			globals::var().modifyState = 1;
-			globals::var().selectedObjectPtr = &newText;
+			globals::var().selectedObjectPtr = &globals::var().newText;
 			globals::var().hasSelected = true;
 		}
 		else  //mode = 4
@@ -1032,9 +1054,24 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 			newCircle.clean();
 			//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 		}
-		//else if (globals::var().currentDrawMode == 3 && currentCursorMode == 0)
-		//{	/*do nothing for newText*/
-		//}
+		else if (globals::var().currentDrawMode == 3)
+		{	
+			currentCursorMode = 0;
+
+			//disable the moving flag
+			if (isMoving)
+			{
+				isMoving = false;
+				//record the new position of ptBeg
+				globals::var().mlog.OP_moveEnd(&globals::var().newText);
+			}
+
+			if (isResizing)
+			{
+				isResizing = false;
+				globals::var().mlog.OP_sizeEnd(&globals::var().newText);
+			}
+		}
 		else
 		{
 			//stop resizing
@@ -1081,22 +1118,22 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			return 0;
 
 		bool modified = false;
-		if ((globals::var().currentDrawMode == 3 && newText.startFinished))
+		if ((globals::var().currentDrawMode == 3 && globals::var().newText.startFinished))
 		{
-			globals::var().mlog.OP_textStart(&newText, -1);
-			modified = newText.KeyIn(param.wParam_);
+			globals::var().mlog.OP_textStart(&globals::var().newText, -1);
+			modified = globals::var().newText.KeyIn(param.wParam_);
 
 			int x, y;  //x and y is current caret position on window
-			newText.CalculateCaretPosition();
-			x = newText.caretPos.x - xCurrentScroll;
-			y = newText.caretPos.y - yCurrentScroll;
-			mouseX = newText.caretPos.x;
-			mouseY = newText.caretPos.y;
-			AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
+			globals::var().newText.CalculateCaretPosition();
+			x = globals::var().newText.caretPos.x - xCurrentScroll;
+			y = globals::var().newText.caretPos.y - yCurrentScroll;
+			mouseX = globals::var().newText.caretPos.x;
+			mouseY = globals::var().newText.caretPos.y;
+			AutoScroll(param.hWnd_, x, y + 14, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 
 			if (modified)  //make change to log
-				globals::var().mlog.OP_textEnd(&newText);
+				globals::var().mlog.OP_textEnd(&globals::var().newText);
 		}
 		else if (globals::var().currentDrawMode == 4 && globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4)
 		{
@@ -1108,18 +1145,18 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			{
 				int pos = distance(globals::var().DrawObjList.begin(), it);
 				globals::var().mlog.OP_textStart(globals::var().selectedObjectPtr, pos);
+
+				modified = temp->KeyIn(param.wParam_);
+
+				int x, y;  //x and y is current caret position on window
+				temp->CalculateCaretPosition();
+				x = temp->caretPos.x - xCurrentScroll;
+				y = temp->caretPos.y - yCurrentScroll;
+				mouseX = temp->caretPos.x;
+				mouseY = temp->caretPos.y;
+				AutoScroll(param.hWnd_, x, y + 14, xCurrentScroll, yCurrentScroll, rect);
+				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
-
-			modified = temp->KeyIn(param.wParam_);
-
-			int x, y;  //x and y is current caret position on window
-			newText.CalculateCaretPosition();
-			x = newText.caretPos.x + xCurrentScroll;
-			y = newText.caretPos.y + yCurrentScroll;
-			mouseX = newText.caretPos.x;
-			mouseY = newText.caretPos.y;
-			AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
-			InvalidateRect(param.hWnd_, NULL, FALSE);
 
 			if (modified)  //make change to log
 				globals::var().mlog.OP_textEnd(globals::var().selectedObjectPtr);
@@ -1133,7 +1170,7 @@ LRESULT WM_PaintEvent(Parameter& param)
 	PAINTSTRUCT ps;
 	RECT clientRec = rect;
 	HDC hdc = BeginPaint(param.hWnd_, &ps);  //this will return display device id
-	HBRUSH hbrBkGnd;
+	
 
 	GetClientRect(param.hWnd_, &clientRec);
 	HDC memoryDC = CreateCompatibleDC(hdc);
@@ -1144,6 +1181,7 @@ LRESULT WM_PaintEvent(Parameter& param)
 	SelectObject(memoryDC, hBmp);
 
 	// Erase the background.
+	HBRUSH hbrBkGnd;
 	hbrBkGnd = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
 	FillRect(memoryDC, &clientRec, hbrBkGnd);
 	DeleteObject(hbrBkGnd);
@@ -1175,7 +1213,7 @@ LRESULT WM_PaintEvent(Parameter& param)
 	newLine.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
-	newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
+	globals::var().newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 
 	if (mouseHasDown)
 	{
@@ -1203,12 +1241,12 @@ LRESULT WM_PaintEvent(Parameter& param)
 	if (globals::var().hasSelected)
 		globals::var().selectedObjectPtr->PaintSelectedRect(memoryDC, xCurrentScroll, yCurrentScroll);
 
-	if (globals::var().currentDrawMode == 3 && newText.startFinished && !newText.endFinished)
+	if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished && !globals::var().newText.endFinished)
 	{
 		// Create a solid black caret. 
 		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
-		SetCaretPos(newText.caretPos.x - xCurrentScroll, newText.caretPos.y - yCurrentScroll);
-		s2 = "caretPos=" + to_string(newText.caretPos.x) + ", " + to_string(newText.caretPos.y);
+		SetCaretPos(globals::var().newText.caretPos.x - xCurrentScroll, globals::var().newText.caretPos.y - yCurrentScroll);
+		s2 = "caretPos=" + to_string(globals::var().newText.caretPos.x) + ", " + to_string(globals::var().newText.caretPos.y);
 		//s2 += "  mouse on state "
 		TextOutA(memoryDC, 500 - xCurrentScroll, 500 - yCurrentScroll, s2.c_str(), s2.length());
 	}
@@ -1222,13 +1260,13 @@ LRESULT WM_PaintEvent(Parameter& param)
 		DestroyCaret();//HideCaret(param.hWnd_);
 
 	s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 640, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
 	s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 620, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
 	s2 = "currentDrawMode = " + to_string(globals::var().currentDrawMode);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 660, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 660 - yCurrentScroll, s2.c_str(), s2.length());
 	s2 = "object count: " + to_string(globals::var().DrawObjList.size());
-	TextOutA(memoryDC, 700 - xCurrentScroll, 680, s2.c_str(), s2.length());
+	TextOutA(memoryDC, 700 - xCurrentScroll, 680 - yCurrentScroll, s2.c_str(), s2.length());
 
 	/*for (int i = 0; i < 2000; )
 	{
@@ -1408,7 +1446,7 @@ LRESULT WM_VScrollEvent(Parameter& param)
 		// User dragged the scroll box. 
 	case SB_THUMBTRACK:
 		yNewPos = HIWORD(param.wParam_);
-		if (yNewPos >= 1004)
+		if (yNewPos == 1004)
 			yNewPos = yMaxScroll;  //workaround for Y scroll to bottom
 		break;
 
@@ -1456,7 +1494,7 @@ LRESULT WM_CloseEvent(Parameter& param)
 	{
 		if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
 		{
-			PushCurrentNewText(newText);
+			PushCurrentNewText(globals::var().newText);
 			if (globals::var().lastFilePath.size() < 1)
 			{
 				SaveToFile(globals::var().DrawObjList, globals::var().fileName);
@@ -1477,6 +1515,11 @@ LRESULT WM_CloseEvent(Parameter& param)
 LRESULT WM_DestroyEvent(Parameter& param)
 {
 	PostQuitMessage(0);
+	return 0;
+}
+
+LRESULT WM_SetCursorEvent(Parameter& param)
+{
 	return 0;
 }
 
@@ -1644,14 +1687,14 @@ void Redo()
 
 void UpdateNewText(vector<string> vs, POINT in)
 {
-	newText.text = vs;
+	globals::var().newText.text = vs;
 	//int x, y;  //x and y is current caret position on window
-	newText.inputPos = in;
-	newText.CalculateCaretPosition();
-	//x = newText.caretPos.x - xCurrentScroll;
-	//y = newText.caretPos.y - yCurrentScroll;
-	//mouseX = newText.caretPos.x;
-	//mouseY = newText.caretPos.y;
+	globals::var().newText.inputPos = in;
+	globals::var().newText.CalculateCaretPosition();
+	//x = globals::var().newText.caretPos.x - xCurrentScroll;
+	//y = globals::var().newText.caretPos.y - yCurrentScroll;
+	//mouseX = globals::var().newText.caretPos.x;
+	//mouseY = globals::var().newText.caretPos.y;
 	//AutoScroll(param.hWnd_, x, y + 10, xCurrentScroll, yCurrentScroll, rect);
 	//InvalidateRect(param.hWnd_, NULL, FALSE);
 }

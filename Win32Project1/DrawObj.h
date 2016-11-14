@@ -57,6 +57,7 @@ private:
 	bool addNewLine();
 	bool backspace();
 	bool del();
+	HPEN switchTextBoxLineColor();
 public:
 	//int textWidth, textHeight, maxTextWidth;
 	vector<string> text;
