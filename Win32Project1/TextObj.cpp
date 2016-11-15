@@ -88,7 +88,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		SelectObject(hdc, hBrush);
 	else
 		SelectObject(hdc, GetStockObject(NULL_BRUSH));
-	Rectangle(hdc, ptBeg.x, ptBeg.y, ptEnd.x, ptEnd.y);
+	Rectangle(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptEnd.x - Xoffset, ptEnd.y - Yoffset);
 	if (hBrush != NULL)
 		DeleteObject(hBrush);
 	SelectObject(hdc, oldPen);
@@ -356,31 +356,31 @@ HPEN TextObj::switchTextBoxLineColor()
 	switch (backgroundColor)
 	{
 	case 0:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 255, 255));
+		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 255));
 		break;
 	case 1:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(180, 180, 180));
+		hPen = CreatePen(PS_SOLID, 0, RGB(180, 180, 180));
 		break;
 	case 2:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 0, 0));
+		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
 		break;
 	case 3:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 255, 0));
+		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 0));
 		break;
 	case 4:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 255));
+		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 255));
 		break;
 	case 5:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 255, 255));
+		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 255));
 		break;
 	case 6:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 255, 0));
+		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 0));
 		break;
 	case 7:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(255, 0, 255));
+		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 255));
 		break;
 	default:
-		hPen = CreatePen(PS_SOLID, lineWidth, RGB(0, 0, 0));
+		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 0));
 	}
 	return hPen;
 }

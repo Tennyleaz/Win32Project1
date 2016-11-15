@@ -692,12 +692,12 @@ LRESULT WM_CreateEvent(Parameter& param)
 LRESULT WM_MouseMoveEvent(Parameter& param)
 {
 
-	if (globals::var().currentDrawMode != 4 && mouseHasDown)  //scroll the scrollbars when mouse out of range
-	{
-		mouseX = GET_X_LPARAM(param.lParam_);
-		mouseY = GET_Y_LPARAM(param.lParam_);
-		AutoScroll(param.hWnd_, mouseX, mouseY, xCurrentScroll, yCurrentScroll, rect);
-	}
+	//if (globals::var().currentDrawMode != 4 && mouseHasDown && currentCursorMode == 0)  //scroll the scrollbars when mouse out of range
+	//{
+	//	mouseX = GET_X_LPARAM(param.lParam_);
+	//	mouseY = GET_Y_LPARAM(param.lParam_);
+	//	AutoScroll(param.hWnd_, mouseX, mouseY, xCurrentScroll, yCurrentScroll, rect);
+	//}
 	mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
 	mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
 
@@ -707,6 +707,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			newLine.ptEnd.x = mouseX;
 			newLine.ptEnd.y = mouseY;
+			AutoScrollObject(param.hWnd_, &newLine, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 	}
@@ -716,6 +717,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			newRect.ptEnd.x = mouseX;
 			newRect.ptEnd.y = mouseY;
+			AutoScrollObject(param.hWnd_, &newRect, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 	}
@@ -725,6 +727,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			newCircle.ptEnd.x = mouseX;
 			newCircle.ptEnd.y = mouseY;
+			AutoScrollObject(param.hWnd_, &newCircle, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 	}
@@ -760,6 +763,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 					globals::var().mlog.OP_moveStart(&globals::var().newText, -1);  //log the movement of newText
 				}
 				globals::var().selectedObjectPtr->Moving(mouseX, mouseY);
+				AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
@@ -775,9 +779,13 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 					TextObj * temp;
 					temp = (TextObj*)globals::var().selectedObjectPtr;
 					temp->ResizingText(mouseX, mouseY, currentCursorMode);
+					AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				}
 				else
+				{
 					globals::var().selectedObjectPtr->Resizing(mouseX, mouseY, currentCursorMode);
+					AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
+				}
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 		}
@@ -841,7 +849,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 					}					
 				}
 				globals::var().selectedObjectPtr->Moving(mouseX, mouseY);
-				AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
+				AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 			else if (currentCursorMode > 0 && currentCursorMode < 9)  //perform resize
@@ -862,12 +870,14 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 					TextObj * temp;
 					temp = (TextObj*)globals::var().selectedObjectPtr;
 					temp->ResizingText(mouseX, mouseY, currentCursorMode);
-					AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
+					//AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
+					AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				}
 				else
 				{
 					globals::var().selectedObjectPtr->Resizing(mouseX, mouseY, currentCursorMode);
-					AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
+					//AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
+					AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				}
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
@@ -988,7 +998,7 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 	if (!param.wParam_)
 	{
 		ReleaseCapture();  //stop capture mouse
-		if (globals::var().currentDrawMode == 0 && currentCursorMode == 0)
+		if (globals::var().currentDrawMode == 0 && currentCursorMode == 0 && mouseHasDown)  //finish draw line
 		{
 			newLine.makeEnd(GET_X_LPARAM(param.lParam_), GET_Y_LPARAM(param.lParam_), xCurrentScroll, yCurrentScroll);
 
@@ -1013,7 +1023,7 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 			newLine.clean();
 			//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 		}
-		else if (globals::var().currentDrawMode == 1 && currentCursorMode == 0)
+		else if (globals::var().currentDrawMode == 1 && currentCursorMode == 0 && mouseHasDown)  //draw rect
 		{
 			newRect.makeEnd(GET_X_LPARAM(param.lParam_), GET_Y_LPARAM(param.lParam_), xCurrentScroll, yCurrentScroll);
 
@@ -1034,7 +1044,7 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 			newRect.clean();
 			//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 		}
-		else if (globals::var().currentDrawMode == 2 && currentCursorMode == 0)
+		else if (globals::var().currentDrawMode == 2 && currentCursorMode == 0 && mouseHasDown)  //draw circle
 		{
 			newCircle.makeEnd(GET_X_LPARAM(param.lParam_), GET_Y_LPARAM(param.lParam_), xCurrentScroll, yCurrentScroll);
 			
@@ -1402,10 +1412,13 @@ LRESULT WM_HScrollEvent(Parameter& param)
 	// client area when ScrollWindowEx is called; however, it is 
 	// necessary to call UpdateWindow in order to repaint the 
 	// rectangle of pixels that were invalidated.) 
-	ScrollWindowEx(param.hWnd_, -xDelta, -yDelta, (CONST RECT *) NULL,
-		(CONST RECT *) NULL, (HRGN)NULL, (PRECT)NULL,
-		SW_INVALIDATE);
-	UpdateWindow(param.hWnd_);
+	if (!globals::var().autoScrolling)
+	{
+		ScrollWindowEx(param.hWnd_, -xDelta, -yDelta, (CONST RECT *) NULL,
+			(CONST RECT *) NULL, (HRGN)NULL, (PRECT)NULL,
+			SW_INVALIDATE);
+		UpdateWindow(param.hWnd_);
+	}
 
 	// Reset the scroll bar. 
 	si.cbSize = sizeof(si);
@@ -1454,6 +1467,11 @@ LRESULT WM_VScrollEvent(Parameter& param)
 		yNewPos = yCurrentScroll;
 	}
 
+	//if (yNewPos > yCurrentScroll)
+	//	yNewPos = yCurrentScroll + 10;
+	//else if (yNewPos < yCurrentScroll)
+	//	yNewPos = yCurrentScroll - 10;
+
 	// New position must be between 0 and the screen height. 
 	yNewPos = max(0, yNewPos);
 	yNewPos = min(yMaxScroll, yNewPos);
@@ -1475,10 +1493,13 @@ LRESULT WM_VScrollEvent(Parameter& param)
 	// client area when ScrollWindowEx is called; however, it is 
 	// necessary to call UpdateWindow in order to repaint the 
 	// rectangle of pixels that were invalidated.) 
-	ScrollWindowEx(param.hWnd_, -xDelta, -yDelta, (CONST RECT *) NULL,
-		(CONST RECT *) NULL, (HRGN)NULL, (PRECT)NULL,
-		SW_INVALIDATE);
-	UpdateWindow(param.hWnd_);
+	if (!globals::var().autoScrolling)
+	{
+		ScrollWindowEx(param.hWnd_, -xDelta, -yDelta, (CONST RECT *) NULL,  // <-Don't use this! Just call InvalidateRect
+			NULL, (HRGN)NULL, (PRECT)NULL,       //   and redraw the all area.
+			SW_INVALIDATE);
+		UpdateWindow(param.hWnd_);
+	}
 
 	// Reset the scroll bar. 
 	si.cbSize = sizeof(si);

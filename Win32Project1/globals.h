@@ -32,6 +32,8 @@ public:
 	bool hasSelected;
 
 	RECT rect;
+	//RECT scrollingClipRect;
+	bool autoScrolling;
 	TCHAR szBuffer[50];
 	int cxChar, cyChar;
 	//int i;

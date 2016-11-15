@@ -284,6 +284,58 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	}
 }
 
+//scroll the window if x and y focus are out of border. X, Y focus is mouse position on screen
+void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
+{
+	//RECT rect;
+	//GetWindowRect(hwnd, &rect);
+
+	int top = (obj->ptBeg.y < obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
+	int left = (obj->ptBeg.x < obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
+	int bottom = (obj->ptBeg.y > obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
+	int right = (obj->ptBeg.x > obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
+	//globals::var().scrollingClipRect.top = top - yCurrentScroll;
+	//globals::var().scrollingClipRect.left = left - xCurrentScroll;
+	//globals::var().scrollingClipRect.bottom = bottom - yCurrentScroll;
+	//globals::var().scrollingClipRect.right = right - xCurrentScroll;
+	globals::var().autoScrolling = true;
+
+	if (right-xCurrentScroll > windowRect.right && xCurrentScroll < 2000)
+	{
+		WPARAM wParam;
+		if (globals::var().currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+	else if (xCurrentScroll > 0 && left - xCurrentScroll < 0)
+	{
+		WPARAM wParam;
+		if (globals::var().currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left);  //留個空位給新輸入文字
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+
+	if (bottom-yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, bottom - windowRect.bottom);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	else if (yCurrentScroll > 0 && top-yCurrentScroll < 0)
+	{
+		WPARAM wParam;
+		if (globals::var().currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	globals::var().autoScrolling = false;
+}
+
 RECT getLocalCoordinates(HWND hWnd)
 {
 	RECT Rect;
