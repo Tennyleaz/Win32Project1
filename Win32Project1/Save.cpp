@@ -42,6 +42,7 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 		MessageBox(NULL, L"You did not save.", L"Warning!", MB_OK);
 		return 1;
 	}
+	outfile.close();
 
 	string name = wstr_to_str(filePath);
 	//wstring name = filePath;
@@ -72,6 +73,8 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		return 1;
 	}
 	infile >> j;
+	infile.close();
+
 	globals::var().lastFilePath = filePath;
 	string name = wstr_to_str(filePath);
 	//wstring name = filePath;
@@ -165,7 +168,7 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		}
 		i++;
 	}
-
+	j.clear();
 	return 0;
 }
 
@@ -213,6 +216,7 @@ int SaveToLastFilePath(const list<DrawObj*>& saveList)
 		MessageBox(NULL, L"SaveToLastFilePath Failed", L"ERROR!", MB_OK);
 		return 1;
 	}
+	j.clear();
 	return 0;
 }
 

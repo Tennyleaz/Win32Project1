@@ -24,10 +24,10 @@ public:
 	wstring lastFilePath;
 
 	int mouseX, mouseY;
-	LineObj  newLine;
-	RectangularObj newRect;
+	//LineObj  newLine;
+	//RectangularObj newRect;
 	TextObj newText;
-	CircleObj newCircle;
+	//CircleObj newCircle;
 	bool mouseHasDown;
 	bool hasSelected;
 

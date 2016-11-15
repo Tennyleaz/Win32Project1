@@ -38,7 +38,7 @@ void mylog::Undo()
 	int op = J["operation"];
 	switch (op)
 	{
-	case 0:  //add
+	case 0:  //undo add
 	{
 		//just delete the tail !
 		delete globals::var().DrawObjList.back();
@@ -47,9 +47,25 @@ void mylog::Undo()
 		globals::var().hasSelected = false;
 		break;
 	}
-	case 1:  //delete
+	case 1:  //undo delete
 	{
 		int pos = J["which"];
+
+		if (pos == -1)  //for add back newText
+		{
+			globals::var().newText.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			globals::var().newText.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			vector<string> text = J["text"];
+			globals::var().newText.text = text;
+			globals::var().newText.inputPos.x = J["inputpos"][0];
+			globals::var().newText.inputPos.y = J["inputpos"][1];
+			globals::var().newText.CalculateCaretPosition();
+			//globals::var().currentDrawMode = 3;
+			globals::var().newText.startFinished = true;
+			globals::var().newText.endFinished = false;
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 		//add back the object in the position
@@ -92,12 +108,12 @@ void mylog::Undo()
 		}
 		break;
 	}
-	case 2:  //move
+	case 2:  //undo move
 	{
 		//move back the ptBeg/End
 		int pos = J["which"];
 
-		if (pos == -1)  //for newText
+		if (pos == -1)  //for moving newText
 		{
 			int deltaX, deltaY;
 			deltaX = J["deltax"];
@@ -121,7 +137,7 @@ void mylog::Undo()
 		(*it)->ptEnd.y += deltaY;
 		break;
 	}
-	case 3:  //resize
+	case 3:  //undo resize
 	{
 		//roll back to old points
 		int pos = J["which"];
@@ -144,7 +160,7 @@ void mylog::Undo()
 		(*it)->ptEnd.y = J["oldEnd"][1];
 		break;
 	}
-	case 4:  //modify
+	case 4:  //undo modify
 	{
 		//revert old color/width
 		int pos = J["which"];
@@ -164,7 +180,7 @@ void mylog::Undo()
 		break;
 		break;
 	}
-	case 5:  //modify text
+	case 5:  //undo modify text
 	{
 		int pos = J["which"];
 		vector<string> vs = J["oldText"];
@@ -204,7 +220,7 @@ void mylog::Redo()
 	int op = J["operation"];
 	switch (op)
 	{
-	case 0:  //add
+	case 0:  //redo add
 	{
 		//int pos = J["which"];
 		//auto it = globals::var().DrawObjList.begin();
@@ -249,10 +265,17 @@ void mylog::Redo()
 		}
 		break;
 	}
-	case 1:  //delete
+	case 1:  //redo delete
 	{
 		//delete the given position
 		int pos = J["which"];
+
+		if (pos == -1)  //for newText
+		{
+			globals::var().newText.clean();
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 		DrawObj * ptr = *it;
@@ -264,7 +287,7 @@ void mylog::Redo()
 		globals::var().hasSelected = false;
 		break;
 	}
-	case 2:  //move
+	case 2:  //redo move
 	{
 		//move back the ptBeg/End
 		int pos = J["which"];
@@ -292,7 +315,7 @@ void mylog::Redo()
 		(*it)->ptEnd.y -= deltaY;
 		break;
 	}
-	case 3:  //resize
+	case 3:  //redo resize
 	{
 		//redo new points
 		int pos = J["which"];
@@ -334,7 +357,7 @@ void mylog::Redo()
 		}
 		break;
 	}
-	case 5:  //modify text
+	case 5:  //redo modify text
 	{
 		string test = J.dump();
 		int pos = J["which"];
@@ -386,6 +409,7 @@ void mylog::PushObject(DrawObj* it, json jit)
 		TextObj* t = dynamic_cast<TextObj*>(it);
 		vector<string> ls = t->text;
 		jit["text"] = ls;
+		jit["inputpos"] = { t->inputPos.x, t->inputPos.y };
 	}
 	ops.push_back(jit);
 	ToggleUndoButton();

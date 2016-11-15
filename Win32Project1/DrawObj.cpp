@@ -46,6 +46,7 @@ void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(hpen);
 	SelectObject(hdc, oldBrush);
 	DeleteObject(oldBrush);
+	DeleteObject(hpenOld);
 }
 
 void DrawObj::makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth)  //x and y is absolute position on background

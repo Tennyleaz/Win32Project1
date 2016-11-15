@@ -49,7 +49,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	Listener::WinProcMsgListener().AddEvent(WM_VSCROLL, WM_VScrollEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_CLOSE, WM_CloseEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_DESTROY, WM_DestroyEvent);
-	Listener::WinProcMsgListener().AddEvent(WM_SETCURSOR, WM_SetCursorEvent);
+	Listener::WinProcMsgListener().AddEvent(WM_GETMINMAXINFO, WM_GetMinMaxInfo);
+	Listener::WinProcMsgListener().AddEvent(WM_SETCURSOR, WM_SetCursorEvent);	
 
 	// 執行應用程式初始設定: 
 	if (!InitInstance(hInstance, SW_MAXIMIZE))

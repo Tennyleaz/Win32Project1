@@ -13,7 +13,35 @@ void CircleObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		return;
 	HPEN hPen = switchColor();
 	SelectObject(hdc, hPen);
-	HBRUSH hBrush = switchBackgroundColor();
+	//HBRUSH hBrush = switchBackgroundColor();
+	HBRUSH hBrush;
+	switch (backgroundColor)
+	{
+	case 1:
+		hBrush = CreateSolidBrush(RGB(180, 180, 180));
+		break;
+	case 2:
+		hBrush = CreateSolidBrush(RGB(255, 0, 0));
+		break;
+	case 3:
+		hBrush = CreateSolidBrush(RGB(0, 255, 0));
+		break;
+	case 4:
+		hBrush = CreateSolidBrush(RGB(0, 0, 255));
+		break;
+	case 5:
+		hBrush = CreateSolidBrush(RGB(0, 255, 255));
+		break;
+	case 6:
+		hBrush = CreateSolidBrush(RGB(255, 255, 0));
+		break;
+	case 7:
+		hBrush = CreateSolidBrush(RGB(255, 0, 255));
+		break;
+	default:
+		hBrush = NULL;
+	}
+
 	if (hBrush != NULL)
 		SelectObject(hdc, hBrush);
 	else
@@ -50,6 +78,7 @@ void CircleObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	//return the pen
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
+	DeleteObject(hpenOld);
 
 	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points

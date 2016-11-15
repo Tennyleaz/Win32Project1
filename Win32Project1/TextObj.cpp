@@ -82,7 +82,35 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 
 	//draw the background rect
 	HPEN hPen = (HPEN)GetStockObject(NULL_PEN);
-	HBRUSH hBrush = switchBackgroundColor();
+	//HBRUSH hBrush = switchBackgroundColor();
+	HBRUSH hBrush;
+	switch (backgroundColor)
+	{
+	case 1:
+		hBrush = CreateSolidBrush(RGB(180, 180, 180));
+		break;
+	case 2:
+		hBrush = CreateSolidBrush(RGB(255, 0, 0));
+		break;
+	case 3:
+		hBrush = CreateSolidBrush(RGB(0, 255, 0));
+		break;
+	case 4:
+		hBrush = CreateSolidBrush(RGB(0, 0, 255));
+		break;
+	case 5:
+		hBrush = CreateSolidBrush(RGB(0, 255, 255));
+		break;
+	case 6:
+		hBrush = CreateSolidBrush(RGB(255, 255, 0));
+		break;
+	case 7:
+		hBrush = CreateSolidBrush(RGB(255, 0, 255));
+		break;
+	default:
+		hBrush = NULL;
+	}
+
 	HPEN oldPen = (HPEN)SelectObject(hdc, hPen);
 	if (hBrush != NULL)
 		SelectObject(hdc, hBrush);
@@ -147,6 +175,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	}
 	SetTextColor(hdc, RGB(0, 0, 0));
 	DeleteObject(hFont);
+	DeleteObject(hOldFont);
 
 	//textWidth = ptEnd.x - ptBeg.x;
 	//textHeight = ptEnd.y - ptBeg.y;

@@ -323,6 +323,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		globals::var().hasSelected = false;
 		currentCursorMode = 0;
 		globals::var().mlog.ClearLogs();
+		CleanObjects(param.hWnd_);
 		ReadFromFile(globals::var().DrawObjList, globals::var().fileName);
 		//InvalidateRect(param.hWnd_, NULL, FALSE);
 		newLine.clean();
@@ -489,19 +490,26 @@ LRESULT WM_CommandEvent(Parameter& param)
 	{
 		/*//do nothing wheh mode = 0~2
 		if (globals::var().currentDrawMode < 3)
-			break;
+			break;*/
 
 		//if editing, goto WM_KeyDownEvent
-		if (globals::var().currentDrawMode == 3)
+		if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished) //delete the newText
 		{
-			LPARAM lparam = 0x00000001;
-			//WPARAM wParam;
-			//wParam = MAKEWPARAM(VK_DELETE, VK_DELETE);
-			SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
+			//LPARAM lparam = 0x00000001;
+			////WPARAM wParam;
+			////wParam = MAKEWPARAM(VK_DELETE, VK_DELETE);
+			//SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
+			
+			//record the log
+			globals::var().mlog.OP_del(&globals::var().newText, -1);
+
+			globals::var().newText.clean();
+
+			InvalidateRect(param.hWnd_, NULL, FALSE);
 			break;
 		}
 
-		if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4 && globals::var().hasSelected)
+		/*if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4 && globals::var().hasSelected)
 		{
 			LPARAM lparam = 0x00000001;
 			SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
@@ -1283,9 +1291,8 @@ LRESULT WM_PaintEvent(Parameter& param)
 		// Create a solid black caret. 
 		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
 		SetCaretPos(globals::var().newText.caretPos.x - xCurrentScroll, globals::var().newText.caretPos.y - yCurrentScroll);
-		s2 = "caretPos=" + to_string(globals::var().newText.caretPos.x) + ", " + to_string(globals::var().newText.caretPos.y);
-		//s2 += "  mouse on state "
-		TextOutA(memoryDC, 500 - xCurrentScroll, 500 - yCurrentScroll, s2.c_str(), s2.length());
+		/*s2 = "caretPos=" + to_string(globals::var().newText.caretPos.x) + ", " + to_string(globals::var().newText.caretPos.y);
+		TextOutA(memoryDC, 500 - xCurrentScroll, 500 - yCurrentScroll, s2.c_str(), s2.length());*/
 	}
 	else if (globals::var().hasSelected && globals::var().currentDrawMode == 4 && globals::var().selectedObjectPtr->objectType == 4)
 	{
@@ -1568,6 +1575,14 @@ LRESULT WM_DestroyEvent(Parameter& param)
 
 LRESULT WM_SetCursorEvent(Parameter& param)
 {
+	return 0;
+}
+
+LRESULT WM_GetMinMaxInfo(Parameter & param)  //set the min size of window
+{
+	LPMINMAXINFO lpMMI = (LPMINMAXINFO)param.lParam_;
+	lpMMI->ptMinTrackSize.x = 77;
+	lpMMI->ptMinTrackSize.y = 415;
 	return 0;
 }
 
