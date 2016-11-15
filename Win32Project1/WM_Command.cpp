@@ -701,13 +701,22 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 	mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
 	mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
 
-	if (globals::var().currentDrawMode == 0 && currentCursorMode == 0 && mouseHasDown)
+	if (globals::var().currentDrawMode == 0 && currentCursorMode == 0 && mouseHasDown) //draw the line
 	{
 		if (!newLine.endFinished && newLine.startFinished)
 		{
 			newLine.ptEnd.x = mouseX;
-			newLine.ptEnd.y = mouseY;
-			AutoScrollObject(param.hWnd_, &newLine, xCurrentScroll, yCurrentScroll, rect);
+			newLine.ptEnd.y = mouseY;			
+			if (newLine.ptEnd.x < 0)
+				newLine.ptEnd.x = 0;
+			else if (newLine.ptEnd.x > 2000)
+				newLine.ptEnd.x = 2000;
+			if (newLine.ptEnd.y < 0)
+				newLine.ptEnd.y = 0;
+			else if (newLine.ptEnd.y > 2000)
+				newLine.ptEnd.y = 2000;
+
+			AutoScrollObjectWhenDrawing(param.hWnd_, &newLine, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 	}
@@ -717,7 +726,16 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			newRect.ptEnd.x = mouseX;
 			newRect.ptEnd.y = mouseY;
-			AutoScrollObject(param.hWnd_, &newRect, xCurrentScroll, yCurrentScroll, rect);
+			if (newRect.ptEnd.x < 0)
+				newRect.ptEnd.x = 0;
+			else if (newRect.ptEnd.x > 2000)
+				newRect.ptEnd.x = 2000;
+			if (newRect.ptEnd.y < 0)
+				newRect.ptEnd.y = 0;
+			else if (newRect.ptEnd.y > 2000)
+				newRect.ptEnd.y = 2000;
+
+			AutoScrollObjectWhenDrawing(param.hWnd_, &newRect, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 	}
@@ -727,11 +745,20 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			newCircle.ptEnd.x = mouseX;
 			newCircle.ptEnd.y = mouseY;
-			AutoScrollObject(param.hWnd_, &newCircle, xCurrentScroll, yCurrentScroll, rect);
+			if (newCircle.ptEnd.x < 0)
+				newCircle.ptEnd.x = 0;
+			else if (newCircle.ptEnd.x > 2000)
+				newCircle.ptEnd.x = 2000;
+			if (newCircle.ptEnd.y < 0)
+				newCircle.ptEnd.y = 0;
+			else if (newCircle.ptEnd.y > 2000)
+				newCircle.ptEnd.y = 2000;
+
+			AutoScrollObjectWhenDrawing(param.hWnd_, &newCircle, xCurrentScroll, yCurrentScroll, rect);
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 		}
 	}
-	else if (globals::var().currentDrawMode == 3)
+	else if (globals::var().currentDrawMode == 3)  //text tool
 	{
 		//if mouse is not down on object, only change the mouse icon
 		if (globals::var().hasSelected && !mouseHasDown)

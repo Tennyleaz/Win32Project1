@@ -81,7 +81,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	}
 
 	//draw the background rect
-	HPEN hPen = switchTextBoxLineColor();
+	HPEN hPen = (HPEN)GetStockObject(NULL_PEN);
 	HBRUSH hBrush = switchBackgroundColor();
 	HPEN oldPen = (HPEN)SelectObject(hdc, hPen);
 	if (hBrush != NULL)
@@ -137,10 +137,10 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		/*SIZE size;
 		GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
 		s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-		s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
+		/*s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
 		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
 		s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
-		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
+		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());*/
 
 		// Restore the original font.
 		SelectObject(hdc, hOldFont);
@@ -350,40 +350,40 @@ bool TextObj::del()
 	return returnValue;
 }
 
-HPEN TextObj::switchTextBoxLineColor()
-{
-	HPEN hPen;
-	switch (backgroundColor)
-	{
-	case 0:
-		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 255));
-		break;
-	case 1:
-		hPen = CreatePen(PS_SOLID, 0, RGB(180, 180, 180));
-		break;
-	case 2:
-		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
-		break;
-	case 3:
-		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 0));
-		break;
-	case 4:
-		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 255));
-		break;
-	case 5:
-		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 255));
-		break;
-	case 6:
-		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 0));
-		break;
-	case 7:
-		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 255));
-		break;
-	default:
-		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 0));
-	}
-	return hPen;
-}
+//HPEN TextObj::switchTextBoxLineColor()
+//{
+//	HPEN hPen;
+//	switch (backgroundColor)
+//	{
+//	case 0:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 255));
+//		break;
+//	case 1:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(180, 180, 180));
+//		break;
+//	case 2:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
+//		break;
+//	case 3:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 0));
+//		break;
+//	case 4:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 255));
+//		break;
+//	case 5:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 255));
+//		break;
+//	case 6:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 0));
+//		break;
+//	case 7:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 255));
+//		break;
+//	default:
+//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 0));
+//	}
+//	return hPen;
+//}
 
 bool TextObj::CheckObjectCollision(int mouseX, int mouseY)
 {

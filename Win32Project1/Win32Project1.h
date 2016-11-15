@@ -19,3 +19,5 @@ void				ChangeColorsSelectionState(int, HMENU);
 void				ChangeBGSelectionState(int, HMENU);
 void				ChangeLineSelectionState(int, HMENU);
 void				AutoScrollObject(HWND, const DrawObj*, int, int, RECT);
+void				AutoScrollObjectWithDirection(HWND, const DrawObj*, int, int, RECT, int);
+void				AutoScrollObjectWhenDrawing(HWND, const DrawObj*, int, int, RECT);

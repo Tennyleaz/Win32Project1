@@ -294,13 +294,13 @@ void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCu
 	int left = (obj->ptBeg.x < obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
 	int bottom = (obj->ptBeg.y > obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
 	int right = (obj->ptBeg.x > obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
-	//globals::var().scrollingClipRect.top = top - yCurrentScroll;
-	//globals::var().scrollingClipRect.left = left - xCurrentScroll;
-	//globals::var().scrollingClipRect.bottom = bottom - yCurrentScroll;
-	//globals::var().scrollingClipRect.right = right - xCurrentScroll;
 	globals::var().autoScrolling = true;
 
-	if (right-xCurrentScroll > windowRect.right && xCurrentScroll < 2000)
+	POINT p;  //p is mouse position
+	GetCursorPos(&p);
+	ScreenToClient(hwnd, &p);
+
+	if (right-xCurrentScroll > windowRect.right && xCurrentScroll < 2000 && p.x > windowRect.right/2)
 	{
 		WPARAM wParam;
 		if (globals::var().currentDrawMode == 3)
@@ -309,28 +309,74 @@ void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCu
 			wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
-	else if (xCurrentScroll > 0 && left - xCurrentScroll < 0)
+	else if (xCurrentScroll > 0 && left - xCurrentScroll < 0 && p.x < windowRect.right / 2)
 	{
 		WPARAM wParam;
 		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left);  //留個空位給新輸入文字
+			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left); 
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 
-	if (bottom-yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000)
+	if (bottom-yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000 && p.y > windowRect.bottom/2) //滑鼠要接近底部
 	{
 		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, bottom - windowRect.bottom);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
-	else if (yCurrentScroll > 0 && top-yCurrentScroll < 0)
+	else if (yCurrentScroll > 0 && top-yCurrentScroll < 0 && p.y < windowRect.bottom / 2)
 	{
 		WPARAM wParam;
 		if (globals::var().currentDrawMode == 3)
 			wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	globals::var().autoScrolling = false;
+}
+
+void AutoScrollObjectWithDirection(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect, int direction)
+{
+
+}
+
+//we only compare ptEnd when is drawing the object on ptEnd
+void AutoScrollObjectWhenDrawing(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
+{
+	globals::var().autoScrolling = true;
+	
+	if (obj->ptEnd.x - xCurrentScroll > windowRect.right && xCurrentScroll < 2000)
+	{
+		WPARAM wParam;
+		if (globals::var().currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x - windowRect.right);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x - windowRect.right);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+	else if (xCurrentScroll > 0 && obj->ptEnd.x - xCurrentScroll < 0)
+	{
+		WPARAM wParam;
+		if (globals::var().currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x < 0 ? 0 : obj->ptEnd.x);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x < 0 ? 0 : obj->ptEnd.x);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+
+	if (obj->ptEnd.y - yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.y - windowRect.bottom);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	else if (yCurrentScroll > 0 && obj->ptEnd.y - yCurrentScroll < 0)
+	{
+		WPARAM wParam;
+		if (globals::var().currentDrawMode == 3)
+			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.y < 0 ? 0 : obj->ptEnd.y);
+		else
+			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.y < 0 ? 0 : obj->ptEnd.y);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
 	globals::var().autoScrolling = false;

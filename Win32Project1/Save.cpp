@@ -120,6 +120,41 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 			vector<string> text = j5["text"];
 			newText.text = text;
 			newText.lineWidth = newText.ptEnd.x - newText.ptBeg.x;
+			//calculate text box
+			//if (!newText.CheckTextBoxBigEnough(newText.ptEnd.x - newText.ptBeg.x, newText.ptEnd.y - newText.ptBeg.y))
+			{
+				int textHeight = newText.ptEnd.y - newText.ptBeg.y;
+				int maxLine = (newText.ptEnd.y - newText.ptBeg.y) / 13;
+				int lineSize = (newText.ptEnd.x - newText.ptBeg.x) / 8;
+				if (lineSize <= 0)
+					lineSize = 1;
+				POINT t;
+				t.x = 0;
+				t.y = 0;
+
+				for (auto it : text)
+				{
+					//add all the strings to one and print it
+					int i = 0;
+					t.x = 0;
+					for (auto it2 : it)
+					{
+						if (i > 0 && i%lineSize == 0)
+						{
+							t.y += 1;
+							t.x = 0;
+						}
+						i++;
+						t.x += 1;
+					}
+					t.y += 1;
+				}
+				if (t.y > maxLine)  //in case the hight is not enough...
+				{
+					textHeight = t.y * 13;
+					newText.ptEnd.y = newText.ptBeg.y + textHeight;
+				}
+			}
 			readList.push_back(new TextObj(newText));
 			break;
 		}
