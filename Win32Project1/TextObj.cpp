@@ -116,7 +116,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		SelectObject(hdc, hBrush);
 	else
 		SelectObject(hdc, GetStockObject(NULL_BRUSH));
-	Rectangle(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptEnd.x - Xoffset, ptEnd.y - Yoffset);
+	Rectangle(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptEnd.x - Xoffset, ptEnd.y - Yoffset);  //BG rectangle
 	if (hBrush != NULL)
 		DeleteObject(hBrush);
 	SelectObject(hdc, oldPen);
@@ -177,9 +177,6 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(hFont);
 	DeleteObject(hOldFont);
 
-	//textWidth = ptEnd.x - ptBeg.x;
-	//textHeight = ptEnd.y - ptBeg.y;
-	//Rectangle(hdc, ptBeg.x, ptBeg.y, ptEnd.x, ptEnd.y);
 	CalculateCaretPosition();
 }
 
@@ -297,7 +294,7 @@ bool TextObj::addNewLine()
 	if (text.size() == 0)
 		text.push_back("");
 
-	//check if new y goes over border
+	//check if new y goes over window border
 	int y = ptBeg.y + tailPos.y + 13*2;
 	if (y > 1995)
 		return false;
@@ -352,7 +349,6 @@ bool TextObj::backspace()
 		}
 	}
 
-//	ENDING:
 	if (text.size() == 0)  //size is 0, put a empty one
 	{
 		text.push_back("");
@@ -360,7 +356,7 @@ bool TextObj::backspace()
 	return returnValue;
 }
 
-bool TextObj::del()
+bool TextObj::del()  //this function is not used now...
 {
 	bool returnValue = false;
 	if (inputPos.x >= text[inputPos.y].size() && inputPos.y+1 < text.size() )  //X is at end of string, delete the next "\n"
@@ -379,48 +375,11 @@ bool TextObj::del()
 	return returnValue;
 }
 
-//HPEN TextObj::switchTextBoxLineColor()
-//{
-//	HPEN hPen;
-//	switch (backgroundColor)
-//	{
-//	case 0:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 255));
-//		break;
-//	case 1:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(180, 180, 180));
-//		break;
-//	case 2:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
-//		break;
-//	case 3:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 0));
-//		break;
-//	case 4:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 255));
-//		break;
-//	case 5:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 255, 255));
-//		break;
-//	case 6:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 255, 0));
-//		break;
-//	case 7:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 255));
-//		break;
-//	default:
-//		hPen = CreatePen(PS_SOLID, 0, RGB(0, 0, 0));
-//	}
-//	return hPen;
-//}
-
 bool TextObj::CheckObjectCollision(int mouseX, int mouseY)
 {
-
 	if (mouseY >= ptBeg.y && mouseY <= ptEnd.y && mouseX >= ptBeg.x && mouseX <= ptEnd.x)
 		return true;
 	return false;
-	//do nothing currently
 }
 
 bool TextObj::KeyIn(int wParam)
@@ -439,14 +398,12 @@ bool TextObj::KeyIn(int wParam)
 				return false;  //do nothing
 		}
 		returnValue = addChar(wParam);
-		//returnValue = true;
 	}
 	else if (wParam == 0x0D)  //enter
 	{
 		if (ptBeg.y + (text.size() + 1) * 13 < 1996)
 		{
 			returnValue = addNewLine();  //insert a "" string to back
-			//returnValue = true;
 		}
 	}
 	else if (wParam == 0x08)  //backspace <-
@@ -479,7 +436,7 @@ bool TextObj::KeyIn(int wParam)
 			inputPos.x = text[inputPos.y].size();
 		}
 	}
-	//else if (wParam == VK_DELETE) //Delete
+	//else if (wParam == VK_DELETE) //Delete (not used!)
 	//{
 	//	returnValue = del();
 	//}
@@ -516,8 +473,6 @@ bool TextObj::KeyIn(int wParam)
 	}
 	else if (wParam == VK_DOWN)
 	{
-		/*if (inputPos.y < text.size()-1)
-			inputPos.y++;*/
 		int w = textWidth / 8;
 		int linesize = text[inputPos.y].size() / w + 1;
 		if (text[inputPos.y].size() > 0 && text[inputPos.y].size() % w == 0)
@@ -560,17 +515,7 @@ bool TextObj::KeyIn(int wParam)
 		}
 	}
 	
-	/*//calculate text box
-	int lineCount = 0;
-	int lineSize = ptEnd.x - ptBeg.x / 8;
-	for (int i = 0; i < text.size(); i++)
-	{
-		//check each line, see how many chars they have?
-		int chars = text[i].size();
-		lineCount = lineCount + (chars - 1) / lineSize + 1;
-	}
-	textHeight = lineCount * 13;*/
-
+	//calculate text box
 	{
 		int maxLine = (ptEnd.y - ptBeg.y) / 13;
 		int lineSize = (ptEnd.x - ptBeg.x) / 8;
@@ -602,7 +547,6 @@ bool TextObj::KeyIn(int wParam)
 			textHeight = t.y * 13;
 		else
 			textHeight = ptEnd.y - ptBeg.y;
-
 	}
 
 	ptEnd.x = ptBeg.x + textWidth;
@@ -615,7 +559,6 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 	int deltaX, deltaY;
 	deltaX = mouseX - originalMouseX;
 	deltaY = mouseY - originalMouseY;
-	//deltaYDebog = deltaY;
 
 	POINT oldBeg, oldEnd;
 	oldBeg = ptBeg;
@@ -665,10 +608,6 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		ptBeg.y = originalBegin.y + beginDeltaY;
 		ptEnd.x = originalEnd.x + endDeltaX;
 		ptEnd.y = originalEnd.y + endDeltaY;
-		/*if (ptBeg.x > ptEnd.x - 2)
-		ptBeg.x = ptEnd.x + 2;
-		if (ptBeg.y > ptEnd.y - 2)
-		ptBeg.y = ptEnd.y + 2;*/
 	}
 	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg 在左下
 	{
@@ -692,7 +631,7 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		ptEnd.y = originalEnd.y + beginDeltaY;
 	}
 
-	//newHeight = ptEnd.y - ptBeg.y;
+	//check new box size for text
 	if (!CheckTextBoxBigEnough(ptEnd.x - ptBeg.x, ptEnd.y - ptBeg.y))
 	{
 		//revert to old value
@@ -728,8 +667,8 @@ bool TextObj::CheckTextBoxBigEnough(int X, int Y)  //X and Y is size of box
 	if (X < 8 || Y < 13)
 		return false;
 
-	int maxLine = (ptEnd.y - ptBeg.y)/13;
-	int lineSize = (ptEnd.x - ptBeg.x) / 8;
+	int maxLine = (ptEnd.y - ptBeg.y)/13;    //width of box
+	int lineSize = (ptEnd.x - ptBeg.x) / 8;  //height of box
 	if (lineSize <= 0)
 		lineSize = 1;
 
@@ -774,12 +713,10 @@ void TextObj::CalculateCaretPosition()
 		if (i == inputPos.y)
 			s = inputPos.x;
 		y += (s-1) / lineSize;
-		//if((s+1)%lineSize != 0)
-		//	y++;
 	}
 	caretPos.y = ptBeg.y + y * 13;
 	caretPos.x = ptBeg.x + ((inputPos.x) % lineSize) * 8;
-	if (inputPos.x > 0 && inputPos.x% lineSize == 0)
+	if (inputPos.x > 0 && inputPos.x% lineSize == 0) //if at a x of box end...
 		caretPos.x += lineSize*8;
 }
 
@@ -824,8 +761,4 @@ void TextObj::Moving(int mouseX, int mouseY)
 	return;
 }
 
-//DrawObj * TextObj::clone() const
-//{
-//	return new TextObj(static_cast<const TextObj&>(*this));
-//}
 

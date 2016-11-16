@@ -26,13 +26,17 @@ DrawObj::~DrawObj(){ }
 
 void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 {
+	//if (this == nullptr)  //prevent the object being deleted by openfile... etc.
+	//	return;
 	if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 		return;
 
 	HPEN hpen, hpenOld;
 	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));
-	hpen = CreatePen(PS_DOT, 1, RGB(0, 0, 0));
+	hpen = CreatePen(PS_DOT, 1, RGB(0, 0, 0));	
 	hpenOld = (HPEN)SelectObject(hdc, hpen);
+	SetBkColor(hdc, RGB(255, 255, 255));  //set the pen background
+	SetBkMode(hdc, OPAQUE);  //set the pen BG mode to overwrite current background
 
 	// do something...
 	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y) - Yoffset;
@@ -67,7 +71,6 @@ void DrawObj::makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)  //x
 	ptEnd.x = x + xCurrentScroll;
 	ptEnd.y = y + yCurrentScroll;
 	endFinished = true;
-	//startFinished = false;
 }
 
 int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)  
@@ -106,7 +109,6 @@ int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)
 		}
 		if ((abs(mouseY - top) <= 1 || abs(mouseY - buttom) <= 1) && (mouseX > left && mouseX < right))
 		{
-			//MessageBox(NULL, L"aaaaa", L"Titile", MB_OK);
 			return 9;			
 		}
 	}
@@ -114,6 +116,7 @@ int DrawObj::CheckMouseIsOnSizingOpint(int mouseX, int mouseY)
 	return 0;
 }
 
+//record the old ptBeg and ptEnd before moving
 void DrawObj::StartToMove(int mouseX, int mouseY)
 {
 	originalMouseX = mouseX;
@@ -134,11 +137,6 @@ void DrawObj::Moving(int mouseX, int mouseY)
 	ptEnd.y = originalEnd.y + deltaY;
 
 	//check for x, y bondaries
-	//int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
-	//int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
-	//int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);
-	//int right = (ptBeg.x > ptEnd.x ? ptBeg.x : ptEnd.x);
-
 	if (ptBeg.x < 1)
 	{
 		int delta = 1 - ptBeg.x;
@@ -173,10 +171,6 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 	int deltaX, deltaY;
 	deltaX = mouseX - originalMouseX;
 	deltaY = mouseY - originalMouseY;
-
-	//check if resizing is too small
-	//if (abs(originalBegin.x - originalEnd.x) < abs(deltaX) - 2)
-	//	deltaX = 2 - abs(originalBegin.x - originalEnd.x);
 
 	int beginDeltaX=0, beginDeltaY=0, endDeltaX=0, endDeltaY=0;  //assume begin at upper left...
 
@@ -272,6 +266,7 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 		ptEnd.y = 1;
 }
 
+//switch the pen (foreground) color
 HPEN DrawObj::switchColor()
 {
 	HPEN hPen;
@@ -309,47 +304,44 @@ HPEN DrawObj::switchColor()
 
 void DrawObj::releaseColor(HDC hdc)
 {
-	/*HPEN hPen = GetStockObject(BLACK_PEN);//CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
-	SelectObject(hdc, hPen);
-	DeleteObject(hPen);*/
 	SelectObject(hdc, GetStockObject(DC_PEN));
 	SelectObject(hdc, GetStockObject(NULL_BRUSH));
 }
 
-HBRUSH DrawObj::switchBackgroundColor()
-{
-	HBRUSH brush;
-	switch (backgroundColor)
-	{
-	case 0:
-		//brush = CreateSolidBrush(RGB(255, 255, 255));
-		return NULL;
-		break;
-	case 1:
-		brush = CreateSolidBrush(RGB(180, 180, 180));
-		break;
-	case 2:
-		brush = CreateSolidBrush(RGB(255, 0, 0));
-		break;
-	case 3:
-		brush = CreateSolidBrush(RGB(0, 255, 0));
-		break;
-	case 4:
-		brush = CreateSolidBrush(RGB(0, 0, 255));
-		break;
-	case 5:
-		brush = CreateSolidBrush(RGB(0, 255, 255));
-		break;
-	case 6:
-		brush = CreateSolidBrush(RGB(255, 255, 0));
-		break;
-	case 7:
-		brush = CreateSolidBrush(RGB(255, 0, 255));
-		break;
-	default:
-		return NULL;
-	}
-	return brush;
-	//SelectObject(hdc, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
-}
-
+//HBRUSH DrawObj::switchBackgroundColor()
+//{
+//	HBRUSH brush;
+//	switch (backgroundColor)
+//	{
+//	case 0:
+//		//brush = CreateSolidBrush(RGB(255, 255, 255));
+//		return NULL;
+//		break;
+//	case 1:
+//		brush = CreateSolidBrush(RGB(180, 180, 180));
+//		break;
+//	case 2:
+//		brush = CreateSolidBrush(RGB(255, 0, 0));
+//		break;
+//	case 3:
+//		brush = CreateSolidBrush(RGB(0, 255, 0));
+//		break;
+//	case 4:
+//		brush = CreateSolidBrush(RGB(0, 0, 255));
+//		break;
+//	case 5:
+//		brush = CreateSolidBrush(RGB(0, 255, 255));
+//		break;
+//	case 6:
+//		brush = CreateSolidBrush(RGB(255, 255, 0));
+//		break;
+//	case 7:
+//		brush = CreateSolidBrush(RGB(255, 0, 255));
+//		break;
+//	default:
+//		return NULL;
+//	}
+//	return brush;
+//	//SelectObject(hdc, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
+//}
+//

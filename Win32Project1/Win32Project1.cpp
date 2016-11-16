@@ -396,6 +396,9 @@ void CleanObjects(HWND hWnd)
 	for (auto& it : globals::var().DrawObjList)  //delete each pointer. 
 		delete(it);
 	globals::var().DrawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
+	globals::var().selectedObjectPtr = NULL;
+	globals::var().hasSelected = false;
+	globals::var().pastebinObjectPtr = NULL;
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 
@@ -440,7 +443,15 @@ void ChangeToolsSelectionState(int position, HMENU hMenu)
 
 void ChangeColorsSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().selectedObjectPtr != nullptr)
+	if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished)  //change newText
+	{
+		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
+		globals::var().newText.color = position;
+		globals::var().modifyState = 1;
+		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
+		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+	}
+	else if (globals::var().selectedObjectPtr != nullptr)  //change selected object
 	{
 		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
 		if (it != globals::var().DrawObjList.end())
@@ -453,14 +464,7 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
 	}
-	if (globals::var().currentDrawMode == 3)
-	{
-		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
-		globals::var().newText.color = position;
-		globals::var().modifyState = 1;
-		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
-		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
-	}
+
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
 	for (int i = 0; i < 8; i++)
@@ -478,7 +482,15 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 
 void ChangeBGSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().selectedObjectPtr != nullptr)
+	if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished)  //change newText
+	{
+		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
+		globals::var().newText.backgroundColor = position;
+		globals::var().modifyState = 1;
+		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
+		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+	}
+	else if (globals::var().selectedObjectPtr != nullptr)  //change selected object
 	{
 		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
 		if (it != globals::var().DrawObjList.end())
@@ -491,14 +503,7 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
 		}
 	}
-	if (globals::var().currentDrawMode == 3)
-	{
-		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
-		globals::var().newText.backgroundColor = position;
-		globals::var().modifyState = 1;
-		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
-		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
-	}
+
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	HMENU hMenu5 = GetSubMenu(hMenu2, 8);  //hMenu5 = 底色
 	for (int i = 0; i < 8; i++)
@@ -516,7 +521,7 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 
 void ChangeLineSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().selectedObjectPtr != nullptr)
+	if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType != 4)
 	{
 		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
 		if (it != globals::var().DrawObjList.end())

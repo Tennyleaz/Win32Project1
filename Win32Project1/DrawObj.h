@@ -35,7 +35,7 @@ protected:
 	POINT originalBegin, originalEnd;
 	HPEN switchColor();
 	void releaseColor(HDC hdc);
-	HBRUSH switchBackgroundColor();
+	//HBRUSH switchBackgroundColor();
 };
 
 class LineObj : public DrawObj

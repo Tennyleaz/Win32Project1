@@ -69,7 +69,7 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 	float px, py;
 	float left, top, right, bottom; // Bounding Box For Line Segment
 	float dx, dy;
-	epsilon = 4.0 + lineWidth;
+	epsilon = 4.0 + lineWidth;  //for error tolerance
 
 	x1 = ptBeg.x;
 	y1 = ptBeg.y;
@@ -140,13 +140,6 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 
 	intercept = y1 - slope * x1; // which is same as y2 - slope * x2
 
-								 // For Bounding Box
-
-
-	//std::cout << "Equation of the line: ";
-	//std::cout << slope << "X " << ((intercept < 0) ? ' ' : '+') << intercept << "\n";
-
-
 	if (slope * px + intercept > (py - epsilon) &&
 		slope * px + intercept < (py + epsilon))
 	{
@@ -164,8 +157,3 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 		//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
 	return false;
 }
-
-//DrawObj * LineObj::clone() const
-//{
-//	return new LineObj(static_cast<const LineObj&>(*this));
-//}

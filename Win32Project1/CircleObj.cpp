@@ -131,14 +131,9 @@ bool CircleObj::CheckObjectCollision(int mouseX, int mouseY)
 	}
 	else if (result <= 1 + delta && result >= 1 - delta)
 	{
-		//MessageBox(NULL, L"Yes!\nGiven point lies in the ellipse.", L"Detection", MB_OK);
 		return true;
 	}
 
 	return false;
 }
 
-//DrawObj * CircleObj::clone() const
-//{
-//	return new CircleObj(static_cast<const CircleObj&>(*this));
-//}

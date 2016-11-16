@@ -12,10 +12,10 @@ mylog::~mylog()
 {
 }
 
-void mylog::Commit(json J)
-{
-	ops.push_back(J);
-}
+//void mylog::Commit(json J)
+//{
+//	ops.push_back(J);
+//}
 
 void mylog::Undo()
 {
@@ -60,9 +60,12 @@ void mylog::Undo()
 			globals::var().newText.inputPos.x = J["inputpos"][0];
 			globals::var().newText.inputPos.y = J["inputpos"][1];
 			globals::var().newText.CalculateCaretPosition();
-			//globals::var().currentDrawMode = 3;
 			globals::var().newText.startFinished = true;
 			globals::var().newText.endFinished = false;
+
+			//select the newText
+			globals::var().selectedObjectPtr = &globals::var().newText;
+			globals::var().hasSelected = true;
 			break;
 		}
 
@@ -164,6 +167,13 @@ void mylog::Undo()
 	{
 		//revert old color/width
 		int pos = J["which"];
+		if (pos == -1)  //for newText
+		{
+			globals::var().newText.color = J["oldColor"];
+			globals::var().newText.backgroundColor = J["oldBgColor"];
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 
@@ -177,7 +187,6 @@ void mylog::Undo()
 
 			}
 		}
-		break;
 		break;
 	}
 	case 5:  //undo modify text
@@ -222,9 +231,6 @@ void mylog::Redo()
 	{
 	case 0:  //redo add
 	{
-		//int pos = J["which"];
-		//auto it = globals::var().DrawObjList.begin();
-		//std::advance(it, pos);
 		//add back the object in the position
 		switch ((int)J["objectType"])
 		{
@@ -338,10 +344,17 @@ void mylog::Redo()
 		(*it)->ptEnd.y = J["newEnd"][1];
 		break;
 	}
-	case 4:  //modify
+	case 4:  //redo modify
 	{
 		//redo new points
 		int pos = J["which"];
+		if (pos == -1)  //for newText
+		{
+			globals::var().newText.color = J["newColor"];
+			globals::var().newText.backgroundColor = J["newBgColor"];
+			break;
+		}
+
 		auto it = globals::var().DrawObjList.begin();
 		std::advance(it, pos);
 		string test = J.dump();
@@ -420,8 +433,6 @@ void mylog::OP_add(DrawObj * it)
 	json jit;
 	jit["operation"] = 0;
 	PushObject(it, jit);
-
-	//string test = jit.dump();
 }
 
 void mylog::OP_del(DrawObj * it, int pos)
@@ -512,15 +523,24 @@ void mylog::OP_modifyStart(DrawObj * d, int pos)
 			jmove["oldBgColor"] = d->backgroundColor;
 		}
 	}
+	else //type = text
+	{
+		jmove["oldBgColor"] = d->backgroundColor;		
+	}
+	string s = jmove.dump();
 }
 
 void mylog::OP_modifyEnd(DrawObj * d)
 {
+	string s = jmove.dump();
 	jmove["newColor"] = d->color;
 	if (d->objectType < 4)
 	{
-		jmove["newBgColor"] = d->backgroundColor;
 		jmove["newWidth"] = d->lineWidth;
+	}
+	if (d->objectType > 1)
+	{
+		jmove["newBgColor"] = d->backgroundColor;
 	}
 
 	//if no modify, don't push
@@ -545,6 +565,13 @@ void mylog::OP_modifyEnd(DrawObj * d)
 				//jmove["newBgColor"] = d->backgroundColor;
 				modified = true;
 			}
+		}
+	}
+	else  //type = text
+	{
+		if (d->backgroundColor != (int)jmove["oldBgColor"])
+		{
+			modified = true;
 		}
 	}
 
