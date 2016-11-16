@@ -55,7 +55,8 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 
 int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 {
-	PWSTR filePath = BasicFileOpen();
+	globals::var().preSelectObject = nullptr;  //this is for deleted pointer workaround
+	PWSTR filePath = BasicFileOpen();  //open file path
 	if (!filePath)
 	{
 		MessageBox(NULL, L"File open failed.", L"Error!", MB_OK);
@@ -230,7 +231,9 @@ PWSTR BasicFileOpen()
 
 		// Create the FileOpenDialog object.
 		hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
-			IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+			IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));  
+		//no need to release the instance, only release pFileOpen
+		//CoCreateInstance is not allocating memory. CCI is creating an instance of an COM object.
 
 		if (SUCCEEDED(hr))
 		{
@@ -257,7 +260,7 @@ PWSTR BasicFileOpen()
 			}
 			pFileOpen->Release();
 		}
-		CoUninitialize();
+		CoUninitialize();		
 	}
 	return pszFilePath;
 }

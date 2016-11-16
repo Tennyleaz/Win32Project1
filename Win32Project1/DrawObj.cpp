@@ -28,8 +28,16 @@ void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 {
 	//if (this == nullptr)  //prevent the object being deleted by openfile... etc.
 	//	return;
-	if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
+	try
+	{
+		if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
+			return;
+	}
+	catch (...)
+	{
 		return;
+	}
+
 
 	HPEN hpen, hpenOld;
 	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));

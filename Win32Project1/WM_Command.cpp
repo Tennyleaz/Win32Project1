@@ -1281,7 +1281,7 @@ LRESULT WM_PaintEvent(Parameter& param)
 		}		
 	}
 
-	if (globals::var().preSelectObject != NULL)  //paint the pre-select rectangle
+	if (globals::var().preSelectObject != nullptr)  //paint the pre-select rectangle
 	{
 		globals::var().preSelectObject->PaintMouseOnRect(memoryDC, xCurrentScroll, yCurrentScroll);
 		s2 = "paint the pre-select rectangle";

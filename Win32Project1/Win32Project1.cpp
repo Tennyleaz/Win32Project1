@@ -396,9 +396,9 @@ void CleanObjects(HWND hWnd)
 	for (auto& it : globals::var().DrawObjList)  //delete each pointer. 
 		delete(it);
 	globals::var().DrawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
-	globals::var().selectedObjectPtr = NULL;
+	globals::var().selectedObjectPtr = nullptr;
 	globals::var().hasSelected = false;
-	globals::var().pastebinObjectPtr = NULL;
+	globals::var().pastebinObjectPtr = nullptr;
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 
