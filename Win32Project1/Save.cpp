@@ -44,8 +44,8 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 	}
 	outfile.close();
 
+	//pass the file name to main
 	string name = wstr_to_str(filePath);
-	//wstring name = filePath;
 	auto const pos = name.find_last_of('\\');
 	auto const result = name.substr(pos + 1);
 	fileName = result;
@@ -76,14 +76,13 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 	infile >> j;
 	infile.close();
 
+	//pass the file name to main
 	globals::var().lastFilePath = filePath;
 	string name = wstr_to_str(filePath);
-	//wstring name = filePath;
 	auto const pos = name.find_last_of('\\');
 	auto const result = name.substr(pos + 1);
 	fileName = result;
-	//LPCWSTR sw = result.c_str();
-	//MessageBox(NULL, sw, L"name", MB_OK);
+
 	readList.clear();
 
 	int i = 0;
@@ -125,7 +124,6 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 			newText.text = text;
 			newText.lineWidth = newText.ptEnd.x - newText.ptBeg.x;
 			//calculate text box
-			//if (!newText.CheckTextBoxBigEnough(newText.ptEnd.x - newText.ptBeg.x, newText.ptEnd.y - newText.ptBeg.y))
 			{
 				int textHeight = newText.ptEnd.y - newText.ptBeg.y;
 				int maxLine = (newText.ptEnd.y - newText.ptBeg.y) / 13;
@@ -197,7 +195,6 @@ int SaveToLastFilePath(const list<DrawObj*>& saveList)
 
 	// open a file in write mode.
 	ofstream outfile;
-	//PWSTR filePath = BasicFileSave();
 	if (globals::var().lastFilePath.size() > 0)
 	{
 		string fp = wstr_to_str(globals::var().lastFilePath);
@@ -363,11 +360,6 @@ int DisplayConfirmClearMessageBox(const string fileName)
 		MB_ICONEXCLAMATION | MB_YESNO
 	);
 
-	if (msgboxID == IDYES)
-	{
-		// TODO: add code
-	}
-
 	return msgboxID;
 }
 
@@ -381,11 +373,6 @@ int DisplayConfirmNewFileMessageBox(const string fileName)
 		L"Confirm Save",
 		MB_ICONEXCLAMATION | MB_YESNO
 	);
-
-	if (msgboxID == IDYES)
-	{
-		// TODO: add code
-	}
 
 	return msgboxID;
 }

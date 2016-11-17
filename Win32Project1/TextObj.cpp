@@ -46,7 +46,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	if (!startFinished)
 		return;
 
-	string s = "";
+	string s = "";  //string for print on screen
 	RECT rc;
 	SetRect(&rc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, ptBeg.x - Xoffset + 300, ptBeg.y - Yoffset + 300);
 
@@ -82,7 +82,6 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 
 	//draw the background rect
 	HPEN hPen = (HPEN)GetStockObject(NULL_PEN);
-	//HBRUSH hBrush = switchBackgroundColor();
 	HBRUSH hBrush;
 	switch (backgroundColor)
 	{
@@ -140,7 +139,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		tailPos.y = -13;
 		for (auto it : text)
 		{
-			//add all the strings to one and print it
+			//add all the strings to one and print it out
 			int i = 0;
 			tailPos.x = 0;
 			for (auto it2 : it)
@@ -155,20 +154,19 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 				i++;
 				tailPos.x += 8;
 			}
-			//s += it;
 			s += '\n';
 			tailPos.y += 13;	
 		}
-		SetBkMode(hdc, TRANSPARENT);
+		SetBkMode(hdc, TRANSPARENT);  //set text background to transparent
 		DrawTextA(hdc, s.c_str(), s.length(), &rc, DT_LEFT | DT_NOCLIP);
-
-		/*SIZE size;
-		GetTextExtentPoint32A(hdc, s.c_str(), s.length(), &size);
-		s = "string size=" + to_string(size.cx) + ", " + to_string(size.cy);*/
-		/*s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
-		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
-		s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
-		TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());*/
+		
+		if (globals::var().debugMode)
+		{
+			s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
+			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
+			s = "*input pos=" + to_string(inputPos.x) + ", " + to_string(inputPos.y);
+			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 26, s.c_str(), s.length());
+		}
 
 		// Restore the original font.
 		SelectObject(hdc, hOldFont);
@@ -231,7 +229,7 @@ bool TextObj::addChar(int c)
 	if (text.size() == 0)
 		text.push_back("");
 
-	vector<string> vs = text;  //make a backup
+	vector<string> vs = text;  //make a backup in case keyin failed
 	POINT inputPosBackup = inputPos;
 
 	//do oversize checking
@@ -241,14 +239,14 @@ bool TextObj::addChar(int c)
 		inputPos.x = text[inputPos.y].size();
 
 	//add char to input position
-	if (c >= 65 && c <= 90)  //A~Z
-		text[inputPos.y].insert(inputPos.x, 1, c + 32); //text.back().push_back(c + 32);
-	else if (c >= 48 && c <= 57)  //0~9
-		text[inputPos.y].insert(inputPos.x, 1, c); //text.back().push_back(c);
+	if (c >= 65 && c <= 90)          //A~Z
+		text[inputPos.y].insert(inputPos.x, 1, c + 32); 
+	else if (c >= 48 && c <= 57)     //0~9
+		text[inputPos.y].insert(inputPos.x, 1, c); 
 	else if (c >= 0x60 && c <= 0x69) //Numeric keypad 0~9
-		text[inputPos.y].insert(inputPos.x, 1, c + -48); //text.back().push_back(c - 48);
-	else if (c == 0x20)  //space
-		text[inputPos.y].insert(inputPos.x, 1, ' '); //text.back().push_back(' ');
+		text[inputPos.y].insert(inputPos.x, 1, c + -48);
+	else if (c == 0x20)              //space
+		text[inputPos.y].insert(inputPos.x, 1, ' '); 
 
 	inputPos.x ++;
 
@@ -257,25 +255,18 @@ bool TextObj::addChar(int c)
 	if (lineSize <= 0)
 		lineSize = 1;
 
-	//POINT t;
 	int y = 0;
-	//t.x = 0;
-	//t.y = 0;
-
 	for (auto it : text)
 	{
-		//add all the strings to one and print it
+		//simulating add all the strings to one and print it
 		int i = 0;
-		//t.x = 0;
 		for (auto it2 : it)
 		{
 			if (i > 0 && i%lineSize == 0)
 			{
 				y += 1;
-				//t.x = 0;
 			}
 			i++;
-			//t.x += 1;
 		}
 		y += 1;
 	}
@@ -390,9 +381,9 @@ bool TextObj::KeyIn(int wParam)
 		if ((text.back().size()+1) * 8 > ptEnd.x - ptBeg.x) //if x > 2000 add new line and add new char
 		{
 			int newy = ptBeg.y + (text.size() + 1) * 13;
-			if (newy < 1996)  //if y < 2000 add new line
+			if (newy < 1996)  //if y < 2000-4 add new line
 			{
-				//addNewLine();
+				//continue
 			}
 			else
 				return false;  //do nothing
@@ -406,7 +397,7 @@ bool TextObj::KeyIn(int wParam)
 			returnValue = addNewLine();  //insert a "" string to back
 		}
 	}
-	else if (wParam == 0x08)  //backspace <-
+	else if (wParam == 0x08)  //backspace <-|
 	{
 		returnValue = backspace();
 	}
@@ -436,10 +427,6 @@ bool TextObj::KeyIn(int wParam)
 			inputPos.x = text[inputPos.y].size();
 		}
 	}
-	//else if (wParam == VK_DELETE) //Delete (not used!)
-	//{
-	//	returnValue = del();
-	//}
 	else if (wParam == VK_LEFT) //4 arrow keys
 	{
 		if (inputPos.x > 0)
@@ -479,14 +466,12 @@ bool TextObj::KeyIn(int wParam)
 			linesize--;
 		if (text[inputPos.y].size() > w && (inputPos.x-1) / w < linesize - 1)  //just move in this line
 		{	
-			//if(inputPos.x == 0)
-			//	inputPos.x += w+1;
 			if (inputPos.x <= text[inputPos.y].size() - w)
 				inputPos.x += w;
 			else
 				inputPos.x = text[inputPos.y].size();
 		}
-		else if (inputPos.y < text.size() - 1)
+		else if (inputPos.y < text.size() - 1)  //move to next line
 		{
 			inputPos.y++;
 			//if next line is smaller than w (single line), compare x with size
@@ -528,7 +513,7 @@ bool TextObj::KeyIn(int wParam)
 
 		for (auto it : text)
 		{
-			//add all the strings to one and print it
+			//simulating add all the strings to one and print it
 			int i = 0;
 			t.x = 0;
 			for (auto it2 : it)
@@ -560,7 +545,7 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 	deltaX = mouseX - originalMouseX;
 	deltaY = mouseY - originalMouseY;
 
-	POINT oldBeg, oldEnd;
+	POINT oldBeg, oldEnd;  //make a backup
 	oldBeg = ptBeg;
 	oldEnd = ptEnd;
 
@@ -568,11 +553,11 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 
 	switch (mode)
 	{
-	case 1:
+	case 1:  //左上
 		beginDeltaX = deltaX;
 		beginDeltaY = deltaY;
 		break;
-	case 2:
+	case 2:  //右下
 		endDeltaX = deltaX;
 		endDeltaY = deltaY;
 		break;
@@ -598,10 +583,9 @@ void TextObj::ResizingText(int mouseX, int mouseY, int mode)
 		break;
 	default:
 		return;
-		break;
 	}
 
-	//find which point is upper right
+	//find which point is upper right and apply delta
 	if (originalBegin.x < originalEnd.x && originalBegin.y < originalEnd.y)  //ptBeg 在左上
 	{
 		ptBeg.x = originalBegin.x + beginDeltaX;
@@ -678,7 +662,7 @@ bool TextObj::CheckTextBoxBigEnough(int X, int Y)  //X and Y is size of box
 
 	for (auto it : text)
 	{
-		//add all the strings to one and print it
+		//simulating add all the strings to one and print it
 		int i = 0;
 		t.x = 0;
 		for (auto it2 : it)

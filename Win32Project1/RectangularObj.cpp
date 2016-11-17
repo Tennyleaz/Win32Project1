@@ -70,6 +70,7 @@ void RectangularObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	HPEN hpen, hpenOld;
 	hpen = CreatePen(PS_DASH, 1, RGB(0, 0, 0));
 	hpenOld = (HPEN)SelectObject(hdc, hpen);
+	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(NULL_BRUSH));  //paint an empty dash rectangle
 
 	// do something...
 	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y) - Yoffset;
@@ -82,7 +83,7 @@ void RectangularObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	SelectObject(hdc, hpenOld);
 	DeleteObject(hpen);
 
-	HGDIOBJ oldBrush = SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+	SelectObject(hdc, GetStockObject(WHITE_BRUSH));
 	//draw the 8-points
 	{
 		//左上

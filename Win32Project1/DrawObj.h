@@ -22,7 +22,6 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) = 0;  //x and y is absolute position on background
-	//virtual DrawObj* clone() const = 0;
 	void PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset);
 	void makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth); //x and y is absolute position on background
 	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
@@ -46,7 +45,6 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY);
-	//virtual DrawObj* clone() const;
 };
 
 class TextObj : public DrawObj
@@ -57,13 +55,12 @@ private:
 	bool addNewLine();
 	bool backspace();
 	bool del();
-	//HPEN switchTextBoxLineColor();
 public:
 	//int textWidth, textHeight, maxTextWidth;
 	vector<string> text;
-	POINT tailPos;  //tailPos is the last char position of text
-	POINT caretPos;
-	POINT inputPos;
+	POINT tailPos;  //tailPos is the last char position of text vector
+	POINT caretPos; //carerPos is calculated from inputPos
+	POINT inputPos; //inputPos is related to text vector
 	TextObj();
 	void clean();
 	virtual ~TextObj();
@@ -75,7 +72,6 @@ public:
 	bool CheckTextBoxBigEnough(int X, int Y);
 	void CalculateCaretPosition();
 	void Moving(int mouseX, int mouseY);
-	//virtual DrawObj* clone() const;
 };
 
 class RectangularObj : public DrawObj
@@ -86,17 +82,14 @@ public:
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) override;
-	//virtual DrawObj* clone() const;
 };
 
 class CircleObj : public DrawObj
 {
-	//int xRadius, yRadius;
 public:
 	CircleObj();
 	virtual ~CircleObj();
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) override;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) override;
-	//virtual DrawObj* clone() const;
 };

@@ -36,7 +36,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	LoadStringW(hInstance, IDC_WIN32PROJECT1, globals::var().szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	//Listener::WinProcMsgListener().AddDefaultEvent(DefaultEvnetHandler);
 	Listener::WinProcMsgListener().AddEvent(WM_COMMAND, WM_CommandEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_CREATE, WM_CreateEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_MOUSEMOVE, WM_MouseMoveEvent);
@@ -76,6 +75,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	globals::var().myChildWindow = CreateWindow(globals::var().szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 320, globals::var().hWndFather, (HMENU)103, globals::var().hInst, NULL);
 
+	//create my tool buttons
 	globals::var().myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, globals::var().myChildWindow, (HMENU)120, globals::var().hInst, NULL);
 	globals::var().myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, globals::var().myChildWindow, (HMENU)121, globals::var().hInst, NULL);
 	globals::var().myButton[2] = CreateWindow(L"BUTTON", L"B3", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 115, 50, 50, globals::var().myChildWindow, (HMENU)122, globals::var().hInst, NULL);
@@ -285,6 +285,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	}
 }
 
+//for scrolling while moving object.
 //scroll the window if x and y focus are out of border. X, Y focus is mouse position on screen
 void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
 {
@@ -301,47 +302,93 @@ void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCu
 	GetCursorPos(&p);
 	ScreenToClient(hwnd, &p);
 
-	if (right-xCurrentScroll > windowRect.right && xCurrentScroll < 2000 && p.x > windowRect.right/2)
+	// x direction
+	if (right - xCurrentScroll > windowRect.right && xCurrentScroll < 2000 && p.x > windowRect.right / 2)
 	{
-		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
-		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 	else if (xCurrentScroll > 0 && left - xCurrentScroll < 0 && p.x < windowRect.right / 2)
 	{
-		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left); 
-		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left);
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, left < 0 ? 0 : left);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 
-	if (bottom-yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000 && p.y > windowRect.bottom/2) //滑鼠要接近底部
+	// y direction
+	if (bottom - yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000 && p.y > windowRect.bottom / 2) //滑鼠要接近底部
 	{
 		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, bottom - windowRect.bottom);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
-	else if (yCurrentScroll > 0 && top-yCurrentScroll < 0 && p.y < windowRect.bottom / 2)
+	else if (yCurrentScroll > 0 && top - yCurrentScroll < 0 && p.y < windowRect.bottom / 2)
 	{
-		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
-		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
+
 	globals::var().autoScrolling = false;
 }
 
-void AutoScrollObjectWithDirection(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect, int direction)
+//for scrolling while resizing object.
+//scrolling is effective while mouse and object border is same opsition.
+void AutoScrollObjectResize(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
 {
+	int top = (obj->ptBeg.y < obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
+	int left = (obj->ptBeg.x < obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
+	int bottom = (obj->ptBeg.y > obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
+	int right = (obj->ptBeg.x > obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
+	globals::var().autoScrolling = true;
 
+	POINT p;  //p is mouse position
+	GetCursorPos(&p);
+	ScreenToClient(hwnd, &p);
+
+	// x direction
+	if (right - xCurrentScroll > windowRect.right && xCurrentScroll < 2000 && abs(p.x - right + xCurrentScroll) < 30)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+	else if (xCurrentScroll > 0 && left - xCurrentScroll < 0 && abs(p.x - left + xCurrentScroll) < 30)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, left - 1 < 0 ? 0 : left - 1);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+	else if (right - xCurrentScroll < 0 && xCurrentScroll > 0 && abs(p.x - right + xCurrentScroll) < 30)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, right - windowRect.right);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+	else if (xCurrentScroll < 2000 && left - xCurrentScroll > windowRect.right && abs(p.x - left + xCurrentScroll) < 30)
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, left - 1 < 0 ? 0 : left - 1);
+		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
+	}
+
+	// y direction
+	if (bottom - yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000 && abs(p.y - bottom + yCurrentScroll) < 30) //滑鼠要接近底部
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, bottom - windowRect.bottom);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	else if (yCurrentScroll > 0 && top - yCurrentScroll < 0 && abs(p.y - top + yCurrentScroll) < 30)
+	{
+		WPARAM 	wParam = MAKEWPARAM(SB_THUMBTRACK, top < 0 ? 0 : top);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	else if (bottom - yCurrentScroll < 0 && yCurrentScroll > 0 && abs(p.y - bottom + yCurrentScroll) < 30)  //mouse is on bottom line
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, bottom - 1 < 0 ? 0 : bottom - 1);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
+	else if (top - yCurrentScroll > windowRect.bottom && yCurrentScroll < 2000 && abs(p.y - top + yCurrentScroll) < 30)  //mouse is on top line
+	{
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, top - windowRect.bottom);
+		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
+	}
 }
 
+//for scrolling while drawing object.
 //we only compare ptEnd when is drawing the object on ptEnd
 void AutoScrollObjectWhenDrawing(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
 {
@@ -410,20 +457,9 @@ void SetTitle(string name, HWND hWnd)
 	SetWindowText(hWnd, sw);
 }
 
-//void PushCurrentNewText(TextObj& newText)
-//{
-//	if (newText.text.size() > 0 && newText.text.back().size() > 0)
-//	{
-//		newText.endFinished = true;
-//		globals::var().DrawObjList.push_back(new TextObj(newText));
-//	}
-//	newText.clean();
-//	globals::var().selectedObjectPtr = nullptr;
-//}
-
 void ChangeToolsSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().selectedObjectPtr != nullptr && position!=4)
+	if (globals::var().selectedObjectPtr != nullptr && position!=4)  //de-select the current object
 		globals::var().selectedObjectPtr = nullptr;
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	for (int i = 0; i < 5; i++)

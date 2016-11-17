@@ -9,7 +9,8 @@ globals::globals()
 	selectedObjectPtr = NULL;
 	preSelectObject = NULL;
 	mouseHasDown = false;
-	wcsncpy(szChildClass, L"123", 3);
+	wcsncpy(szChildClass, L"123", 3);  //name for child window class. cannot be null !
+	debugMode = false;
 }
 
 globals & globals::var()

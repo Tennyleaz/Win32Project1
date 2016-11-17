@@ -15,33 +15,26 @@ public:
 	HWND myButton[5];
 	int currentDrawMode;     //0=line, 1=rect, 2=circle, 3=text, 4=select 
 	int modifyState;  //0=new file, 1=modified but not saved, 2=saved or opened
-	string fileName;
-	//auto lastStateObject;  //上一步用的物件
-	//DrawObj* recoverObjectPtr;  //下一步用的
+	string fileName;  //file name to display on window title
 	DrawObj* pastebinObjectPtr ;  //剪貼簿用的
 	DrawObj* selectedObjectPtr;  //選取工具選中的
-	DrawObj* preSelectObject;
-	wstring lastFilePath;
+	DrawObj* preSelectObject;   //顯示游標下方的物件框框用的
+	wstring lastFilePath;  //path to last opened file. 
 
 	int mouseX, mouseY;
-	//LineObj  newLine;
-	//RectangularObj newRect;
-	TextObj newText;
-	//CircleObj newCircle;
+	TextObj newText;  //only newText needs to be global currently
 	bool mouseHasDown;
 	bool hasSelected;
 
 	RECT rect;
-	//RECT scrollingClipRect;
 	bool autoScrolling;
 	TCHAR szBuffer[50];
 	int cxChar, cyChar;
-	//int i;
-	list<DrawObj*> DrawObjList;             // <-this is garbage don't use it
-	//list<DrawObj*> BackupList;
-	//vector<unique_ptr<DrawObj>> DrawObjList;  // <-use this
+	list<DrawObj*> DrawObjList; // <-next time may use vector<unique_ptr<DrawObj>> DrawObjList;
 	mylog mlog;
 
+	//----------------------------------------------------------------------------------------------
+	bool debugMode;
 	//----------------------------------------------------------------------------------------------
 
 	globals();

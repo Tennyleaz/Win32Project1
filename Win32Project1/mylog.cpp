@@ -12,28 +12,17 @@ mylog::~mylog()
 {
 }
 
-//void mylog::Commit(json J)
-//{
-//	ops.push_back(J);
-//}
-
 void mylog::Undo()
 {
 	if (ops.empty())
-	{
-		//MessageBox(NULL, L"JSON list is empty!", L"ERROR", MB_OK);
 		return;
-	}
 
 	json J = ops.back();
 	ops.pop_back();
 	jredo = J;
 	
 	if (J.empty())
-	{
-		MessageBox(NULL, L"JSON is empty!", L"ERROR", MB_OK);
 		return;
-	}
 
 	int op = J["operation"];
 	switch (op)
@@ -167,6 +156,7 @@ void mylog::Undo()
 	{
 		//revert old color/width
 		int pos = J["which"];
+
 		if (pos == -1)  //for newText
 		{
 			globals::var().newText.color = J["oldColor"];
@@ -207,7 +197,7 @@ void mylog::Undo()
 			t->CalculateCaretPosition();
 		}
 		else
-			UpdateNewText(vs, in);
+			UpdateNewText(vs, in);  //just update the newText
 
 		break;
 	}
@@ -221,10 +211,7 @@ void mylog::Redo()
 	json J = jredo;	
 
 	if (J.empty())
-	{
-		MessageBox(NULL, L"JSON is empty!", L"ERROR", MB_OK);
 		return;
-	}
 
 	int op = J["operation"];
 	switch (op)
@@ -288,7 +275,6 @@ void mylog::Redo()
 		globals::var().DrawObjList.erase(it);
 		delete ptr;
 
-		//delete globals::var().DrawObjList.back();
 		globals::var().selectedObjectPtr = nullptr;
 		globals::var().hasSelected = false;
 		break;
@@ -365,7 +351,6 @@ void mylog::Redo()
 			if ((*it)->objectType > 1)
 			{
 				(*it)->backgroundColor = J["newBgColor"];
-
 			}
 		}
 		break;
@@ -408,9 +393,9 @@ void mylog::ClearLogs()
 	ToggleUndoButton();
 }
 
+//push the given object into log list
 void mylog::PushObject(DrawObj* it, json jit)
 {
-	//json jit;
 	jit["objectType"] = it->objectType;
 	jit["ptBeg"] = { it->ptBeg.x, it->ptBeg.y };
 	jit["ptEnd"] = { it->ptEnd.x, it->ptEnd.y };
@@ -443,6 +428,7 @@ void mylog::OP_del(DrawObj * it, int pos)
 	PushObject(it, jit);
 }
 
+//doing before moving
 void mylog::OP_moveStart(DrawObj * d, int pos)  //pos = -1 means it is the newText
 {
 	jmove.clear();
@@ -450,25 +436,23 @@ void mylog::OP_moveStart(DrawObj * d, int pos)  //pos = -1 means it is the newTe
 	jmove["operation"] = 2;
 	jmove["start"] = { d->ptBeg.x, d->ptBeg.y };
 	jmove["which"] = pos;
-	//string test = jmove.dump();
 }
 
+//doing after moving is end
 void mylog::OP_moveEnd(DrawObj * d)
 {
-	//string test = jmove.dump();
 	int x = jmove["start"][0];
 	int y = jmove["start"][1];
 	int dx = x - d->ptBeg.x;
 	int dy = y - d->ptBeg.y;
-	jmove["deltax"] = dx;
+	jmove["deltax"] = dx;  //only log the delta position
 	jmove["deltay"] = dy;
-	//jmove["end"] = { d->ptEnd.x, d->ptEnd.y };
-	//test = jmove.dump();
 	ops.push_back(jmove);
 	ToggleUndoButton();
 }
 
-void mylog::OP_sizeStart(DrawObj * d, int pos)
+//doing before resizing
+void mylog::OP_sizeStart(DrawObj * d, int pos)  //pos = -1 meas newText
 {
 	jmove.clear();
 	//know new position of old ptBeg
@@ -478,6 +462,7 @@ void mylog::OP_sizeStart(DrawObj * d, int pos)
 	jmove["which"] = pos;
 }
 
+//doing after sizing is end
 void mylog::OP_sizeEnd(DrawObj * d)
 {
 	jmove["newBegin"] = { d->ptBeg.x, d->ptBeg.y };
@@ -486,6 +471,7 @@ void mylog::OP_sizeEnd(DrawObj * d)
 	ToggleUndoButton();
 }
 
+//doing before modify text
 void mylog::OP_textStart(DrawObj * d, int pos)  //pos = -1 means it is the newText
 {
 	jmove.clear();
@@ -498,6 +484,7 @@ void mylog::OP_textStart(DrawObj * d, int pos)  //pos = -1 means it is the newTe
 	jmove["which"] = pos;
 }
 
+//doing after modify text
 void mylog::OP_textEnd(DrawObj * d)
 {
 	TextObj* t = dynamic_cast<TextObj*>(d);
@@ -509,7 +496,7 @@ void mylog::OP_textEnd(DrawObj * d)
 	string test = jmove.dump();
 }
 
-void mylog::OP_modifyStart(DrawObj * d, int pos)
+void mylog::OP_modifyStart(DrawObj * d, int pos)  //if pos = -1 means newText
 {
 	jmove.clear();
 	jmove["operation"] = 4;
@@ -527,12 +514,10 @@ void mylog::OP_modifyStart(DrawObj * d, int pos)
 	{
 		jmove["oldBgColor"] = d->backgroundColor;		
 	}
-	string s = jmove.dump();
 }
 
 void mylog::OP_modifyEnd(DrawObj * d)
 {
-	string s = jmove.dump();
 	jmove["newColor"] = d->color;
 	if (d->objectType < 4)
 	{
@@ -555,14 +540,12 @@ void mylog::OP_modifyEnd(DrawObj * d)
 	{
 		if (d->lineWidth != (int)jmove["oldWidth"])
 		{
-			//jmove["newWidth"] = d->lineWidth;
 			modified = true;
 		}
 		if (d->objectType > 1 && d->objectType < 4)
 		{
 			if (d->backgroundColor != (int)jmove["oldBgColor"])
 			{
-				//jmove["newBgColor"] = d->backgroundColor;
 				modified = true;
 			}
 		}

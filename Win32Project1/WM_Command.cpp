@@ -18,8 +18,6 @@ static RECT rect;
 static TCHAR szBuffer[50];
 static int cxChar, cyChar;
 static int xPasteDir, yPasteDir;  //0=負 1=正
-//static bool canRedo;
-//int i;
 
 SCROLLINFO si;
 // These variables are required by BitBlt.
@@ -41,30 +39,22 @@ static int xMaxScroll;       // maximum horizontal scroll value
 static int yMinScroll;       // minimum vertical scroll value
 static int yCurrentScroll;   // current vertical scroll value
 static int yMaxScroll;       // maximum vertical scroll value
-//static HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8, bmpIcon9;   //a bitmap icon for button
-static HBITMAP checkedIcon;
-static HMENU hMenu=NULL;        //try to get the system menu
-static HBITMAP hBmp;          //bitmap for memory DC
+static HMENU hMenu=NULL;     //try to get the system menu
+static HBITMAP hBmp;         //bitmap for memory DC
 
 static int currentColor;        //0=black, 0~7 kinds of color
 static int currentBgColor;      //0=transparent, 0~7 kinds of color
 static int currentLineWidth;    //width 1~5
 static int currentCursorMode;   //0=original 1=左上 2=右下 3=右上 4=左下 5=左 6=右 7=上 8=下 9=四向
-//static bool hasSelected;
 static HCURSOR cursors[6];      //0=original 1=左上右下 2=右上左下 3=左右 4=上下 5=四向
 static bool isMoving, isResizing;
-//string debugmessage = "cursorX=";
-static int hScrollResize = 0;
+static int hScrollResize = 0;   //counter for preventing fullscreen scroll size change. skip if count to 2
 static HCURSOR * currentCursor;
 
 using json = nlohmann::json;
 
 LRESULT DefaultEvnetHandler(Parameter& param)
 {
-	/*TCHAR szBuffer[50];
-	wsprintf(szBuffer, TEXT("Button ID %d : %d"), param.wParam_, param.lParam_);
-	MessageBox(param.hWnd_, szBuffer, TEXT("Pressed"), MB_OK);
-	return 0*/
 	return DefWindowProc(param.hWnd_, param.message_, param.wParam_, param.lParam_);
 }
 
@@ -74,30 +64,12 @@ LRESULT WM_CommandEvent(Parameter& param)
 	// 剖析功能表選取項目: 
 	switch (wmId)
 	{
-	case IDM_ABOUT:
+	case IDM_ABOUT:  //「關於」視窗
 		DialogBox(globals::var().hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), param.hWnd_, About);
 		break;
-	case IDM_EXIT:
+	case IDM_EXIT:  //bye bye
 		SendMessage(param.hWnd_, WM_CLOSE, NULL, NULL);	
 		break;
-		//if (globals::var().modifyState == 1)
-		//{
-		//	if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
-		//	{
-		//		PushCurrentNewText(globals::var().newText);
-		//		if (globals::var().lastFilePath.size() < 1)
-		//		{
-		//			SaveToFile(globals::var().DrawObjList, globals::var().fileName);
-		//			SetTitle(globals::var().fileName, param.hWnd_);
-		//			globals::var().modifyState = 2;
-		//		}
-		//		else
-		//		{
-		//			SaveToLastFilePath(globals::var().DrawObjList);
-		//			globals::var().modifyState = 2;
-		//		}
-		//	}
-		//}
 		DestroyWindow(param.hWnd_);
 		break;
 	case ID_COMMAND_1:  //清除
@@ -122,7 +94,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		}
 		int oldState = globals::var().modifyState;
 		globals::var().mlog.ClearLogs();
-		if (globals::var().DrawObjList.size() > 0)
+		if (globals::var().DrawObjList.size() > 0)  //set modify state
 			globals::var().modifyState = 1;
 		else
 			globals::var().modifyState = oldState;
@@ -131,7 +103,6 @@ LRESULT WM_CommandEvent(Parameter& param)
 		globals::var().newText.clean();
 		newCircle.clean();
 		globals::var().selectedObjectPtr = NULL;
-		//globals::var().currentDrawMode = 0;
 		currentCursorMode = 0;
 		globals::var().hasSelected = false;
 		CleanObjects(param.hWnd_);
@@ -265,7 +236,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		break;
 	case ID_SAVE:
 		if (globals::var().modifyState == 0 || globals::var().lastFilePath.size() <1)
-			goto SAVE_AS_NEW_FILE;
+			goto SAVE_AS_NEW_FILE;  //there doesn't exist an old file path
 		PushCurrentNewText(globals::var().newText);
 		SaveToLastFilePath(globals::var().DrawObjList);
 		globals::var().modifyState = 2;
@@ -292,7 +263,6 @@ LRESULT WM_CommandEvent(Parameter& param)
 					SaveToLastFilePath(globals::var().DrawObjList);  //save to last opened file
 			}
 		}
-		globals::var().modifyState = 0;
 		globals::var().fileName = "Untitled";
 		globals::var().lastFilePath.clear();
 		SetTitle(globals::var().fileName, param.hWnd_);
@@ -305,9 +275,21 @@ LRESULT WM_CommandEvent(Parameter& param)
 		globals::var().hasSelected = false;
 		CleanObjects(param.hWnd_);
 		globals::var().mlog.ClearLogs();
+		globals::var().modifyState = 0;  //<-this must be set after ClearLogs(), else it will be changed inside.
 		break;
 	case ID_OPEN_FILE:
 	{
+		if (globals::var().modifyState == 1) //disply save dialog
+		{
+			if (DisplayConfirmNewFileMessageBox(globals::var().fileName) == IDYES)
+			{
+				PushCurrentNewText(globals::var().newText);
+				if (globals::var().modifyState == 0 || globals::var().lastFilePath.size() < 1)
+					SaveToFile(globals::var().DrawObjList, globals::var().fileName);  //do not have last opened file					
+				else
+					SaveToLastFilePath(globals::var().DrawObjList);  //save to last opened file
+			}
+		}
 		globals::var().selectedObjectPtr = NULL;
 		globals::var().hasSelected = false;
 		currentCursorMode = 0;
@@ -318,6 +300,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 		newRect.clean();
 		globals::var().newText.clean();
 		newCircle.clean();
+		globals::var().mlog.ClearLogs();
 		globals::var().modifyState = 2;
 		SetTitle(globals::var().fileName, param.hWnd_);		
 		InvalidateRect(param.hWnd_, NULL, TRUE);
@@ -420,6 +403,8 @@ LRESULT WM_CommandEvent(Parameter& param)
 		auto it = std::find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
 		if (it != globals::var().DrawObjList.end())
 		{
+			int pos = distance(globals::var().DrawObjList.begin(), it);
+			globals::var().mlog.OP_del(globals::var().selectedObjectPtr, pos);  //log the cut object (delete)
 			delete globals::var().selectedObjectPtr;
 			globals::var().hasSelected = false;
 			globals::var().selectedObjectPtr = nullptr;
@@ -470,6 +455,9 @@ LRESULT WM_CommandEvent(Parameter& param)
 		globals::var().selectedObjectPtr = globals::var().DrawObjList.back();
 		globals::var().hasSelected = true;
 
+		//prepare undo logs
+		globals::var().mlog.OP_add(globals::var().selectedObjectPtr);
+
 		InvalidateRect(param.hWnd_, NULL, FALSE);  
 		break;
 	}
@@ -487,26 +475,23 @@ LRESULT WM_CommandEvent(Parameter& param)
 	}
 	case ID_Delete:
 	{
-		/*//do nothing wheh mode = 0~2
-		if (globals::var().currentDrawMode < 3)
-			break;*/
+
 		if (globals::var().selectedObjectPtr == nullptr)
 			break;
 
-		//if editing, goto WM_KeyDownEvent
 		if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished) //delete the newText
-		{
-			//LPARAM lparam = 0x00000001;
-			//SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
-			
+		{			
 			//record the log
 			globals::var().mlog.OP_del(&globals::var().newText, -1);
 
 			globals::var().newText.clean();
 
 			//select the last object in list
-			if(globals::var().DrawObjList.size() > 0)
+			if (globals::var().DrawObjList.size() > 0)
+			{
 				globals::var().selectedObjectPtr = globals::var().DrawObjList.back();
+				FocusSelectedObject(globals::var().selectedObjectPtr, param.hWnd_);
+			}
 			else
 			{
 				globals::var().selectedObjectPtr = nullptr;
@@ -515,13 +500,6 @@ LRESULT WM_CommandEvent(Parameter& param)
 			InvalidateRect(param.hWnd_, NULL, FALSE);
 			break;
 		}
-
-		/*if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType == 4 && globals::var().hasSelected)
-		{
-			LPARAM lparam = 0x00000001;
-			SendMessage(globals::var().hWndFather, WM_KEYDOWN, VK_DELETE, lparam);
-			break;
-		}*/
 
 		//find the position of the selected object in list
 		auto it = std::find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
@@ -542,6 +520,7 @@ LRESULT WM_CommandEvent(Parameter& param)
 				if (pos > 0)
 					advance(it, pos - 1);
 				globals::var().selectedObjectPtr = *it;
+				FocusSelectedObject(globals::var().selectedObjectPtr, param.hWnd_);
 			}
 			else
 			{
@@ -571,6 +550,8 @@ LRESULT WM_CreateEvent(Parameter& param)
 
 	HBITMAP bmpIcon1, bmpIcon2, bmpIcon3, bmpIcon4, bmpIcon5, bmpIcon6, bmpIcon7, bmpIcon8, bmpIcon9;
 	HBITMAP line1, line2, line3, line4, line5;
+	HBITMAP checkedIcon;
+
 	//image for child window buttons
 	bmpIcon1 = (HBITMAP)LoadImage(NULL, L"black.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	bmpIcon2 = (HBITMAP)LoadImage(NULL, L"grey.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -589,10 +570,9 @@ LRESULT WM_CreateEvent(Parameter& param)
 	line5 = (HBITMAP)LoadImage(NULL, L"wide5.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
 	//add image to menu
-	hMenu = GetMenu(param.hWnd_); //LoadMenu(NULL, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
+	hMenu = GetMenu(param.hWnd_);
 	if (hMenu)
 	{
-		//ModifyMenu(hMenu, ID_COMMAND_1, MF_BYCOMMAND | MF_STRING, ID_COMMAND_1, (PCTSTR)(LONG)bmpIcon1);
 		HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 		HMENU hMenu3 = GetSubMenu(hMenu2, 6);  //hMenu3 = 顏色
 		HMENU hMenu4 = GetSubMenu(hMenu2, 7);  //hMenu4 = 線寬
@@ -619,7 +599,7 @@ LRESULT WM_CreateEvent(Parameter& param)
 		ModifyMenu(hMenu4, 2, MF_BYPOSITION | MF_BITMAP, ID_Wide3, (LPCTSTR)line3);
 		ModifyMenu(hMenu4, 3, MF_BYPOSITION | MF_BITMAP, ID_Wide4, (LPCTSTR)line4);
 		ModifyMenu(hMenu4, 4, MF_BYPOSITION | MF_BITMAP, ID_Wide5, (LPCTSTR)line5);
-		//DeleteObject(line1);
+
 		CheckMenuItem(hMenu3, ID_BLACK, MF_CHECKED);
 		CheckMenuItem(hMenu4, ID_Wide1, MF_CHECKED);
 		CheckMenuItem(hMenu5, ID_BG_Transparent, MF_CHECKED);
@@ -630,19 +610,6 @@ LRESULT WM_CreateEvent(Parameter& param)
 			if (i < 5)
 				SetMenuItemBitmaps(hMenu4, i, MF_BYPOSITION, NULL, checkedIcon);
 		}
-
-		//bmpIcon1 = (HBITMAP)LoadImage(NULL, L"grey.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		//bmpIcon2 = (HBITMAP)LoadImage(NULL, L"greychecked.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		/*SetMenuItemBitmaps(hMenu3, 0, MF_BYPOSITION, bmpIcon1, bmpIcon1);
-		SetMenuItemBitmaps(hMenu3, 1, MF_BYPOSITION, bmpIcon2, bmpIcon2);
-		SetMenuItemBitmaps(hMenu3, 2, MF_BYPOSITION, bmpIcon3, bmpIcon3);
-		SetMenuItemBitmaps(hMenu3, 3, MF_BYPOSITION, bmpIcon4, bmpIcon4);
-		SetMenuItemBitmaps(hMenu3, 4, MF_BYPOSITION, bmpIcon5, bmpIcon5);
-		SetMenuItemBitmaps(hMenu3, 5, MF_BYPOSITION, bmpIcon6, bmpIcon6);
-		SetMenuItemBitmaps(hMenu3, 6, MF_BYPOSITION, bmpIcon7, bmpIcon7);
-		SetMenuItemBitmaps(hMenu3, 7, MF_BYPOSITION, bmpIcon8, bmpIcon8);*/
-		/*AppendMenu(hMenu3, MF_BITMAP, 111, (PCTSTR)(LONG)bmpIcon1);
-		CheckMenuItem(hMenu3, 111, MF_CHECKED);*/
 	}
 	else
 		MessageBox(param.hWnd_, 0, TEXT("NO MENU"), MB_OK);
@@ -660,7 +627,6 @@ LRESULT WM_CreateEvent(Parameter& param)
 	// screen contents. The memory DC keeps a copy of this 
 	// snapshot in the associated bitmap. 
 	hdcScreen = CreateDC(L"DISPLAY", (PCTSTR)NULL, (PCTSTR)NULL, (CONST DEVMODE *) NULL);
-	///hdcScreenCompat = CreateCompatibleDC(hdcScreen);
 
 	// Retrieve the metrics for the bitmap associated with the 
 	// regular device context.  bmp size=1920*1080
@@ -669,15 +635,8 @@ LRESULT WM_CreateEvent(Parameter& param)
 	bmp.bmWidth = 2000;//GetDeviceCaps(hdcScreen, HORZRES);
 	bmp.bmHeight = 2000;//GetDeviceCaps(hdcScreen, VERTRES);
 
-						// The width must be byte-aligned. 
+	// The width must be byte-aligned. 
 	bmp.bmWidthBytes = ((bmp.bmWidth + 15) &~15) / 8;
-
-	// Create a bitmap for the compatible DC. 
-	///hbmpCompat = CreateBitmap(bmp.bmWidth, bmp.bmHeight,
-	///	bmp.bmPlanes, bmp.bmBitsPixel, (CONST VOID *) NULL);
-
-	// Select the bitmap for the compatible DC. 
-	///SelectObject(hdcScreenCompat, hbmpCompat);
 
 	// Initialize the flags. 
 	fBlt = FALSE;
@@ -703,13 +662,6 @@ LRESULT WM_CreateEvent(Parameter& param)
 
 LRESULT WM_MouseMoveEvent(Parameter& param)
 {
-
-	//if (globals::var().currentDrawMode != 4 && mouseHasDown && currentCursorMode == 0)  //scroll the scrollbars when mouse out of range
-	//{
-	//	mouseX = GET_X_LPARAM(param.lParam_);
-	//	mouseY = GET_Y_LPARAM(param.lParam_);
-	//	AutoScroll(param.hWnd_, mouseX, mouseY, xCurrentScroll, yCurrentScroll, rect);
-	//}
 	mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
 	mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
 
@@ -777,14 +729,10 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		{
 			//draw a double arrow mouse if mouse is on the 8-points
 			currentCursorMode = globals::var().selectedObjectPtr->CheckMouseIsOnSizingOpint(mouseX, mouseY);
-			//if(currentCursorMode == 0)
-			//SetCursor(cursors[(currentCursorMode + 1) / 2]);			
-			//else if(currentCursorMode == 1 || currentCursorMode == 2)
 
 			//draw a moving arrow if mouse is on the object
 			if (currentCursorMode == 0 && globals::var().selectedObjectPtr->CheckObjectCollision(mouseX, mouseY))
 			{
-				//SetCursor(cursors[5]);
 				currentCursor = &cursors[5];
 				currentCursorMode = 9;
 			}
@@ -810,6 +758,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 				if (!isResizing)  //log the old size values
 				{
 					isResizing = true;
+					currentCursor = &cursors[5];
 					globals::var().mlog.OP_sizeStart(&globals::var().newText, -1);  //log the resize of newText
 				}
 
@@ -840,12 +789,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 				if ((*it)->CheckObjectCollision(mouseX, mouseY))
 				{
 					globals::var().preSelectObject = (*it);
-					//MessageBox(NULL, L"Mouse Is On An Obj!", L"Yes", MB_OK);
-					//InvalidateRect(param.hWnd_, NULL, FALSE);
 					break;
-					//globals::var().hasSelected = true;
-					//break;
-					//it->PaintMouseOnRect();
 				}
 				globals::var().preSelectObject = NULL;				
 			}
@@ -856,14 +800,11 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 		if (globals::var().hasSelected && !mouseHasDown)
 		{
 			//draw a double arrow mouse if mouse is on the 8-points
-			currentCursorMode = globals::var().selectedObjectPtr->CheckMouseIsOnSizingOpint(mouseX, mouseY);
-			//SetCursor(cursors[(currentCursorMode + 1) / 2]);
-			
+			currentCursorMode = globals::var().selectedObjectPtr->CheckMouseIsOnSizingOpint(mouseX, mouseY);			
 
 			//draw a moving arrow if mouse is on the object
 			if (currentCursorMode == 0 && globals::var().selectedObjectPtr->CheckObjectCollision(mouseX, mouseY))
 			{
-				//SetCursor(cursors[5]);
 				currentCursor = &cursors[5];
 				currentCursorMode = 9;
 			}
@@ -878,6 +819,7 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 				{
 					//store the old position of ptBeg
 					isMoving = true;
+					currentCursor = &cursors[5];
 
 					//find the position of the selected object in list
 					auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
@@ -909,26 +851,21 @@ LRESULT WM_MouseMoveEvent(Parameter& param)
 					TextObj * temp;
 					temp = (TextObj*)globals::var().selectedObjectPtr;
 					temp->ResizingText(mouseX, mouseY, currentCursorMode);
-					//AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
-					AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
+					AutoScrollObjectResize(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				}
 				else
 				{
 					globals::var().selectedObjectPtr->Resizing(mouseX, mouseY, currentCursorMode);
-					//AutoScroll(param.hWnd_, mouseX - xCurrentScroll, mouseY - yCurrentScroll, xCurrentScroll, yCurrentScroll, rect);
-					AutoScrollObject(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
+					AutoScrollObjectResize(param.hWnd_, globals::var().selectedObjectPtr, xCurrentScroll, yCurrentScroll, rect);
 				}
 				InvalidateRect(param.hWnd_, NULL, FALSE);
 			}
 		}
 		else 
-		{
-
-		}
+		{	/*do nothing here*/	}
 	}
-	//break;
+
 	SetCursor(*currentCursor);
-	//SetClassLong(param.hWnd_, -12, (DWORD)*currentCursor);
 	return 0;
 }
 
@@ -939,7 +876,7 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 		SetCapture(param.hWnd_);  //capture mouse even outside window
 		mouseX = GET_X_LPARAM(param.lParam_) + xCurrentScroll;
 		mouseY = GET_Y_LPARAM(param.lParam_) + yCurrentScroll;
-		if (globals::var().currentDrawMode == 0 && currentCursorMode == 0)
+		if (globals::var().currentDrawMode == 0 && currentCursorMode == 0)  //start drawing
 		{
 			newLine.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 			globals::var().modifyState = 1;
@@ -954,7 +891,7 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 			newCircle.makeStart(mouseX, mouseY, currentColor, currentBgColor, currentLineWidth);
 			globals::var().modifyState = 1;
 		}
-		else if (globals::var().currentDrawMode == 3 && currentCursorMode == 0)
+		else if (globals::var().currentDrawMode == 3 && currentCursorMode == 0)  //make a new text or move old text
 		{
 			//if mouse is on the 8 sizing point, start to resize
 			if (currentCursorMode != 0)
@@ -1018,7 +955,7 @@ LRESULT WM_LButtonDownEvent(Parameter& param)
 			//if no operation, de-select everything
 			if (!b)
 			{
-				globals::var().selectedObjectPtr == nullptr;
+				globals::var().selectedObjectPtr = nullptr;
 				globals::var().hasSelected = false;
 			}
 
@@ -1058,9 +995,7 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 			globals::var().selectedObjectPtr = globals::var().DrawObjList.back();
 			globals::var().hasSelected = true;
 
-			//newLine.startFinished = false;
 			newLine.clean();
-			//DrawObjList.push_back(move(make_unique<LineObj>(newline)));
 		}
 		else if (globals::var().currentDrawMode == 1 && currentCursorMode == 0 && mouseHasDown)  //draw rect
 		{
@@ -1081,7 +1016,6 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 			globals::var().hasSelected = true;
 
 			newRect.clean();
-			//DrawObjList.push_back(move(make_unique<RectangularObj>(newRect)));
 		}
 		else if (globals::var().currentDrawMode == 2 && currentCursorMode == 0 && mouseHasDown)  //draw circle
 		{
@@ -1101,7 +1035,6 @@ LRESULT WM_LButtonUpEvent(Parameter& param)
 			globals::var().hasSelected = true;
 
 			newCircle.clean();
-			//DrawObjList.push_back(move(make_unique<CircleObj>(newCircle)));
 		}
 		else if (globals::var().currentDrawMode == 3)  //only stop moving text
 		{	
@@ -1169,7 +1102,7 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 		bool modified = false;
 		if ((globals::var().currentDrawMode == 3 && globals::var().newText.startFinished))  //key into newText
 		{
-			globals::var().mlog.OP_textStart(&globals::var().newText, -1);
+			globals::var().mlog.OP_textStart(&globals::var().newText, -1); //make a log
 			modified = globals::var().newText.KeyIn(param.wParam_);
 
 			int x, y;  //x and y is current caret position on window
@@ -1193,7 +1126,7 @@ LRESULT WM_KeyDownEvent(Parameter& param)
 			if (it != globals::var().DrawObjList.end())
 			{
 				int pos = distance(globals::var().DrawObjList.begin(), it);
-				globals::var().mlog.OP_textStart(globals::var().selectedObjectPtr, pos);
+				globals::var().mlog.OP_textStart(globals::var().selectedObjectPtr, pos);  //make a log
 
 				modified = temp->KeyIn(param.wParam_);
 
@@ -1248,9 +1181,6 @@ LRESULT WM_PaintEvent(Parameter& param)
 	// TODO: 在此加入任何使用 hdc 的繪圖程式碼...
 	//---------------------------------------------------------------
 
-	//TextOut(memoryDC, 10 - xCurrentScroll, 30 - yCurrentScroll, TEXT("123456"), 6);
-	//TextOutA(memoryDC, 10 - xCurrentScroll, 50 - yCurrentScroll, info, strlen(info));  //TextOutA ???
-	//TextOutA(memoryDC, 10 - xCurrentScroll, 70 - yCurrentScroll, s.c_str(), s.length());
 
 	string s2 = "";  //string for debug
 	for (auto& it : globals::var().DrawObjList)  //Draw each object in DrawObjList
@@ -1258,12 +1188,13 @@ LRESULT WM_PaintEvent(Parameter& param)
 		it->Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	}
 
+	//draw the new objects (if any)
 	newLine.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	newRect.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	newCircle.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 	globals::var().newText.Paint(memoryDC, xCurrentScroll, yCurrentScroll);
 
-	if (mouseHasDown)  //paint the drawing rectangle
+	if (mouseHasDown)  //paint the drawing rectangle based on object type
 	{
 		switch (globals::var().currentDrawMode)
 		{
@@ -1284,8 +1215,11 @@ LRESULT WM_PaintEvent(Parameter& param)
 	if (globals::var().preSelectObject != nullptr)  //paint the pre-select rectangle
 	{
 		globals::var().preSelectObject->PaintMouseOnRect(memoryDC, xCurrentScroll, yCurrentScroll);
-		s2 = "paint the pre-select rectangle";
-		TextOutA(memoryDC, 700 - xCurrentScroll, 600 - yCurrentScroll, s2.c_str(), s2.length());
+		if (globals::var().debugMode)
+		{
+			s2 = "paint the pre-select rectangle";
+			TextOutA(memoryDC, 700 - xCurrentScroll, 600 - yCurrentScroll, s2.c_str(), s2.length());
+		}
 	}
 
 	if (globals::var().hasSelected)  //paint the selected rectangle
@@ -1293,37 +1227,37 @@ LRESULT WM_PaintEvent(Parameter& param)
 
 	if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished && !globals::var().newText.endFinished)
 	{
-		// Create a solid black caret. 
+		// Create a solid black caret on newText. 
 		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
 		SetCaretPos(globals::var().newText.caretPos.x - xCurrentScroll, globals::var().newText.caretPos.y - yCurrentScroll);
-		/*s2 = "caretPos=" + to_string(globals::var().newText.caretPos.x) + ", " + to_string(globals::var().newText.caretPos.y);
-		TextOutA(memoryDC, 500 - xCurrentScroll, 500 - yCurrentScroll, s2.c_str(), s2.length());*/
+		if (globals::var().debugMode)
+		{
+			s2 = "caretPos=" + to_string(globals::var().newText.caretPos.x) + ", " + to_string(globals::var().newText.caretPos.y);
+			TextOutA(memoryDC, 500 - xCurrentScroll, 500 - yCurrentScroll, s2.c_str(), s2.length());
+		}
 	}
 	else if (globals::var().hasSelected && globals::var().currentDrawMode == 4 && globals::var().selectedObjectPtr->objectType == 4)
 	{
+		//caret is on selected text object
 		TextObj* t = (TextObj *)globals::var().selectedObjectPtr;
 		CreateCaret(param.hWnd_, (HBITMAP)NULL, 3, 14);
 		SetCaretPos(t->caretPos.x - xCurrentScroll, t->caretPos.y - yCurrentScroll);
 	}
 	else
-		DestroyCaret();//HideCaret(param.hWnd_);
+		DestroyCaret();
 
-	s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
-	s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
-	s2 = "currentDrawMode = " + to_string(globals::var().currentDrawMode);
-	TextOutA(memoryDC, 700 - xCurrentScroll, 660 - yCurrentScroll, s2.c_str(), s2.length());
-	s2 = "object count: " + to_string(globals::var().DrawObjList.size());
-	TextOutA(memoryDC, 700 - xCurrentScroll, 680 - yCurrentScroll, s2.c_str(), s2.length());
-
-	/*for (int i = 0; i < 2000; )
+	if (globals::var().debugMode)
 	{
-	s2 = " " + to_string(i);
-	TextOutA(memoryDC, 0- xCurrentScroll, i - yCurrentScroll, s2.c_str(), s2.length());
-	TextOutA(memoryDC, i - xCurrentScroll, 0 - yCurrentScroll, s2.c_str(), s2.length());
-	i += 200;
-	}*/
+		s2 = "xCurrentScroll=" + to_string(xCurrentScroll) + " yCurrentScroll=" + to_string(yCurrentScroll);
+		TextOutA(memoryDC, 700 - xCurrentScroll, 640 - yCurrentScroll, s2.c_str(), s2.length());
+		s2 = "mousex=" + to_string(mouseX) + " mousey=" + to_string(mouseY);
+		TextOutA(memoryDC, 700 - xCurrentScroll, 620 - yCurrentScroll, s2.c_str(), s2.length());
+		s2 = "currentDrawMode = " + to_string(globals::var().currentDrawMode);
+		TextOutA(memoryDC, 700 - xCurrentScroll, 660 - yCurrentScroll, s2.c_str(), s2.length());
+		s2 = "object count: " + to_string(globals::var().DrawObjList.size());
+		TextOutA(memoryDC, 700 - xCurrentScroll, 680 - yCurrentScroll, s2.c_str(), s2.length());
+	}
+
 
 	//---------------------------------------------------------------
 	// Blt the changes to the screen DC.
@@ -1337,7 +1271,7 @@ LRESULT WM_PaintEvent(Parameter& param)
 	DeleteDC(memoryDC);  //release a memory DC
 	DeleteObject(hBmp);
 	EndPaint(param.hWnd_, &ps);
-	//ReleaseDC(param.hWnd_, hdc);
+
 	return 0;
 }
 
@@ -1580,7 +1514,7 @@ LRESULT WM_DestroyEvent(Parameter& param)
 
 LRESULT WM_SetCursorEvent(Parameter& param)
 {
-	return 0;
+	return 0;  //handle this message to prevent mouse icon turn back
 }
 
 LRESULT WM_GetMinMaxInfo(Parameter & param)  //set the min size of window
@@ -1611,7 +1545,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-POINT MovePastedObj()
+POINT MovePastedObj()  //move the pasted object by 30
 {
 	int xdir, ydir;
 	if (xPasteDir == 0 ) 
@@ -1762,4 +1696,16 @@ void ToggleUndoButton()
 	EnableMenuItem(hMenu2, ID_Redo, MF_BYCOMMAND | MF_GRAYED);
 	EnableMenuItem(hMenu2, ID_Undo, MF_BYCOMMAND | MF_ENABLED);
 	globals::var().modifyState = 1;
+}
+
+//scroll the screen if center of p is out of screen
+void FocusSelectedObject(DrawObj* p, HWND hwnd)
+{
+	if (!globals::var().hasSelected || p == nullptr)
+		return;
+
+	//check if center out of screen
+	int xcenter = (p->ptBeg.x + p->ptEnd.x) / 2 - xCurrentScroll;
+	int ycenter = (p->ptBeg.y + p->ptEnd.y) / 2 - yCurrentScroll;
+	AutoScroll(hwnd, xcenter, ycenter, xCurrentScroll, yCurrentScroll, rect);
 }

@@ -26,14 +26,13 @@ DrawObj::~DrawObj(){ }
 
 void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 {
-	//if (this == nullptr)  //prevent the object being deleted by openfile... etc.
-	//	return;
+	//prevent the object being deleted by openfile... etc.
 	try
 	{
 		if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 			return;
 	}
-	catch (...)
+	catch (...)  //in case I can catch access violation exception...
 	{
 		return;
 	}
@@ -135,6 +134,7 @@ void DrawObj::StartToMove(int mouseX, int mouseY)
 
 void DrawObj::Moving(int mouseX, int mouseY)
 {
+	//set new X Y position
 	int deltaX, deltaY;
 	deltaX = mouseX - originalMouseX;
 	deltaY = mouseY - originalMouseY;
@@ -176,6 +176,7 @@ void DrawObj::Moving(int mouseX, int mouseY)
 
 void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 {
+	//set new X Y position
 	int deltaX, deltaY;
 	deltaX = mouseX - originalMouseX;
 	deltaY = mouseY - originalMouseY;
@@ -224,10 +225,6 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 		ptBeg.y = originalBegin.y + beginDeltaY;
 		ptEnd.x = originalEnd.x + endDeltaX;
 		ptEnd.y = originalEnd.y + endDeltaY;
-		/*if (ptBeg.x > ptEnd.x - 2)
-			ptBeg.x = ptEnd.x + 2;
-		if (ptBeg.y > ptEnd.y - 2)
-			ptBeg.y = ptEnd.y + 2;*/
 	}
 	else if (originalBegin.x < originalEnd.x && originalBegin.y >= originalEnd.y) //ptBeg 在左下
 	{
@@ -316,40 +313,3 @@ void DrawObj::releaseColor(HDC hdc)
 	SelectObject(hdc, GetStockObject(NULL_BRUSH));
 }
 
-//HBRUSH DrawObj::switchBackgroundColor()
-//{
-//	HBRUSH brush;
-//	switch (backgroundColor)
-//	{
-//	case 0:
-//		//brush = CreateSolidBrush(RGB(255, 255, 255));
-//		return NULL;
-//		break;
-//	case 1:
-//		brush = CreateSolidBrush(RGB(180, 180, 180));
-//		break;
-//	case 2:
-//		brush = CreateSolidBrush(RGB(255, 0, 0));
-//		break;
-//	case 3:
-//		brush = CreateSolidBrush(RGB(0, 255, 0));
-//		break;
-//	case 4:
-//		brush = CreateSolidBrush(RGB(0, 0, 255));
-//		break;
-//	case 5:
-//		brush = CreateSolidBrush(RGB(0, 255, 255));
-//		break;
-//	case 6:
-//		brush = CreateSolidBrush(RGB(255, 255, 0));
-//		break;
-//	case 7:
-//		brush = CreateSolidBrush(RGB(255, 0, 255));
-//		break;
-//	default:
-//		return NULL;
-//	}
-//	return brush;
-//	//SelectObject(hdc, GetStockObject(NULL_BRUSH)); //to draw a empty rectangle
-//}
-//
