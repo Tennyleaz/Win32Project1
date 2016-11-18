@@ -36,6 +36,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	LoadStringW(hInstance, IDC_WIN32PROJECT1, globals::var().szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
+	//map each message I need to seperate functions
 	Listener::WinProcMsgListener().AddEvent(WM_COMMAND, WM_CommandEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_CREATE, WM_CreateEvent);
 	Listener::WinProcMsgListener().AddEvent(WM_MOUSEMOVE, WM_MouseMoveEvent);

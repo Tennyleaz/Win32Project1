@@ -13,7 +13,6 @@ void CircleObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		return;
 	HPEN hPen = switchColor();
 	SelectObject(hdc, hPen);
-	//HBRUSH hBrush = switchBackgroundColor();
 	HBRUSH hBrush;
 	switch (backgroundColor)
 	{
@@ -107,7 +106,7 @@ void CircleObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 
 bool CircleObj::CheckObjectCollision(int mouseX, int mouseY)
 {
-	//(x-h)^2/a^2 + (y-k)^2/b^2 = 1
+	//circle function: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
 	int top = (ptBeg.y < ptEnd.y ? ptBeg.y : ptEnd.y);
 	int left = (ptBeg.x < ptEnd.x ? ptBeg.x : ptEnd.x);
 	int buttom = (ptBeg.y > ptEnd.y ? ptBeg.y : ptEnd.y);

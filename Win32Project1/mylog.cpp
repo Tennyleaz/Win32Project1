@@ -3,14 +3,9 @@
 #include "globals.h"
 #include "WM_Command.h"
 
-mylog::mylog()
-{
+mylog::mylog() { }
 
-}
-
-mylog::~mylog()
-{
-}
+mylog::~mylog() { }
 
 void mylog::Undo()
 {

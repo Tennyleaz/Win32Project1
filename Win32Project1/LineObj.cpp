@@ -14,7 +14,6 @@ void LineObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	MoveToEx(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, NULL);
 	LineTo(hdc, ptEnd.x - Xoffset, ptEnd.y - Yoffset);
 
-
 	DeleteObject(hPen);
 	releaseColor(hdc);
 }
@@ -97,16 +96,9 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 		}
 
 		if (px == x1 && py >= top && py <= bottom)
-		{
-			//MessageBox(NULL, L"Yes!\nGiven point lies in the line segment", L"Detection", MB_OK);
 			return true;
-		}
 		else
-		{
-			//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
 			return false;
-		}
-
 	}
 
 	if (x1 < x2)
@@ -136,9 +128,6 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 
 	slope = dy / dx;
 
-	// y = mx + c
-	// intercept c = y - mx
-
 	intercept = y1 - slope * x1; // which is same as y2 - slope * x2
 
 	if (slope * px + intercept > (py - epsilon) &&
@@ -147,14 +136,8 @@ bool LineObj::CheckObjectCollision(int mouseX, int mouseY)
 		if (px >= left && px <= right &&
 			py >= top && py <= bottom)
 		{
-			//std::cout << "Given point lies in the line segment\n";
-			//MessageBox(NULL, L"Yes!\nGiven point lies in the line segment", L"Detection", MB_OK);
 			return true;
 		}
-		//else
-		//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
-		//std::cout << "Given point is outside the line segment\n";
 	}
-		//MessageBox(NULL, L"Given point is outside the line segment", L"Detection", MB_OK);
 	return false;
 }
