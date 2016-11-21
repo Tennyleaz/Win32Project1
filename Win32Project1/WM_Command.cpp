@@ -533,10 +533,21 @@ LRESULT WM_CommandEvent(Parameter& param)
 		}
 		break;
 	}
+	case ID_DebugMode:
+	{
+		globals::var().debugMode = !globals::var().debugMode;
+		InvalidateRect(param.hWnd_, NULL, FALSE);
+		break;
+	}
 	default:
-		wsprintf(szBuffer, TEXT("Button ID %d : %d"), param.wParam_, param.lParam_);
-		MessageBox(param.hWnd_, szBuffer, TEXT("Pressed"), MB_OK);
+	{
+		if (globals::var().debugMode)
+		{
+			wsprintf(szBuffer, TEXT("Button ID %d : %d"), param.wParam_, param.lParam_);
+			MessageBox(param.hWnd_, szBuffer, TEXT("Pressed"), MB_OK);
+		}
 		return DefWindowProc(param.hWnd_, param.message_, param.wParam_, param.lParam_);
+	}
 	}
 	return 0;
 }
