@@ -16,7 +16,7 @@ TextObj::TextObj()
 	caretPos = tailPos;
 }
 
-void TextObj::clean()
+void TextObj::Clean()
 {
 	ptBeg.x = -8;
 	ptBeg.y = -13;
@@ -160,7 +160,7 @@ void TextObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		SetBkMode(hdc, TRANSPARENT);  //set text background to transparent
 		DrawTextA(hdc, s.c_str(), s.length(), &rc, DT_LEFT | DT_NOCLIP);
 		
-		if (globals::var().debugMode)
+		if (Globals::var().debugMode)
 		{
 			s = "*line number " + to_string(text.size()) + ",char number " + (text.size() > 0 ? to_string(text.back().size()) : "NULL");
 			TextOutA(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset - 13, s.c_str(), s.length());
@@ -224,7 +224,7 @@ void TextObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(oldBrush);
 }
 
-bool TextObj::addChar(int c)
+bool TextObj::AddChar(int c)
 {
 	if (text.size() == 0)
 		text.push_back("");
@@ -280,7 +280,7 @@ bool TextObj::addChar(int c)
 		return true;
 }
 
-bool TextObj::addNewLine()
+bool TextObj::AddNewLine()
 {
 	if (text.size() == 0)
 		text.push_back("");
@@ -312,7 +312,7 @@ bool TextObj::addNewLine()
 	return true;
 }
 
-bool TextObj::backspace()
+bool TextObj::Backspace()
 {
 	bool returnValue = false;
 	if (text.size() > 0)
@@ -347,7 +347,7 @@ bool TextObj::backspace()
 	return returnValue;
 }
 
-bool TextObj::del()  //this function is not used now...
+bool TextObj::Del()  //this function is not used now...
 {
 	bool returnValue = false;
 	if (inputPos.x >= text[inputPos.y].size() && inputPos.y+1 < text.size() )  //X is at end of string, delete the next "\n"
@@ -388,18 +388,18 @@ bool TextObj::KeyIn(int wParam)
 			else
 				return false;  //do nothing
 		}
-		returnValue = addChar(wParam);
+		returnValue = AddChar(wParam);
 	}
 	else if (wParam == 0x0D)  //enter
 	{
 		if (ptBeg.y + (text.size() + 1) * 13 < 1996)
 		{
-			returnValue = addNewLine();  //insert a "" string to back
+			returnValue = AddNewLine();  //insert a "" string to back
 		}
 	}
 	else if (wParam == 0x08)  //backspace <-|
 	{
-		returnValue = backspace();
+		returnValue = Backspace();
 	}
 	else if (wParam == VK_HOME) //Home
 	{

@@ -14,7 +14,7 @@ void RectangularObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 		return;
 
-	HPEN hPen = switchColor();
+	HPEN hPen = SwitchColor();
 	SelectObject(hdc, hPen);
 	//HBRUSH hBrush = switchBackgroundColor();
 	HBRUSH hBrush;
@@ -59,7 +59,7 @@ void RectangularObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(hPen);
 	if (hBrush != NULL)
 		DeleteObject(hBrush);
-	releaseColor(hdc);
+	ReleaseColor(hdc);
 }
 
 void RectangularObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)

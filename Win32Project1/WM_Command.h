@@ -31,3 +31,5 @@ void UpdateNewText(vector<string>, POINT);
 
 void ToggleUndoButton();
 void FocusSelectedObject(DrawObj*, HWND);
+
+enum DrawMode { DrawLine, DrawRect, DrawCircle, DrawTexts, SelectTool };

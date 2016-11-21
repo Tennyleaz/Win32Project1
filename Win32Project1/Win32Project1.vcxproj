@@ -146,10 +146,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DrawObj.h" />
-    <ClInclude Include="globals.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Listener.h" />
-    <ClInclude Include="mylog.h" />
+    <ClInclude Include="Mylog.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Save.h" />
     <ClInclude Include="stdafx.h" />
@@ -160,10 +160,10 @@
   <ItemGroup>
     <ClCompile Include="CircleObj.cpp" />
     <ClCompile Include="DrawObj.cpp" />
-    <ClCompile Include="globals.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="LineObj.cpp" />
     <ClCompile Include="Listener.cpp" />
-    <ClCompile Include="mylog.cpp" />
+    <ClCompile Include="Mylog.cpp" />
     <ClCompile Include="RectangularObj.cpp" />
     <ClCompile Include="Save.cpp" />
     <ClCompile Include="stdafx.cpp">

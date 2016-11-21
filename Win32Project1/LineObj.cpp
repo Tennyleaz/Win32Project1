@@ -8,14 +8,14 @@ void LineObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		return;
 	if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 		return;
-	HPEN hPen = switchColor();
+	HPEN hPen = SwitchColor();
 	SelectObject(hdc, hPen);
 
 	MoveToEx(hdc, ptBeg.x - Xoffset, ptBeg.y - Yoffset, NULL);
 	LineTo(hdc, ptEnd.x - Xoffset, ptEnd.y - Yoffset);
 
 	DeleteObject(hPen);
-	releaseColor(hdc);
+	ReleaseColor(hdc);
 }
 
 void LineObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)

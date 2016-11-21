@@ -28,12 +28,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	// TODO: 在此置入程式碼。	
-	globals::var().hInst = hInstance;
+	Globals::var().hInst = hInstance;
 	Listener::WinProcMsgListener().hInst = hInstance;
 
 	// 初始化全域字串
-	LoadStringW(hInstance, IDS_APP_TITLE, globals::var().szTitle, MAX_LOADSTRING);
-	LoadStringW(hInstance, IDC_WIN32PROJECT1, globals::var().szWindowClass, MAX_LOADSTRING);
+	LoadStringW(hInstance, IDS_APP_TITLE, Globals::var().szTitle, MAX_LOADSTRING);
+	LoadStringW(hInstance, IDC_WIN32PROJECT1, Globals::var().szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
 	//map each message I need to seperate functions
@@ -70,18 +70,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	childClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	childClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	childClass.lpszMenuName = L"Child";
-	childClass.lpszClassName = globals::var().szChildClass;
+	childClass.lpszClassName = Globals::var().szChildClass;
 	childClass.hIconSm = LoadIcon(childClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	RegisterClassEx(&childClass);
 
-	globals::var().myChildWindow = CreateWindow(globals::var().szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 320, globals::var().hWndFather, (HMENU)103, globals::var().hInst, NULL);
+	Globals::var().myChildWindow = CreateWindow(Globals::var().szChildClass, L"工具", WS_CAPTION | WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, 77, 320, Globals::var().hWndFather, (HMENU)103, Globals::var().hInst, NULL);
 
 	//create my tool buttons
-	globals::var().myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, globals::var().myChildWindow, (HMENU)120, globals::var().hInst, NULL);
-	globals::var().myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, globals::var().myChildWindow, (HMENU)121, globals::var().hInst, NULL);
-	globals::var().myButton[2] = CreateWindow(L"BUTTON", L"B3", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 115, 50, 50, globals::var().myChildWindow, (HMENU)122, globals::var().hInst, NULL);
-	globals::var().myButton[3] = CreateWindow(L"BUTTON", L"B4", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 170, 50, 50, globals::var().myChildWindow, (HMENU)123, globals::var().hInst, NULL);
-	globals::var().myButton[4] = CreateWindow(L"BUTTON", L"B5", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 225, 50, 50, globals::var().myChildWindow, (HMENU)124, globals::var().hInst, NULL);
+	Globals::var().myButton[0] = CreateWindow(L"BUTTON", L"B1", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 5, 50, 50, Globals::var().myChildWindow, (HMENU)120, Globals::var().hInst, NULL);
+	Globals::var().myButton[1] = CreateWindow(L"BUTTON", L"B2", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 60, 50, 50, Globals::var().myChildWindow, (HMENU)121, Globals::var().hInst, NULL);
+	Globals::var().myButton[2] = CreateWindow(L"BUTTON", L"B3", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 115, 50, 50, Globals::var().myChildWindow, (HMENU)122, Globals::var().hInst, NULL);
+	Globals::var().myButton[3] = CreateWindow(L"BUTTON", L"B4", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 170, 50, 50, Globals::var().myChildWindow, (HMENU)123, Globals::var().hInst, NULL);
+	Globals::var().myButton[4] = CreateWindow(L"BUTTON", L"B5", WS_VISIBLE | WS_CHILD | BS_BITMAP, 5, 225, 50, 50, Globals::var().myChildWindow, (HMENU)124, Globals::var().hInst, NULL);
 	
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_WIN32PROJECT1));
 
@@ -122,7 +122,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_WIN32PROJECT1);
-	wcex.lpszClassName = globals::var().szWindowClass;
+	wcex.lpszClassName = Globals::var().szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 	return RegisterClassExW(&wcex);
@@ -140,18 +140,18 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-	globals::var().hInst = hInstance; // 將執行個體控制代碼儲存在全域變數中
+	Globals::var().hInst = hInstance; // 將執行個體控制代碼儲存在全域變數中
 
- 	globals::var().hWndFather = CreateWindowW(globals::var().szWindowClass, globals::var().szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL | WS_CLIPCHILDREN |WS_CLIPSIBLINGS,
+ 	Globals::var().hWndFather = CreateWindowW(Globals::var().szWindowClass, Globals::var().szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL | WS_CLIPCHILDREN |WS_CLIPSIBLINGS,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-	if (!globals::var().hWndFather)
+	if (!Globals::var().hWndFather)
 	{
 		return FALSE;
 	}
 
-	ShowWindow(globals::var().hWndFather, nCmdShow);
-	UpdateWindow(globals::var().hWndFather);
+	ShowWindow(Globals::var().hWndFather, nCmdShow);
+	UpdateWindow(Globals::var().hWndFather);
 
 	return TRUE;
 }
@@ -195,17 +195,17 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	case WM_COMMAND:
 		wmId = LOWORD(wParam);
 		// 剖析功能表選取項目: 
-		SendMessage(globals::var().hWndFather, WM_COMMAND, wmId, 0);	
+		SendMessage(Globals::var().hWndFather, WM_COMMAND, wmId, 0);	
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
 		//image for child window buttons
-		SendMessage(globals::var().myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
-		SendMessage(globals::var().myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
-		SendMessage(globals::var().myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
-		SendMessage(globals::var().myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
-		SendMessage(globals::var().myButton[4], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon5);
-		SendMessage(globals::var().myButton[globals::var().currentDrawMode], BM_SETSTATE, BN_PUSHED, 0);
+		SendMessage(Globals::var().myButton[0], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon1);
+		SendMessage(Globals::var().myButton[1], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon2);
+		SendMessage(Globals::var().myButton[2], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon3);
+		SendMessage(Globals::var().myButton[3], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon4);
+		SendMessage(Globals::var().myButton[4], BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)bmpIcon5);
+		SendMessage(Globals::var().myButton[Globals::var().currentDrawMode], BM_SETSTATE, BN_PUSHED, 0);
 
 		if (!bmpIcon1)
 			MessageBox(hWnd, 0, TEXT("NO IMAGE"), MB_OK);
@@ -225,7 +225,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	{
 		WINDOWPOS *pos = (WINDOWPOS *)lParam;
 		RECT rectFather;
-		GetWindowRect(globals::var().hWndFather, &rectFather);
+		GetWindowRect(Globals::var().hWndFather, &rectFather);
 
 		if (pos->x < 0)
 			pos->x = 0;
@@ -254,7 +254,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	if (Xfocus > (rect.right-rect.left-29) && xCurrentScroll < 2000)
 	{
 		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
+		if (Globals::var().currentDrawMode == DrawTexts)
 			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right)+1);
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, xCurrentScroll + (Xfocus - windowRect.right));
@@ -263,7 +263,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	else if (xCurrentScroll > 0 && Xfocus <= 0)
 	{		
 		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
+		if (Globals::var().currentDrawMode == DrawTexts)
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus-8) < 0 ? 0 : xCurrentScroll + Xfocus - 8);  //留個空位給新輸入文字
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (xCurrentScroll + Xfocus) <= 5 ? 0 : xCurrentScroll + Xfocus - 5);
@@ -278,7 +278,7 @@ void AutoScroll(HWND hwnd, int Xfocus, int Yfocus, int xCurrentScroll, int yCurr
 	else if (yCurrentScroll > 0 && Yfocus < 0)
 	{
 		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
+		if (Globals::var().currentDrawMode == DrawTexts)
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus -10 ) < 0 ? 0 : yCurrentScroll + Yfocus -10);
 		else
 			wParam = MAKEWPARAM(SB_THUMBTRACK, (yCurrentScroll + Yfocus) < 0 ? 0 : yCurrentScroll + Yfocus);
@@ -297,7 +297,7 @@ void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCu
 	int left = (obj->ptBeg.x < obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
 	int bottom = (obj->ptBeg.y > obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
 	int right = (obj->ptBeg.x > obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
-	globals::var().autoScrolling = true;
+	Globals::var().autoScrolling = true;
 
 	POINT p;  //p is mouse position
 	GetCursorPos(&p);
@@ -327,7 +327,7 @@ void AutoScrollObject(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCu
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
 
-	globals::var().autoScrolling = false;
+	Globals::var().autoScrolling = false;
 }
 
 //for scrolling while resizing object.
@@ -338,7 +338,7 @@ void AutoScrollObjectResize(HWND hwnd, const DrawObj* obj, int xCurrentScroll, i
 	int left = (obj->ptBeg.x < obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
 	int bottom = (obj->ptBeg.y > obj->ptEnd.y ? obj->ptBeg.y : obj->ptEnd.y);
 	int right = (obj->ptBeg.x > obj->ptEnd.x ? obj->ptBeg.x : obj->ptEnd.x);
-	globals::var().autoScrolling = true;
+	Globals::var().autoScrolling = true;
 
 	POINT p;  //p is mouse position
 	GetCursorPos(&p);
@@ -393,24 +393,16 @@ void AutoScrollObjectResize(HWND hwnd, const DrawObj* obj, int xCurrentScroll, i
 //we only compare ptEnd when is drawing the object on ptEnd
 void AutoScrollObjectWhenDrawing(HWND hwnd, const DrawObj* obj, int xCurrentScroll, int yCurrentScroll, RECT windowRect)
 {
-	globals::var().autoScrolling = true;
+	Globals::var().autoScrolling = true;
 	
 	if (obj->ptEnd.x - xCurrentScroll > windowRect.right && xCurrentScroll < 2000)
 	{
-		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x - windowRect.right);
-		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x - windowRect.right);
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x - windowRect.right);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 	else if (xCurrentScroll > 0 && obj->ptEnd.x - xCurrentScroll < 0)
 	{
-		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x < 0 ? 0 : obj->ptEnd.x);
-		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x < 0 ? 0 : obj->ptEnd.x);
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.x < 0 ? 0 : obj->ptEnd.x);
 		SendMessage(hwnd, WM_HSCROLL, wParam, NULL);
 	}
 
@@ -421,17 +413,13 @@ void AutoScrollObjectWhenDrawing(HWND hwnd, const DrawObj* obj, int xCurrentScro
 	}
 	else if (yCurrentScroll > 0 && obj->ptEnd.y - yCurrentScroll < 0)
 	{
-		WPARAM wParam;
-		if (globals::var().currentDrawMode == 3)
-			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.y < 0 ? 0 : obj->ptEnd.y);
-		else
-			wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.y < 0 ? 0 : obj->ptEnd.y);
+		WPARAM wParam = MAKEWPARAM(SB_THUMBTRACK, obj->ptEnd.y < 0 ? 0 : obj->ptEnd.y);
 		SendMessage(hwnd, WM_VSCROLL, wParam, NULL);
 	}
-	globals::var().autoScrolling = false;
+	Globals::var().autoScrolling = false;
 }
 
-RECT getLocalCoordinates(HWND hWnd)
+RECT GetLocalCoordinates(HWND hWnd)
 {
 	RECT Rect;
 	GetWindowRect(hWnd, &Rect);
@@ -441,12 +429,12 @@ RECT getLocalCoordinates(HWND hWnd)
 
 void CleanObjects(HWND hWnd)
 {
-	for (auto& it : globals::var().DrawObjList)  //delete each pointer. 
+	for (auto& it : Globals::var().drawObjList)  //delete each pointer. 
 		delete(it);
-	globals::var().DrawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
-	globals::var().selectedObjectPtr = nullptr;
-	globals::var().hasSelected = false;
-	globals::var().pastebinObjectPtr = nullptr;
+	Globals::var().drawObjList.clear();  //clear() does not delete memory! WTF! (or use smart pointers) (line 170)
+	Globals::var().selectedObjectPtr = nullptr;
+	Globals::var().hasSelected = false;
+	Globals::var().pastebinObjectPtr = nullptr;
 	InvalidateRect(hWnd, NULL, TRUE);
 }
 
@@ -460,19 +448,19 @@ void SetTitle(string name, HWND hWnd)
 
 void ChangeToolsSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().selectedObjectPtr != nullptr && position!=4)  //de-select the current object
-		globals::var().selectedObjectPtr = nullptr;
+	if (Globals::var().selectedObjectPtr != nullptr && position!=4)  //de-select the current object
+		Globals::var().selectedObjectPtr = nullptr;
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具
 	for (int i = 0; i < 5; i++)
 	{
 		if (i == position)
 		{
-			SendMessage(globals::var().myButton[i], BM_SETSTATE, BN_PUSHED, 0);
+			SendMessage(Globals::var().myButton[i], BM_SETSTATE, BN_PUSHED, 0);
 			CheckMenuItem(hMenu2, i, MF_CHECKED | MF_BYPOSITION);
 		}
 		else
 		{
-			SendMessage(globals::var().myButton[i], BM_SETSTATE, 0, 0);
+			SendMessage(Globals::var().myButton[i], BM_SETSTATE, 0, 0);
 			CheckMenuItem(hMenu2, i, MF_UNCHECKED | MF_BYPOSITION);
 		}
 	}
@@ -480,25 +468,25 @@ void ChangeToolsSelectionState(int position, HMENU hMenu)
 
 void ChangeColorsSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished)  //change newText
+	if (Globals::var().currentDrawMode == DrawTexts && Globals::var().newText.startFinished)  //change newText
 	{
-		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
-		globals::var().newText.color = position;
-		globals::var().modifyState = 1;
-		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
-		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+		Globals::var().mlog.OP_modifyStart(&Globals::var().newText, -1);
+		Globals::var().newText.color = position;
+		Globals::var().modifyState = 1;
+		Globals::var().mlog.OP_modifyEnd(&Globals::var().newText);
+		InvalidateRect(Globals::var().hWndFather, NULL, FALSE);
 	}
-	else if (globals::var().selectedObjectPtr != nullptr)  //change selected object
+	else if (Globals::var().selectedObjectPtr != nullptr)  //change selected object
 	{
-		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
-		if (it != globals::var().DrawObjList.end())
+		auto it = find(Globals::var().drawObjList.begin(), Globals::var().drawObjList.end(), Globals::var().selectedObjectPtr);
+		if (it != Globals::var().drawObjList.end())
 		{
-			int pos = distance(globals::var().DrawObjList.begin(), it);
-			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
-			globals::var().selectedObjectPtr->color = position;
-			globals::var().modifyState = 1;
-			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
-			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+			int pos = distance(Globals::var().drawObjList.begin(), it);
+			Globals::var().mlog.OP_modifyStart(Globals::var().selectedObjectPtr, pos);
+			Globals::var().selectedObjectPtr->color = position;
+			Globals::var().modifyState = 1;
+			Globals::var().mlog.OP_modifyEnd(Globals::var().selectedObjectPtr);
+			InvalidateRect(Globals::var().hWndFather, NULL, FALSE);
 		}
 	}
 
@@ -519,25 +507,25 @@ void ChangeColorsSelectionState(int position, HMENU hMenu)
 
 void ChangeBGSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().currentDrawMode == 3 && globals::var().newText.startFinished)  //change newText
+	if (Globals::var().currentDrawMode == DrawTexts && Globals::var().newText.startFinished)  //change newText
 	{
-		globals::var().mlog.OP_modifyStart(&globals::var().newText, -1);
-		globals::var().newText.backgroundColor = position;
-		globals::var().modifyState = 1;
-		globals::var().mlog.OP_modifyEnd(&globals::var().newText);
-		InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+		Globals::var().mlog.OP_modifyStart(&Globals::var().newText, -1);
+		Globals::var().newText.backgroundColor = position;
+		Globals::var().modifyState = 1;
+		Globals::var().mlog.OP_modifyEnd(&Globals::var().newText);
+		InvalidateRect(Globals::var().hWndFather, NULL, FALSE);
 	}
-	else if (globals::var().selectedObjectPtr != nullptr)  //change selected object
+	else if (Globals::var().selectedObjectPtr != nullptr)  //change selected object
 	{
-		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
-		if (it != globals::var().DrawObjList.end())
+		auto it = find(Globals::var().drawObjList.begin(), Globals::var().drawObjList.end(), Globals::var().selectedObjectPtr);
+		if (it != Globals::var().drawObjList.end())
 		{
-			int pos = distance(globals::var().DrawObjList.begin(), it);
-			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
-			globals::var().selectedObjectPtr->backgroundColor = position;
-			globals::var().modifyState = 1;
-			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
-			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+			int pos = distance(Globals::var().drawObjList.begin(), it);
+			Globals::var().mlog.OP_modifyStart(Globals::var().selectedObjectPtr, pos);
+			Globals::var().selectedObjectPtr->backgroundColor = position;
+			Globals::var().modifyState = 1;
+			Globals::var().mlog.OP_modifyEnd(Globals::var().selectedObjectPtr);
+			InvalidateRect(Globals::var().hWndFather, NULL, FALSE);
 		}
 	}
 
@@ -558,16 +546,16 @@ void ChangeBGSelectionState(int position, HMENU hMenu)
 
 void ChangeLineSelectionState(int position, HMENU hMenu)
 {
-	if (globals::var().selectedObjectPtr != nullptr && globals::var().selectedObjectPtr->objectType != 4)
+	if (Globals::var().selectedObjectPtr != nullptr && Globals::var().selectedObjectPtr->objectType != 4)
 	{
-		auto it = find(globals::var().DrawObjList.begin(), globals::var().DrawObjList.end(), globals::var().selectedObjectPtr);
-		if (it != globals::var().DrawObjList.end())
+		auto it = find(Globals::var().drawObjList.begin(), Globals::var().drawObjList.end(), Globals::var().selectedObjectPtr);
+		if (it != Globals::var().drawObjList.end())
 		{
-			int pos = distance(globals::var().DrawObjList.begin(), it);
-			globals::var().mlog.OP_modifyStart(globals::var().selectedObjectPtr, pos);
-			globals::var().selectedObjectPtr->lineWidth = position;
-			globals::var().mlog.OP_modifyEnd(globals::var().selectedObjectPtr);
-			InvalidateRect(globals::var().hWndFather, NULL, FALSE);
+			int pos = distance(Globals::var().drawObjList.begin(), it);
+			Globals::var().mlog.OP_modifyStart(Globals::var().selectedObjectPtr, pos);
+			Globals::var().selectedObjectPtr->lineWidth = position;
+			Globals::var().mlog.OP_modifyEnd(Globals::var().selectedObjectPtr);
+			InvalidateRect(Globals::var().hWndFather, NULL, FALSE);
 		}
 	}
 	HMENU hMenu2 = GetSubMenu(hMenu, 2);   //hMenu2 = 工具

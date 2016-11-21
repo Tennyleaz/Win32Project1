@@ -11,7 +11,7 @@ void CircleObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 		return;
 	if (ptBeg.x == ptEnd.x && ptBeg.y == ptEnd.y)
 		return;
-	HPEN hPen = switchColor();
+	HPEN hPen = SwitchColor();
 	SelectObject(hdc, hPen);
 	HBRUSH hBrush;
 	switch (backgroundColor)
@@ -55,7 +55,7 @@ void CircleObj::Paint(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(hPen);
 	if (hBrush != NULL)
 		DeleteObject(hBrush);
-	releaseColor(hdc);
+	ReleaseColor(hdc);
 }
 
 void CircleObj::PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset)

@@ -19,7 +19,6 @@ class mylog
 public:
 	mylog();
 	~mylog();
-	//void Commit(json J);
 	void Undo();
 	void Redo();
 	void ClearLogs();

@@ -5,6 +5,7 @@
 #include <list>
 #include <vector>
 using namespace std;
+enum DrawType {Line = 1, Rect, Circle, Text};
 
 class DrawObj
 {
@@ -17,14 +18,14 @@ public:
 	int lineWidth; //1~5
 	bool startFinished, endFinished;
 	DrawObj();
-	void clean();
+	void Clean();
 	virtual ~DrawObj();
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset) = 0;
 	virtual bool CheckObjectCollision(int mouseX, int mouseY) = 0;  //x and y is absolute position on background
 	void PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset);
-	void makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth); //x and y is absolute position on background
-	void makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
+	void MakeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth); //x and y is absolute position on background
+	void MakeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll); //x and y is related position
 	int CheckMouseIsOnSizingOpint(int mouseX, int mouseY);	//return 0~4, 0 is normal mouse
 	void StartToMove(int mouseX, int mouseY);  //prepare to move or resize the object. x and y is absolute position on background
 	virtual void Moving(int mouseX, int mouseY);
@@ -32,9 +33,8 @@ public:
 protected:
 	int originalMouseX, originalMouseY;
 	POINT originalBegin, originalEnd;
-	HPEN switchColor();
-	void releaseColor(HDC hdc);
-	//HBRUSH switchBackgroundColor();
+	HPEN SwitchColor();
+	void ReleaseColor(HDC hdc);
 };
 
 class LineObj : public DrawObj
@@ -51,10 +51,10 @@ class TextObj : public DrawObj
 {
 private:
 	int textWidth, textHeight, maxTextWidth;
-	bool addChar(int c);
-	bool addNewLine();
-	bool backspace();
-	bool del();
+	bool AddChar(int c);
+	bool AddNewLine();
+	bool Backspace();
+	bool Del();
 public:
 	//int textWidth, textHeight, maxTextWidth;
 	vector<string> text;
@@ -62,7 +62,7 @@ public:
 	POINT caretPos; //carerPos is calculated from inputPos
 	POINT inputPos; //inputPos is related to text vector
 	TextObj();
-	void clean();
+	void Clean();
 	virtual ~TextObj();
 	virtual void Paint(HDC hdc, int Xoffset, int Yoffset);
 	virtual void PaintSelectedRect(HDC hdc, int Xoffset, int Yoffset);

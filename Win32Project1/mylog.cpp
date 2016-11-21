@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "WM_Command.h"
 
+enum Operations {Add, Del, Move, Resize, Edit, Texting};
+
 mylog::mylog() { }
 
 mylog::~mylog() { }
@@ -22,80 +24,80 @@ void mylog::Undo()
 	int op = J["operation"];
 	switch (op)
 	{
-	case 0:  //undo add
+	case Add:  //undo add
 	{
 		//just delete the tail !
-		delete globals::var().DrawObjList.back();
-		globals::var().DrawObjList.pop_back();
-		globals::var().selectedObjectPtr = nullptr;
-		globals::var().hasSelected = false;
+		delete Globals::var().drawObjList.back();
+		Globals::var().drawObjList.pop_back();
+		Globals::var().selectedObjectPtr = nullptr;
+		Globals::var().hasSelected = false;
 		break;
 	}
-	case 1:  //undo delete
+	case Del:  //undo delete
 	{
 		int pos = J["which"];
 
 		if (pos == -1)  //for add back newText
 		{
-			globals::var().newText.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			globals::var().newText.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().newText.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			Globals::var().newText.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
 			vector<string> text = J["text"];
-			globals::var().newText.text = text;
-			globals::var().newText.inputPos.x = J["inputpos"][0];
-			globals::var().newText.inputPos.y = J["inputpos"][1];
-			globals::var().newText.CalculateCaretPosition();
-			globals::var().newText.startFinished = true;
-			globals::var().newText.endFinished = false;
+			Globals::var().newText.text = text;
+			Globals::var().newText.inputPos.x = J["inputpos"][0];
+			Globals::var().newText.inputPos.y = J["inputpos"][1];
+			Globals::var().newText.CalculateCaretPosition();
+			Globals::var().newText.startFinished = true;
+			Globals::var().newText.endFinished = false;
 
 			//select the newText
-			globals::var().selectedObjectPtr = &globals::var().newText;
-			globals::var().hasSelected = true;
+			Globals::var().selectedObjectPtr = &Globals::var().newText;
+			Globals::var().hasSelected = true;
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 		//add back the object in the position
 		switch ((int)J["objectType"])
 		{
-		case 1:
+		case Line:
 		{
 			LineObj newLine;
-			newLine.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newLine.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
-			globals::var().DrawObjList.insert(it, new LineObj(newLine));
+			newLine.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newLine.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().drawObjList.insert(it, new LineObj(newLine));
 			break;
 		}
-		case 2:
+		case Rect:
 		{
 			RectangularObj newRect;
-			newRect.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newRect.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
-			globals::var().DrawObjList.insert(it, new RectangularObj(newRect));
+			newRect.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newRect.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().drawObjList.insert(it, new RectangularObj(newRect));
 			break;
 		}
-		case 3:
+		case Circle:
 		{
 			CircleObj newCircle;
-			newCircle.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newCircle.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
-			globals::var().DrawObjList.insert(it, new CircleObj(newCircle));
+			newCircle.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newCircle.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().drawObjList.insert(it, new CircleObj(newCircle));
 			break;
 		}
-		case 4:
+		case Text:
 		{
 			TextObj newText;
-			newText.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newText.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			newText.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newText.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
 			vector<string> text = J["text"];
 			newText.text = text;
-			globals::var().DrawObjList.insert(it, new TextObj(newText));
+			Globals::var().drawObjList.insert(it, new TextObj(newText));
 			break;
 		}
 		}
 		break;
 	}
-	case 2:  //undo move
+	case Move:  //undo move
 	{
 		//move back the ptBeg/End
 		int pos = J["which"];
@@ -105,14 +107,14 @@ void mylog::Undo()
 			int deltaX, deltaY;
 			deltaX = J["deltax"];
 			deltaY = J["deltay"];
-			globals::var().newText.ptBeg.x = J["start"][0];
-			globals::var().newText.ptBeg.y = J["start"][1];
-			globals::var().newText.ptEnd.x += deltaX;
-			globals::var().newText.ptEnd.y += deltaY;
+			Globals::var().newText.ptBeg.x = J["start"][0];
+			Globals::var().newText.ptBeg.y = J["start"][1];
+			Globals::var().newText.ptEnd.x += deltaX;
+			Globals::var().newText.ptEnd.y += deltaY;
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 
 		int deltaX, deltaY;
@@ -124,21 +126,21 @@ void mylog::Undo()
 		(*it)->ptEnd.y += deltaY;
 		break;
 	}
-	case 3:  //undo resize
+	case Resize:  //undo resize
 	{
 		//roll back to old points
 		int pos = J["which"];
 
 		if (pos == -1)  //for newText
 		{
-			globals::var().newText.ptBeg.x = J["oldBegin"][0];
-			globals::var().newText.ptBeg.y = J["oldBegin"][1];
-			globals::var().newText.ptEnd.x = J["oldEnd"][0];
-			globals::var().newText.ptEnd.y = J["oldEnd"][1];
+			Globals::var().newText.ptBeg.x = J["oldBegin"][0];
+			Globals::var().newText.ptBeg.y = J["oldBegin"][1];
+			Globals::var().newText.ptEnd.x = J["oldEnd"][0];
+			Globals::var().newText.ptEnd.y = J["oldEnd"][1];
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 
 		(*it)->ptBeg.x = J["oldBegin"][0];
@@ -147,19 +149,19 @@ void mylog::Undo()
 		(*it)->ptEnd.y = J["oldEnd"][1];
 		break;
 	}
-	case 4:  //undo modify
+	case Edit:  //undo modify
 	{
 		//revert old color/width
 		int pos = J["which"];
 
 		if (pos == -1)  //for newText
 		{
-			globals::var().newText.color = J["oldColor"];
-			globals::var().newText.backgroundColor = J["oldBgColor"];
+			Globals::var().newText.color = J["oldColor"];
+			Globals::var().newText.backgroundColor = J["oldBgColor"];
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 
 		(*it)->color = J["oldColor"];
@@ -174,7 +176,7 @@ void mylog::Undo()
 		}
 		break;
 	}
-	case 5:  //undo modify text
+	case Texting:  //undo modify text
 	{
 		int pos = J["which"];
 		vector<string> vs = J["oldText"];
@@ -184,7 +186,7 @@ void mylog::Undo()
 
 		if (pos != -1)
 		{
-			auto it = globals::var().DrawObjList.begin();
+			auto it = Globals::var().drawObjList.begin();
 			std::advance(it, pos);
 			TextObj* t = dynamic_cast<TextObj*>((*it));
 			t->text = vs;
@@ -211,70 +213,70 @@ void mylog::Redo()
 	int op = J["operation"];
 	switch (op)
 	{
-	case 0:  //redo add
+	case Add:  //redo add
 	{
 		//add back the object in the position
 		switch ((int)J["objectType"])
 		{
-		case 1:
+		case Line:
 		{
 			LineObj newLine;
-			newLine.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newLine.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
-			globals::var().DrawObjList.push_back(new LineObj(newLine));
+			newLine.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newLine.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().drawObjList.push_back(new LineObj(newLine));
 			break;
 		}
-		case 2:
+		case Rect:
 		{
 			RectangularObj newRect;
-			newRect.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newRect.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
-			globals::var().DrawObjList.push_back(new RectangularObj(newRect));
+			newRect.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newRect.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().drawObjList.push_back(new RectangularObj(newRect));
 			break;
 		}
-		case 3:
+		case Circle:
 		{
 			CircleObj newCircle;
-			newCircle.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newCircle.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
-			globals::var().DrawObjList.push_back(new CircleObj(newCircle));
+			newCircle.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newCircle.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			Globals::var().drawObjList.push_back(new CircleObj(newCircle));
 			break;
 		}
-		case 4:
+		case Text:
 		{
 			TextObj newText;
-			newText.makeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
-			newText.makeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
+			newText.MakeStart(J["ptBeg"][0], J["ptBeg"][1], J["color"], J["backgroundColor"], J["lineWidth"]);
+			newText.MakeEnd(J["ptEnd"][0], J["ptEnd"][1], 0, 0);
 			vector<string> text = J["text"];
 			newText.text = text;
-			globals::var().DrawObjList.push_back(new TextObj(newText));
+			Globals::var().drawObjList.push_back(new TextObj(newText));
 			break;
 		}
 		}
 		break;
 	}
-	case 1:  //redo delete
+	case Del:  //redo delete
 	{
 		//delete the given position
 		int pos = J["which"];
 
 		if (pos == -1)  //for newText
 		{
-			globals::var().newText.clean();
+			Globals::var().newText.Clean();
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 		DrawObj * ptr = *it;
-		globals::var().DrawObjList.erase(it);
+		Globals::var().drawObjList.erase(it);
 		delete ptr;
 
-		globals::var().selectedObjectPtr = nullptr;
-		globals::var().hasSelected = false;
+		Globals::var().selectedObjectPtr = nullptr;
+		Globals::var().hasSelected = false;
 		break;
 	}
-	case 2:  //redo move
+	case Move:  //redo move
 	{
 		//move back the ptBeg/End
 		int pos = J["which"];
@@ -283,14 +285,14 @@ void mylog::Redo()
 			int deltaX, deltaY;
 			deltaX = J["deltax"];
 			deltaY = J["deltay"];
-			globals::var().newText.ptBeg.x -= deltaX;
-			globals::var().newText.ptBeg.y -= deltaY;
-			globals::var().newText.ptEnd.x -= deltaX;
-			globals::var().newText.ptEnd.y -= deltaY;
+			Globals::var().newText.ptBeg.x -= deltaX;
+			Globals::var().newText.ptBeg.y -= deltaY;
+			Globals::var().newText.ptEnd.x -= deltaX;
+			Globals::var().newText.ptEnd.y -= deltaY;
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 
 		int deltaX, deltaY;
@@ -302,21 +304,21 @@ void mylog::Redo()
 		(*it)->ptEnd.y -= deltaY;
 		break;
 	}
-	case 3:  //redo resize
+	case Resize:  //redo resize
 	{
 		//redo new points
 		int pos = J["which"];
 
 		if (pos == -1)  //for newText
 		{
-			globals::var().newText.ptBeg.x = J["newBegin"][0];
-			globals::var().newText.ptBeg.y = J["newBegin"][1];
-			globals::var().newText.ptEnd.x = J["newEnd"][0];
-			globals::var().newText.ptEnd.y = J["newEnd"][1];
+			Globals::var().newText.ptBeg.x = J["newBegin"][0];
+			Globals::var().newText.ptBeg.y = J["newBegin"][1];
+			Globals::var().newText.ptEnd.x = J["newEnd"][0];
+			Globals::var().newText.ptEnd.y = J["newEnd"][1];
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 
 		(*it)->ptBeg.x = J["newBegin"][0];
@@ -325,18 +327,18 @@ void mylog::Redo()
 		(*it)->ptEnd.y = J["newEnd"][1];
 		break;
 	}
-	case 4:  //redo modify
+	case Edit:  //redo modify
 	{
 		//redo new points
 		int pos = J["which"];
 		if (pos == -1)  //for newText
 		{
-			globals::var().newText.color = J["newColor"];
-			globals::var().newText.backgroundColor = J["newBgColor"];
+			Globals::var().newText.color = J["newColor"];
+			Globals::var().newText.backgroundColor = J["newBgColor"];
 			break;
 		}
 
-		auto it = globals::var().DrawObjList.begin();
+		auto it = Globals::var().drawObjList.begin();
 		std::advance(it, pos);
 		string test = J.dump();
 		(*it)->color = J["newColor"];
@@ -350,7 +352,7 @@ void mylog::Redo()
 		}
 		break;
 	}
-	case 5:  //redo modify text
+	case Texting:  //redo modify text
 	{
 		string test = J.dump();
 		int pos = J["which"];
@@ -361,7 +363,7 @@ void mylog::Redo()
 
 		if (pos != -1)
 		{
-			auto it = globals::var().DrawObjList.begin();
+			auto it = Globals::var().drawObjList.begin();
 			std::advance(it, pos);
 			TextObj* t = dynamic_cast<TextObj*>((*it));
 			t->text = vs;
@@ -397,7 +399,7 @@ void mylog::PushObject(DrawObj* it, json jit)
 	jit["color"] = it->color;
 	jit["backgroundColor"] = it->backgroundColor;
 	jit["lineWidth"] = it->lineWidth;
-	if (it->objectType == 4)
+	if (it->objectType == Text)
 	{
 		TextObj* t = dynamic_cast<TextObj*>(it);
 		vector<string> ls = t->text;
@@ -411,14 +413,14 @@ void mylog::PushObject(DrawObj* it, json jit)
 void mylog::OP_add(DrawObj * it)
 {
 	json jit;
-	jit["operation"] = 0;
+	jit["operation"] = Add;
 	PushObject(it, jit);
 }
 
 void mylog::OP_del(DrawObj * it, int pos)
 {
 	json jit;
-	jit["operation"] = 1;
+	jit["operation"] = Del;
 	jit["which"] = pos;
 	PushObject(it, jit);
 }
@@ -428,7 +430,7 @@ void mylog::OP_moveStart(DrawObj * d, int pos)  //pos = -1 means it is the newTe
 {
 	jmove.clear();
 	//know new position of old ptBeg
-	jmove["operation"] = 2;
+	jmove["operation"] = Move;
 	jmove["start"] = { d->ptBeg.x, d->ptBeg.y };
 	jmove["which"] = pos;
 }
@@ -451,7 +453,7 @@ void mylog::OP_sizeStart(DrawObj * d, int pos)  //pos = -1 meas newText
 {
 	jmove.clear();
 	//know new position of old ptBeg
-	jmove["operation"] = 3;
+	jmove["operation"] = Resize;
 	jmove["oldBegin"] = { d->ptBeg.x, d->ptBeg.y };
 	jmove["oldEnd"] = { d->ptEnd.x, d->ptEnd.y };
 	jmove["which"] = pos;
@@ -470,7 +472,7 @@ void mylog::OP_sizeEnd(DrawObj * d)
 void mylog::OP_textStart(DrawObj * d, int pos)  //pos = -1 means it is the newText
 {
 	jmove.clear();
-	jmove["operation"] = 5;
+	jmove["operation"] = Texting;
 
 	TextObj* t = dynamic_cast<TextObj*>(d);
 	vector<string> vs = t->text;
@@ -494,7 +496,7 @@ void mylog::OP_textEnd(DrawObj * d)
 void mylog::OP_modifyStart(DrawObj * d, int pos)  //if pos = -1 means newText
 {
 	jmove.clear();
-	jmove["operation"] = 4;
+	jmove["operation"] = Operations::Edit;
 	jmove["oldColor"] = d->color;
 	jmove["which"] = pos;
 	if (d->objectType < 4)

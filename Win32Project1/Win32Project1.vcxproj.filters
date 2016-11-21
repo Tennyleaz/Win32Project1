@@ -48,10 +48,10 @@
     <ClInclude Include="WM_Command.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="globals.h">
+    <ClInclude Include="Globals.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="mylog.h">
+    <ClInclude Include="Mylog.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,10 +86,10 @@
     <ClCompile Include="Save.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
-    <ClCompile Include="globals.cpp">
+    <ClCompile Include="Globals.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
-    <ClCompile Include="mylog.cpp">
+    <ClCompile Include="Mylog.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>

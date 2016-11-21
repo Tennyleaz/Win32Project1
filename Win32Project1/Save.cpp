@@ -29,13 +29,13 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 	PWSTR filePath = BasicFileSave();
 	if (filePath)
 	{
-		string fp = wstr_to_str(filePath);
-		if (!end_with(fp, ".json"))
+		string fp = WstrToStr(filePath);
+		if (!EndWith(fp, ".json"))
 			fp.append(".json");
 		outfile.open(fp);
 		outfile << j << endl;
 		outfile.close();
-		globals::var().lastFilePath = filePath;
+		Globals::var().lastFilePath = filePath;
 	}
 	else
 	{
@@ -45,7 +45,7 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 	outfile.close();
 
 	//pass the file name to main
-	string name = wstr_to_str(filePath);
+	string name = WstrToStr(filePath);
 	auto const pos = name.find_last_of('\\');
 	auto const result = name.substr(pos + 1);
 	fileName = result;
@@ -55,7 +55,7 @@ int SaveToFile(const list<DrawObj*>& saveList, string& fileName)
 
 int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 {
-	globals::var().preSelectObject = nullptr;  //this is for deleted pointer workaround
+	Globals::var().preSelectObject = nullptr;  //this is for deleted pointer workaround
 	PWSTR filePath = BasicFileOpen();  //open file path
 	if (!filePath)
 	{
@@ -77,8 +77,8 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 	infile.close();
 
 	//pass the file name to main
-	globals::var().lastFilePath = filePath;
-	string name = wstr_to_str(filePath);
+	Globals::var().lastFilePath = filePath;
+	string name = WstrToStr(filePath);
 	auto const pos = name.find_last_of('\\');
 	auto const result = name.substr(pos + 1);
 	fileName = result;
@@ -91,35 +91,35 @@ int ReadFromFile(list<DrawObj*>& readList, string& fileName)
 		json j5 = *it;
 		switch ((int)j5["objectType"])
 		{
-		case 1:
+		case Line:
 		{
 			LineObj newLine;
-			newLine.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
-			newLine.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
+			newLine.MakeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
+			newLine.MakeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			readList.push_back(new LineObj(newLine));
 			break;
 		}
-		case 2:
+		case Rect:
 		{
 			RectangularObj newRect;
-			newRect.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
-			newRect.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
+			newRect.MakeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
+			newRect.MakeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			readList.push_back(new RectangularObj(newRect));
 			break;
 		}
-		case 3:
+		case Circle:
 		{
 			CircleObj newCircle;
-			newCircle.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
-			newCircle.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
+			newCircle.MakeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
+			newCircle.MakeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			readList.push_back(new CircleObj(newCircle));
 			break;
 		}
-		case 4:
+		case Text:
 		{
 			TextObj newText;
-			newText.makeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
-			newText.makeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
+			newText.MakeStart(j5["ptBeg"][0], j5["ptBeg"][1], j5["color"], j5["backgroundColor"], j5["lineWidth"]);
+			newText.MakeEnd(j5["ptEnd"][0], j5["ptEnd"][1], 0, 0);
 			vector<string> text = j5["text"];
 			newText.text = text;
 			newText.lineWidth = newText.ptEnd.x - newText.ptBeg.x;
@@ -195,9 +195,9 @@ int SaveToLastFilePath(const list<DrawObj*>& saveList)
 
 	// open a file in write mode.
 	ofstream outfile;
-	if (globals::var().lastFilePath.size() > 0)
+	if (Globals::var().lastFilePath.size() > 0)
 	{
-		string fp = wstr_to_str(globals::var().lastFilePath);
+		string fp = WstrToStr(Globals::var().lastFilePath);
 		outfile.open(fp);
 		if (outfile.is_open()) 
 		{
@@ -326,7 +326,7 @@ PWSTR BasicFileSave()
 	return pszFilePath;
 }
 
-std::string wstr_to_str(const std::wstring &wstr)
+std::string WstrToStr(const std::wstring &wstr)
 {
 	std::string strTo;
 	char *szTo = new char[wstr.length() + 1];
@@ -337,13 +337,13 @@ std::string wstr_to_str(const std::wstring &wstr)
 	return strTo;
 }
 
-bool end_with(const std::string &str, const std::string &suffix)
+bool EndWith(const std::string &str, const std::string &suffix)
 {
 	return str.size() >= suffix.size() &&
 		str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-std::wstring str_to_wstr(const std::string& s)
+std::wstring StrToWstr(const std::string& s)
 {
 	wstring stemp = wstring(s.begin(), s.end());
 	return stemp;
@@ -351,7 +351,7 @@ std::wstring str_to_wstr(const std::string& s)
 
 int DisplayConfirmClearMessageBox(const string fileName)
 {
-	wstring ws = str_to_wstr(fileName);
+	wstring ws = StrToWstr(fileName);
 	ws += L" has been modified.\nDo you want to save it?";
 	int msgboxID = MessageBox(
 		NULL,
@@ -365,7 +365,7 @@ int DisplayConfirmClearMessageBox(const string fileName)
 
 int DisplayConfirmNewFileMessageBox(const string fileName)
 {
-	wstring ws = str_to_wstr(fileName);
+	wstring ws = StrToWstr(fileName);
 	ws += L" has been modified.\nDo you want to save it?";
 	int msgboxID = MessageBox(
 		NULL,

@@ -4,7 +4,7 @@
 #define MAX_LOADSTRING 100
 
 // 全域變數: 
-class globals 
+class Globals 
 {
 public:
 	HINSTANCE hInst;                                // 目前執行個體
@@ -30,13 +30,13 @@ public:
 	bool autoScrolling;
 	TCHAR szBuffer[50];
 	int cxChar, cyChar;
-	list<DrawObj*> DrawObjList; // <-next time may use vector<unique_ptr<DrawObj>> DrawObjList;
+	list<DrawObj*> drawObjList; // <-next time may use vector<unique_ptr<DrawObj>> DrawObjList;
 	mylog mlog;
 
 	//----------------------------------------------------------------------------------------------
 	bool debugMode;
 	//----------------------------------------------------------------------------------------------
 
-	globals();
-	static globals& var();
+	Globals();
+	static Globals& var();
 };

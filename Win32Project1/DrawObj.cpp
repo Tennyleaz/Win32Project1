@@ -11,7 +11,7 @@ DrawObj::DrawObj()
 	lineWidth = 1;
 }
 
-void DrawObj::clean()
+void DrawObj::Clean()
 {
 	ptBeg.x = 0;
 	ptBeg.y = 0;
@@ -60,7 +60,7 @@ void DrawObj::PaintMouseOnRect(HDC hdc, int Xoffset, int Yoffset)
 	DeleteObject(hpenOld);
 }
 
-void DrawObj::makeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth)  //x and y is absolute position on background
+void DrawObj::MakeStart(int x, int y, int currentColor, int currentBgColor, int currentLineWidth)  //x and y is absolute position on background
 {
 	ptBeg.x = x;
 	ptBeg.y = y;
@@ -73,7 +73,7 @@ void DrawObj::makeStart(int x, int y, int currentColor, int currentBgColor, int 
 	lineWidth = currentLineWidth;
 }
 
-void DrawObj::makeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)  //x and y is related position
+void DrawObj::MakeEnd(int x, int y, int xCurrentScroll, int yCurrentScroll)  //x and y is related position
 {
 	ptEnd.x = x + xCurrentScroll;
 	ptEnd.y = y + yCurrentScroll;
@@ -272,7 +272,7 @@ void DrawObj::Resizing(int mouseX, int mouseY, int mode)
 }
 
 //switch the pen (foreground) color
-HPEN DrawObj::switchColor()
+HPEN DrawObj::SwitchColor()
 {
 	HPEN hPen;
 	switch (color)
@@ -307,7 +307,7 @@ HPEN DrawObj::switchColor()
 	return hPen;
 }
 
-void DrawObj::releaseColor(HDC hdc)
+void DrawObj::ReleaseColor(HDC hdc)
 {
 	SelectObject(hdc, GetStockObject(DC_PEN));
 	SelectObject(hdc, GetStockObject(NULL_BRUSH));

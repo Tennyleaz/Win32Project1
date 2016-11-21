@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "globals.h"
 
-globals::globals()
+Globals::Globals()
 {
 	fileName = "Untitiled";
 	currentDrawMode = 0;
@@ -13,9 +13,9 @@ globals::globals()
 	debugMode = false;
 }
 
-globals & globals::var()
+Globals & Globals::var()
 {
 	// TODO: 於此處插入傳回陳述式
-	static globals g;
+	static Globals g;
 	return g;
 }

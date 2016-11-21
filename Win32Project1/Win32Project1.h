@@ -9,7 +9,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    ChildWndProc(HWND, UINT, WPARAM, LPARAM);
 void				AutoScroll(HWND, int, int, int, int, RECT);
-RECT				getLocalCoordinates(HWND hWnd);
+RECT				GetLocalCoordinates(HWND hWnd);
 void				CleanObjects(HWND);
 void				SetTitle(std::string, HWND);
 //void				PushCurrentNewText(TextObj&);
